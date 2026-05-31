@@ -1,0 +1,121 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans:
+    var(--font-vazirmatn), system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-heading:
+    var(--font-vazirmatn), system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --color-stone-50: #fcfbf9;
+  --color-stone-100: #f6f3ee;
+  --color-stone-200: #e3ded6;
+  --color-stone-300: #cbd1cb;
+  --color-stone-400: #a4b3a8;
+  --color-stone-500: #7b8f80;
+  --color-stone-600: #566b5c;
+  --color-stone-700: #3d4f43;
+  --color-stone-800: #24352b;
+  --color-stone-900: #14221a;
+  --color-stone-950: #0d1510;
+
+  --color-gold-50: #fffcf5;
+  --color-gold-100: #fef4e1;
+  --color-gold-200: #fce3b8;
+  --color-gold-300: #f8cc82;
+  --color-gold-400: #f2ad4f;
+  --color-gold-500: #df9a42;
+  --color-gold-600: #c87a2d;
+  --color-gold-700: #9f5720;
+  --color-gold-800: #7d401c;
+  --color-gold-900: #663319;
+  --color-gold-950: #3a1908;
+
+  --color-coffee-50: #fdf8f5;
+  --color-coffee-100: #fbeee6;
+  --color-coffee-200: #f7dacb;
+  --color-coffee-300: #f0bd9f;
+  --color-coffee-400: #e5976b;
+  --color-coffee-500: #dc7944;
+  --color-coffee-600: #cd5f2d;
+  --color-coffee-700: #ab4923;
+  --color-coffee-800: #893d20;
+  --color-coffee-900: #70331d;
+  --color-coffee-950: #3c190d;
+}
+
+:root {
+  --background: #0d1510;
+  --foreground: #f6f3ee;
+
+  --card: #14221a;
+  --card-foreground: #fcfbf9;
+
+  --popover: #14221a;
+  --popover-foreground: #fcfbf9;
+
+  --primary: #df9a42;
+  --primary-foreground: #0d1510;
+
+  --secondary: #24352b;
+  --secondary-foreground: #f6f3ee;
+
+  --muted: #24352b;
+  --muted-foreground: #a4b3a8;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #fcfbf9;
+
+  --border: #24352b;
+  --input: #24352b;
+  --ring: #df9a42;
+
+  --radius: 1rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/40;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary font-sans;
+  }
+}
