@@ -76,8 +76,8 @@ export const MOCK_COMMENTS: Comment[] = [
     replies: [
       {
         id: "comm_1_reply",
-        first_name: "پشتیبان",
-        last_name: "کافه راز",
+        first_name: "پشتیبان کافه راز",
+        last_name: "",
         rating: null,
         comment_text:
           "سلام جناب کریمی عزیز، خوشحالیم که کیفیت رست قهوه رضایت مشتریان ارزشمند شما را به همراه داشته است.",
@@ -97,7 +97,36 @@ export const MOCK_COMMENTS: Comment[] = [
   },
 ];
 
-export const MOCK_ORDERS: Order[] = [];
+export const MOCK_ORDERS: Order[] = [
+  {
+    id: "ORD-9824",
+    productId: "prod_coffee_bulk_01",
+    weightGrams: 1000,
+    quantity: 2,
+    grindType:
+      "ترکیب: ۷۰٪ روبوستا / ۳۰٪ عربیکا | آسیاب: آسیاب اسپرسو (دستگاه برقی)",
+    finalPrice: 3880000,
+    customerName: "علیرضا شفیعی",
+    customerPhone: "09121112233",
+    customerAddress:
+      "تهران، میدان ونک، خیابان گاندی، کوچه چهارم، پلاک ۱۲، واحد ۳",
+    createdAt: "2026-05-30T10:15:00.000Z",
+    status: "completed",
+  },
+  {
+    id: "ORD-7612",
+    productId: "prod_coffee_bulk_01",
+    weightGrams: 250,
+    quantity: 4,
+    grindType: "ترکیب: ۱۰۰٪ عربیکا | آسیاب: دانه کامل (آسیاب نشده)",
+    finalPrice: 2200000,
+    customerName: "سارا فلاحی",
+    customerPhone: "09354445566",
+    customerAddress: "شیراز، بلوار ارم، کوچه بنفشه، ساختمان طلوع، طبقه همکف",
+    createdAt: "2026-05-29T18:40:00.000Z",
+    status: "pending",
+  },
+];
 
 export function getProductWithPricing(id: string): ProductWithPricing | null {
   const product = MOCK_PRODUCTS.find((p) => p.id === id);
@@ -166,11 +195,51 @@ export function addComment(
   }
 }
 
+export function deleteComment(commentId: string): boolean {
+  const index = MOCK_COMMENTS.findIndex((c) => c.id === commentId);
+  if (index !== -1) {
+    MOCK_COMMENTS.splice(index, 1);
+    return true;
+  }
+  for (const parent of MOCK_COMMENTS) {
+    if (parent.replies) {
+      const replyIndex = parent.replies.findIndex((r) => r.id === commentId);
+      if (replyIndex !== -1) {
+        parent.replies.splice(replyIndex, 1);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+export function updateProductDetails(
+  productId: string,
+  name: string,
+  description: string,
+  pricePerKgArabica: number,
+  pricePerKgRobusta: number,
+): boolean {
+  const product = MOCK_PRODUCTS.find((p) => p.id === productId);
+  if (product) {
+    product.name = name;
+    product.description = description;
+  }
+
+  const pricing = MOCK_PRICING_RULES.find((pr) => pr.productId === productId);
+  if (pricing) {
+    pricing.pricePerKgArabica = pricePerKgArabica;
+    pricing.pricePerKgRobusta = pricePerKgRobusta;
+  }
+
+  return !!product && !!pricing;
+}
+
 export function createOrder(
   data: Omit<Order, "id" | "createdAt" | "status">,
 ): Order {
   const newOrder: Order = {
-    id: `ord_${Math.random().toString(36).substring(2, 11).toUpperCase()}`,
+    id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
     ...data,
     createdAt: new Date().toISOString(),
     status: "pending",

@@ -1,6 +1,11 @@
 "use server";
 
-import { getCommentsByProductId, addComment, Comment } from "@/lib/mock-db";
+import {
+  getCommentsByProductId,
+  addComment,
+  deleteComment,
+  Comment,
+} from "@/lib/mock-db";
 import { revalidatePath } from "next/cache";
 
 export type ActionResponse<T> =
@@ -57,5 +62,31 @@ export async function submitCommentAction(payload: {
     };
   } catch (error) {
     return { success: false, error: "مشکلی در ذخیره دیدگاه شما وجود دارد." };
+  }
+}
+
+export async function deleteCommentAction(
+  commentId: string,
+): Promise<ActionResponse<boolean>> {
+  try {
+    if (!commentId) {
+      return { success: false, error: "شناسه دیدگاه ارسال نشده است." };
+    }
+
+    const isDeleted = deleteComment(commentId);
+    if (!isDeleted) {
+      return { success: false, error: "دیدگاه مورد نظر یافت نشد." };
+    }
+
+    revalidatePath("/");
+    revalidatePath("/admin/comments");
+
+    return {
+      success: true,
+      data: true,
+      message: "دیدگاه مورد نظر با موفقیت حذف گردید.",
+    };
+  } catch (error) {
+    return { success: false, error: "خطا در حذف دیدگاه رخ داد." };
   }
 }

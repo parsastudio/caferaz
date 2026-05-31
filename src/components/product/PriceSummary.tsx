@@ -38,7 +38,7 @@ export default function PriceSummary({
         <ShoppingBag className="w-5 h-5 ml-2" />
         {isOutOfStock
           ? "موجودی انبار برای این وزن و تعداد کافی نیست"
-          : "خرید آزمایشی و تسویه حساب"}
+          : "ثبت سفارش و تسویه حساب"}
       </Button>
     </div>
   );

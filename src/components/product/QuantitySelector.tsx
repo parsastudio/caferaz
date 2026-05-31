@@ -23,7 +23,7 @@ export default function QuantitySelector({
         {remainingStockCount > 0 && remainingStockCount <= 5 && (
           <span className="text-xs text-red-400 font-bold flex items-center gap-1.5">
             <Flame className="w-4 h-4 fill-red-500 text-red-500" /> تنها{" "}
-            {remainingStockCount} بسته دیگر در انبار فرضی مانده!
+            {remainingStockCount} بسته دیگر در انبار باقی مانده است!
           </span>
         )}
       </div>

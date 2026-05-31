@@ -36,7 +36,7 @@ export default function SuccessStep({
           سفارش شما با موفقیت ثبت شد!
         </p>
         <p className="text-xs text-stone-400 font-bold flex items-center justify-center gap-1">
-          کد پیگیری شبیه‌سازی شده:{" "}
+          کد پیگیری سفارش:{" "}
           <span className="text-gold-500 font-black tracking-wider">
             {trackingCode}
           </span>
@@ -66,9 +66,9 @@ export default function SuccessStep({
       </div>
 
       <p className="text-[11px] text-stone-400 leading-relaxed max-w-xs mx-auto">
-        آماده‌سازی، رست تخصصی و بسته‌بندی نهایی قهوه شما بر اساس اولویت‌ها
-        شبیه‌سازی شد. به زودی پشتیبانان ما جهت هماهنگی نهایی ارسال با شما تماس
-        خواهند گرفت.
+        آماده‌سازی، رست تخصصی و بسته‌بندی نهایی قهوه شما بر اساس اولویت‌های
+        انتخابی با موفقیت ثبت شد. به زودی پشتیبانان ما جهت هماهنگی نهایی ارسال
+        با شما تماس خواهند گرفت.
       </p>
 
       <Button

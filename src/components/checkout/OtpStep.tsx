@@ -120,7 +120,7 @@ export default function OtpStep({
           کد تایید را وارد کنید
         </p>
         <p className="text-[11px] text-stone-400 leading-relaxed max-w-xs mx-auto">
-          یک پیامک تستی حاوی کد تایید برای شماره{" "}
+          یک پیامک حاوی کد تایید برای شماره{" "}
           <span className="text-gold-400 font-bold tracking-wider" dir="ltr">
             {phone}
           </span>{" "}
