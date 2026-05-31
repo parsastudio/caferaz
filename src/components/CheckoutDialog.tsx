@@ -23,8 +23,10 @@ import { submitOrderAction } from "@/app/actions/order";
 interface CheckoutDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  activeVariant: any;
+  productId: string;
   selectedWeight: number;
+  selectedBlend: string;
+  selectedGrind: string;
   quantity: number;
   finalPrice: number;
 }
@@ -34,8 +36,10 @@ type Step = "user_info" | "shipping" | "otp" | "success";
 export default function CheckoutDialog({
   isOpen,
   onOpenChange,
-  activeVariant,
+  productId,
   selectedWeight,
+  selectedBlend,
+  selectedGrind,
   quantity,
   finalPrice,
 }: CheckoutDialogProps) {
@@ -95,11 +99,11 @@ export default function CheckoutDialog({
 
     try {
       const result = await submitOrderAction({
-        productId: "prod_coffee_bulk_01",
+        productId,
         weightGrams: selectedWeight,
-        quantity: quantity,
-        grindType: activeVariant.grind_type,
-        finalPrice: finalPrice,
+        quantity,
+        blend: selectedBlend,
+        grind: selectedGrind,
         customerName: `${values.firstName} ${values.lastName}`,
         customerPhone: values.phone,
         customerAddress: values.shippingAddress,
@@ -111,8 +115,12 @@ export default function CheckoutDialog({
 
       setFakeTrackingCode(result.data.id);
       setStep("success");
-    } catch (err: any) {
-      setErrorMessage(err.message || "خطایی رخ داد. مجدداً تلاش فرمایید.");
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "خطایی رخ داد. مجدداً تلاش فرمایید.";
+      setErrorMessage(message);
     } finally {
       setIsSubmitting(false);
     }

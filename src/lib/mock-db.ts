@@ -12,24 +12,15 @@ export interface ProductVariantPricing {
   pricePerKgRobusta: number;
 }
 
-export interface CommentReply {
-  id: string;
-  first_name: string;
-  last_name: string;
-  rating: number | null;
-  comment_text: string;
-  created_at: string;
-}
-
 export interface Comment {
   id: string;
-  productId: string;
+  productId?: string;
   first_name: string;
   last_name: string;
   rating: number | null;
   comment_text: string;
   created_at: string;
-  replies?: CommentReply[];
+  replies?: Comment[];
 }
 
 export interface Order {
@@ -44,6 +35,13 @@ export interface Order {
   customerAddress: string;
   createdAt: string;
   status: "pending" | "completed";
+}
+
+export interface ProductWithPricing extends Product {
+  pricing: {
+    pricePerKgArabica: number;
+    pricePerKgRobusta: number;
+  } | null;
 }
 
 export const MOCK_PRODUCTS: Product[] = [
@@ -101,7 +99,7 @@ export const MOCK_COMMENTS: Comment[] = [
 
 export const MOCK_ORDERS: Order[] = [];
 
-export function getProductWithPricing(id: string) {
+export function getProductWithPricing(id: string): ProductWithPricing | null {
   const product = MOCK_PRODUCTS.find((p) => p.id === id);
   if (!product) return null;
 
@@ -130,18 +128,19 @@ export function addComment(
     comment_text: string;
     parentId: string | null;
   },
-): Comment | CommentReply {
+): Comment {
   const newId = `comm_${Date.now()}`;
   const createdAt = new Date().toISOString();
 
   if (data.parentId) {
-    const reply: CommentReply = {
+    const reply: Comment = {
       id: newId,
       first_name: data.first_name,
       last_name: data.last_name,
       rating: null,
       comment_text: data.comment_text,
       created_at: createdAt,
+      replies: [],
     };
     const parentComment = MOCK_COMMENTS.find((c) => c.id === data.parentId);
     if (parentComment) {

@@ -257,10 +257,21 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { Button } from "./ui/button";
 import CommentDialog from "./CommentDialog";
 
+export interface UIComment {
+  id: string;
+  first_name: string;
+  last_name: string;
+  rating: number | null;
+  comment_text: string;
+  created_at: string;
+  is_pending?: boolean;
+  replies?: UIComment[];
+}
+
 interface ProductTabsSectionProps {
   productId: string;
   description: string;
-  initialComments: any[];
+  initialComments: UIComment[];
 }
 
 export default function ProductTabsSection({
@@ -268,7 +279,7 @@ export default function ProductTabsSection({
   description,
   initialComments,
 }: ProductTabsSectionProps) {
-  const [comments, setComments] = useState<any[]>(initialComments);
+  const [comments, setComments] = useState<UIComment[]>(initialComments);
   const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
   const [replyParentId, setReplyParentId] = useState<string | null>(null);
 
@@ -277,7 +288,7 @@ export default function ProductTabsSection({
     comment_text: string;
     rating: number | null;
   }) => {
-    const newLocalComment = {
+    const newLocalComment: UIComment = {
       id: `local_new_${Date.now()}`,
       first_name: newComment.first_name,
       last_name: "",
@@ -366,7 +377,7 @@ export default function ProductTabsSection({
               className="divide-y divide-stone-800/80 bg-stone-900/20 p-6 rounded-2xl border border-stone-900/60 text-right"
               dir="rtl"
             >
-              {comments.map((comment: any) => (
+              {comments.map((comment: UIComment) => (
                 <CommentNode
                   key={comment.id}
                   comment={comment}
@@ -404,7 +415,7 @@ export default function ProductTabsSection({
 }
 
 interface CommentNodeProps {
-  comment: any;
+  comment: UIComment;
   onReply: (parentId: string) => void;
 }
 
@@ -460,7 +471,7 @@ function CommentNode({ comment, onReply }: CommentNodeProps) {
 
       {comment.replies && comment.replies.length > 0 && (
         <div className="mr-9 pr-4 border-r border-stone-800/80 space-y-3 mt-4">
-          {comment.replies.map((reply: any) => (
+          {comment.replies.map((reply: UIComment) => (
             <CommentNode key={reply.id} comment={reply} onReply={onReply} />
           ))}
         </div>
@@ -781,7 +792,7 @@ PATH: ./src/components/CoffeeProductPage.tsx
 "use client";
 
 import React from "react";
-import { useCoffeeProduct } from "@/hooks/useCoffeeProduct";
+import { useCoffeeProduct, CoffeeProduct } from "@/hooks/useCoffeeProduct";
 import ProductVisuals from "./product/ProductVisuals";
 import WeightSelector from "./product/WeightSelector";
 import BlendSelector from "./product/BlendSelector";
@@ -789,11 +800,11 @@ import GrindSelector from "./product/GrindSelector";
 import QuantitySelector from "./product/QuantitySelector";
 import PriceSummary from "./product/PriceSummary";
 import CheckoutDialog from "./CheckoutDialog";
-import ProductTabsSection from "./ProductTabsSection";
+import ProductTabsSection, { UIComment } from "./ProductTabsSection";
 
 interface CoffeeProductPageProps {
-  initialProduct: any;
-  initialComments: any[];
+  initialProduct: CoffeeProduct;
+  initialComments: UIComment[];
 }
 
 export default function CoffeeProductPage({
@@ -820,7 +831,6 @@ export default function CoffeeProductPage({
     priceMetrics,
     remainingStockCount,
     isOutOfStock,
-    variantDetailsSnapshot,
   } = useCoffeeProduct(initialProduct);
 
   return (
@@ -884,11 +894,10 @@ export default function CoffeeProductPage({
       <CheckoutDialog
         isOpen={isCheckoutOpen}
         onOpenChange={setIsCheckoutOpen}
-        activeVariant={{
-          dbVariantId: "mock_variant_id",
-          grind_type: variantDetailsSnapshot,
-        }}
+        productId={initialProduct.id}
         selectedWeight={computedWeight}
+        selectedBlend={selectedBlend}
+        selectedGrind={selectedGrind}
         quantity={quantity}
         finalPrice={priceMetrics.finalPrice}
       />
@@ -928,8 +937,10 @@ import { submitOrderAction } from "@/app/actions/order";
 interface CheckoutDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  activeVariant: any;
+  productId: string;
   selectedWeight: number;
+  selectedBlend: string;
+  selectedGrind: string;
   quantity: number;
   finalPrice: number;
 }
@@ -939,8 +950,10 @@ type Step = "user_info" | "shipping" | "otp" | "success";
 export default function CheckoutDialog({
   isOpen,
   onOpenChange,
-  activeVariant,
+  productId,
   selectedWeight,
+  selectedBlend,
+  selectedGrind,
   quantity,
   finalPrice,
 }: CheckoutDialogProps) {
@@ -1000,11 +1013,11 @@ export default function CheckoutDialog({
 
     try {
       const result = await submitOrderAction({
-        productId: "prod_coffee_bulk_01",
+        productId,
         weightGrams: selectedWeight,
-        quantity: quantity,
-        grindType: activeVariant.grind_type,
-        finalPrice: finalPrice,
+        quantity,
+        blend: selectedBlend,
+        grind: selectedGrind,
         customerName: `${values.firstName} ${values.lastName}`,
         customerPhone: values.phone,
         customerAddress: values.shippingAddress,
@@ -1016,8 +1029,12 @@ export default function CheckoutDialog({
 
       setFakeTrackingCode(result.data.id);
       setStep("success");
-    } catch (err: any) {
-      setErrorMessage(err.message || "خطایی رخ داد. مجدداً تلاش فرمایید.");
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "خطایی رخ داد. مجدداً تلاش فرمایید.";
+      setErrorMessage(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -2923,24 +2940,15 @@ export interface ProductVariantPricing {
   pricePerKgRobusta: number;
 }
 
-export interface CommentReply {
-  id: string;
-  first_name: string;
-  last_name: string;
-  rating: number | null;
-  comment_text: string;
-  created_at: string;
-}
-
 export interface Comment {
   id: string;
-  productId: string;
+  productId?: string;
   first_name: string;
   last_name: string;
   rating: number | null;
   comment_text: string;
   created_at: string;
-  replies?: CommentReply[];
+  replies?: Comment[];
 }
 
 export interface Order {
@@ -2955,6 +2963,13 @@ export interface Order {
   customerAddress: string;
   createdAt: string;
   status: "pending" | "completed";
+}
+
+export interface ProductWithPricing extends Product {
+  pricing: {
+    pricePerKgArabica: number;
+    pricePerKgRobusta: number;
+  } | null;
 }
 
 export const MOCK_PRODUCTS: Product[] = [
@@ -3012,7 +3027,7 @@ export const MOCK_COMMENTS: Comment[] = [
 
 export const MOCK_ORDERS: Order[] = [];
 
-export function getProductWithPricing(id: string) {
+export function getProductWithPricing(id: string): ProductWithPricing | null {
   const product = MOCK_PRODUCTS.find((p) => p.id === id);
   if (!product) return null;
 
@@ -3041,18 +3056,19 @@ export function addComment(
     comment_text: string;
     parentId: string | null;
   },
-): Comment | CommentReply {
+): Comment {
   const newId = `comm_${Date.now()}`;
   const createdAt = new Date().toISOString();
 
   if (data.parentId) {
-    const reply: CommentReply = {
+    const reply: Comment = {
       id: newId,
       first_name: data.first_name,
       last_name: data.last_name,
       rating: null,
       comment_text: data.comment_text,
       created_at: createdAt,
+      replies: [],
     };
     const parentComment = MOCK_COMMENTS.find((c) => c.id === data.parentId);
     if (parentComment) {
@@ -3108,6 +3124,118 @@ import { twMerge } from "tailwind-merge";
 // تابع استاندارد ترکیب کلاس‌های Tailwind برای کامپوننت‌های شادسی‌ان
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+
+----------------------------------------------------------------
+
+================================================================
+PATH: ./src/lib/coffee-calculations.ts
+================================================================
+
+export interface BlendProfile {
+  robusta: number;
+  arabica: number;
+  caffeine: number;
+  body: number;
+  aroma: number;
+  label: string;
+}
+
+export interface PriceMetrics {
+  originalPrice: number;
+  finalPrice: number;
+}
+
+export function getBlendProfile(selectedBlend: string): BlendProfile {
+  switch (selectedBlend) {
+    case "۱۰۰٪ روبوستا":
+      return {
+        robusta: 100,
+        arabica: 0,
+        caffeine: 95,
+        body: 95,
+        aroma: 25,
+        label: "کافئین فوق‌العاده بالا و خامه (کرما) ضخیم",
+      };
+    case "۷۰٪ روبوستا / ۳۰٪ عربیکا":
+      return {
+        robusta: 70,
+        arabica: 30,
+        caffeine: 80,
+        body: 80,
+        aroma: 45,
+        label: "کافئین بالا، غلظت سنگین و تلخی جذاب",
+      };
+    case "۵۰٪ روبوستا / ۵۰٪ عربیکا":
+      return {
+        robusta: 50,
+        arabica: 50,
+        caffeine: 60,
+        body: 60,
+        aroma: 65,
+        label: "بالانس عالی از عطر عربیکا و گیرایی روبوستا",
+      };
+    case "۳۰٪ روبوستا / ۷۰٪ عربیکا":
+      return {
+        robusta: 30,
+        arabica: 70,
+        caffeine: 45,
+        body: 45,
+        aroma: 80,
+        label: "بسیار خوش‌عطر، ترشی ملایم و طعم یاد مرکباتی",
+      };
+    case "۱۰۰٪ عربیکا":
+      return {
+        robusta: 0,
+        arabica: 100,
+        caffeine: 25,
+        body: 25,
+        aroma: 98,
+        label: "رایحه گلی بی‌نظیر، اسیدیته شفاف و طعم تخصصی",
+      };
+    default:
+      return {
+        robusta: 50,
+        arabica: 50,
+        caffeine: 60,
+        body: 60,
+        aroma: 65,
+        label: "",
+      };
+  }
+}
+
+export function calculatePriceMetrics(
+  pricing: { pricePerKgArabica: number; pricePerKgRobusta: number } | null,
+  blendProfile: BlendProfile,
+  weight: number,
+  quantity: number,
+): PriceMetrics {
+  const activePricing = pricing || {
+    pricePerKgArabica: 2200000,
+    pricePerKgRobusta: 1800000,
+  };
+
+  const arabicaRatio = blendProfile.arabica / 100;
+  const robustaRatio = blendProfile.robusta / 100;
+
+  const pricePerKg =
+    activePricing.pricePerKgArabica * arabicaRatio +
+    activePricing.pricePerKgRobusta * robustaRatio;
+
+  const pricePerGram = pricePerKg / 1000;
+  const finalPrice = Math.round(pricePerGram * weight * quantity);
+
+  return { originalPrice: finalPrice, finalPrice };
+}
+
+export function calculateRemainingStock(
+  stockGrams: number | undefined,
+  weight: number,
+): number {
+  const stock = stockGrams !== undefined ? stockGrams : 150000;
+  return Math.floor(stock / weight);
 }
 
 
@@ -3323,10 +3451,20 @@ PATH: ./src/app/actions/order.ts
 
 "use server";
 
-import { createOrder, getOrders } from "@/lib/mock-db";
+import {
+  createOrder,
+  getOrders,
+  getProductWithPricing,
+  Order,
+} from "@/lib/mock-db";
+import {
+  getBlendProfile,
+  calculatePriceMetrics,
+} from "@/lib/coffee-calculations";
 import { revalidatePath } from "next/cache";
+import { ActionResponse } from "./comment";
 
-export async function getOrdersAction() {
+export async function getOrdersAction(): Promise<ActionResponse<Order[]>> {
   try {
     const orders = getOrders();
     return { success: true, data: orders };
@@ -3339,19 +3477,19 @@ export async function submitOrderAction(payload: {
   productId: string;
   weightGrams: number;
   quantity: number;
-  grindType: string;
-  finalPrice: number;
+  blend: string;
+  grind: string;
   customerName: string;
   customerPhone: string;
   customerAddress: string;
-}) {
+}): Promise<ActionResponse<Order>> {
   try {
     const {
       productId,
       weightGrams,
       quantity,
-      grindType,
-      finalPrice,
+      blend,
+      grind,
       customerName,
       customerPhone,
       customerAddress,
@@ -3361,8 +3499,8 @@ export async function submitOrderAction(payload: {
       !productId ||
       !weightGrams ||
       !quantity ||
-      !grindType ||
-      !finalPrice ||
+      !blend ||
+      !grind ||
       !customerName ||
       !customerPhone ||
       !customerAddress
@@ -3373,12 +3511,30 @@ export async function submitOrderAction(payload: {
       };
     }
 
+    const product = getProductWithPricing(productId);
+    if (!product) {
+      return {
+        success: false,
+        error: "محصول مورد نظر یافت نشد.",
+      };
+    }
+
+    const blendProfile = getBlendProfile(blend);
+    const priceMetrics = calculatePriceMetrics(
+      product.pricing,
+      blendProfile,
+      Number(weightGrams),
+      Number(quantity),
+    );
+
+    const secureFinalPrice = priceMetrics.finalPrice;
+
     const newOrder = createOrder({
       productId,
       weightGrams: Number(weightGrams),
       quantity: Number(quantity),
-      grindType,
-      finalPrice: Number(finalPrice),
+      grindType: `ترکیب: ${blend} | آسیاب: ${grind}`,
+      finalPrice: secureFinalPrice,
       customerName,
       customerPhone,
       customerAddress,
@@ -3393,7 +3549,7 @@ export async function submitOrderAction(payload: {
   } catch (error) {
     return {
       success: false,
-      error: "خطایی در فرآیند نهایی‌سازی سفارش رخ داد.",
+      error: "خطایی در فرآیند محاسبات و ثبت نهایی سفارش رخ داد.",
     };
   }
 }
@@ -3407,9 +3563,12 @@ PATH: ./src/app/actions/product.ts
 
 "use server";
 
-import { getProductWithPricing } from "@/lib/mock-db";
+import { getProductWithPricing, ProductWithPricing } from "@/lib/mock-db";
+import { ActionResponse } from "./comment";
 
-export async function getProductAction(productId: string) {
+export async function getProductAction(
+  productId: string,
+): Promise<ActionResponse<ProductWithPricing>> {
   try {
     if (!productId) {
       return { success: false, error: "شناسه محصول ارسال نشده است." };
@@ -3436,10 +3595,16 @@ PATH: ./src/app/actions/comment.ts
 
 "use server";
 
-import { getCommentsByProductId, addComment } from "@/lib/mock-db";
+import { getCommentsByProductId, addComment, Comment } from "@/lib/mock-db";
 import { revalidatePath } from "next/cache";
 
-export async function getCommentsAction(productId: string) {
+export type ActionResponse<T> =
+  | { success: true; data: T; message?: string }
+  | { success: false; error: string };
+
+export async function getCommentsAction(
+  productId: string,
+): Promise<ActionResponse<Comment[]>> {
   try {
     if (!productId) {
       return { success: false, error: "شناسه محصول معتبر نیست." };
@@ -3459,7 +3624,7 @@ export async function submitCommentAction(payload: {
   commentText: string;
   rating: number | null;
   parentId: string | null;
-}) {
+}): Promise<ActionResponse<Comment>> {
   try {
     const { productId, firstName, commentText, rating, parentId } = payload;
 
@@ -3497,19 +3662,89 @@ export async function submitCommentAction(payload: {
 PATH: ./src/hooks/useCoffeeProduct.ts
 ================================================================
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
+import { useCoffeeSelection } from "./useCoffeeSelection";
+import {
+  getBlendProfile,
+  calculatePriceMetrics,
+  calculateRemainingStock,
+} from "@/lib/coffee-calculations";
 
-interface ProductPricing {
+export interface ProductPricing {
   pricePerKgArabica: number;
   pricePerKgRobusta: number;
 }
 
-interface Product {
-  pricing?: ProductPricing;
-  stock_grams?: number;
+export interface CoffeeProduct {
+  id: string;
+  name: string;
+  description: string;
+  stock_grams: number;
+  pricing: ProductPricing | null;
 }
 
-export function useCoffeeProduct(initialProduct: Product) {
+export function useCoffeeProduct(initialProduct: CoffeeProduct) {
+  const selection = useCoffeeSelection();
+
+  const blendProfile = useMemo(() => {
+    return getBlendProfile(selection.selectedBlend);
+  }, [selection.selectedBlend]);
+
+  const computedWeight = useMemo(() => {
+    return selection.isCustomWeight
+      ? selection.customWeightVal
+      : selection.selectedWeight;
+  }, [
+    selection.isCustomWeight,
+    selection.selectedWeight,
+    selection.customWeightVal,
+  ]);
+
+  const priceMetrics = useMemo(() => {
+    return calculatePriceMetrics(
+      initialProduct.pricing,
+      blendProfile,
+      computedWeight,
+      selection.quantity,
+    );
+  }, [
+    initialProduct.pricing,
+    blendProfile,
+    computedWeight,
+    selection.quantity,
+  ]);
+
+  const remainingStockCount = useMemo(() => {
+    return calculateRemainingStock(initialProduct.stock_grams, computedWeight);
+  }, [initialProduct.stock_grams, computedWeight]);
+
+  const isOutOfStock = selection.quantity > remainingStockCount;
+
+  const variantDetailsSnapshot = useMemo(() => {
+    return `ترکیب: ${selection.selectedBlend} | آسیاب: ${selection.selectedGrind}`;
+  }, [selection.selectedBlend, selection.selectedGrind]);
+
+  return {
+    ...selection,
+    blendProfile,
+    computedWeight,
+    priceMetrics,
+    remainingStockCount,
+    isOutOfStock,
+    variantDetailsSnapshot,
+  };
+}
+
+
+----------------------------------------------------------------
+
+================================================================
+PATH: ./src/hooks/useCoffeeSelection.ts
+================================================================
+
+import { useState } from "react";
+
+export function useCoffeeSelection() {
   const [selectedWeight, setSelectedWeight] = useState<number>(250);
   const [isCustomWeight, setIsCustomWeight] = useState<boolean>(false);
   const [customWeightVal, setCustomWeightVal] = useState<number>(300);
@@ -3520,99 +3755,7 @@ export function useCoffeeProduct(initialProduct: Product) {
     "دانه کامل (آسیاب نشده)",
   );
   const [quantity, setQuantity] = useState<number>(1);
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-
-  const blendProfile = useMemo(() => {
-    switch (selectedBlend) {
-      case "۱۰۰٪ روبوستا":
-        return {
-          robusta: 100,
-          arabica: 0,
-          caffeine: 95,
-          body: 95,
-          aroma: 25,
-          label: "کافئین فوق‌العاده بالا و خامه (کرما) ضخیم",
-        };
-      case "۷۰٪ روبوستا / ۳۰٪ عربیکا":
-        return {
-          robusta: 70,
-          arabica: 30,
-          caffeine: 80,
-          body: 80,
-          aroma: 45,
-          label: "کافئین بالا، غلظت سنگین و تلخی جذاب",
-        };
-      case "۵۰٪ روبوستا / ۵۰٪ عربیکا":
-        return {
-          robusta: 50,
-          arabica: 50,
-          caffeine: 60,
-          body: 60,
-          aroma: 65,
-          label: "بالانس عالی از عطر عربیکا و گیرایی روبوستا",
-        };
-      case "۳۰٪ روبوستا / ۷۰٪ عربیکا":
-        return {
-          robusta: 30,
-          arabica: 70,
-          caffeine: 45,
-          body: 45,
-          aroma: 80,
-          label: "بسیار خوش‌عطر، ترشی ملایم و طعم یاد مرکباتی",
-        };
-      case "۱۰۰٪ عربیکا":
-        return {
-          robusta: 0,
-          arabica: 100,
-          caffeine: 25,
-          body: 25,
-          aroma: 98,
-          label: "رایحه گلی بی‌نظیر، اسیدیته شفاف و طعم تخصصی",
-        };
-      default:
-        return {
-          robusta: 50,
-          arabica: 50,
-          caffeine: 60,
-          body: 60,
-          aroma: 65,
-          label: "",
-        };
-    }
-  }, [selectedBlend]);
-
-  const computedWeight = useMemo(() => {
-    return isCustomWeight ? customWeightVal : selectedWeight;
-  }, [isCustomWeight, selectedWeight, customWeightVal]);
-
-  const priceMetrics = useMemo(() => {
-    const pricing = initialProduct.pricing || {
-      pricePerKgArabica: 2200000,
-      pricePerKgRobusta: 1800000,
-    };
-
-    const arabicaRatio = blendProfile.arabica / 100;
-    const robustaRatio = blendProfile.robusta / 100;
-
-    const pricePerKg =
-      pricing.pricePerKgArabica * arabicaRatio +
-      pricing.pricePerKgRobusta * robustaRatio;
-
-    const pricePerGram = pricePerKg / 1000;
-    const finalPrice = Math.round(pricePerGram * computedWeight * quantity);
-
-    return { originalPrice: finalPrice, finalPrice };
-  }, [initialProduct, blendProfile, computedWeight, quantity]);
-
-  const remainingStockCount = useMemo(() => {
-    return Math.floor((initialProduct.stock_grams || 150000) / computedWeight);
-  }, [initialProduct.stock_grams, computedWeight]);
-
-  const isOutOfStock = quantity > remainingStockCount;
-
-  const variantDetailsSnapshot = useMemo(() => {
-    return `ترکیب: ${selectedBlend} | آسیاب: ${selectedGrind}`;
-  }, [selectedBlend, selectedGrind]);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
 
   return {
     selectedWeight,
@@ -3629,12 +3772,6 @@ export function useCoffeeProduct(initialProduct: Product) {
     setQuantity,
     isCheckoutOpen,
     setIsCheckoutOpen,
-    blendProfile,
-    computedWeight,
-    priceMetrics,
-    remainingStockCount,
-    isOutOfStock,
-    variantDetailsSnapshot,
   };
 }
 

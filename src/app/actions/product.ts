@@ -1,8 +1,11 @@
 "use server";
 
-import { getProductWithPricing } from "@/lib/mock-db";
+import { getProductWithPricing, ProductWithPricing } from "@/lib/mock-db";
+import { ActionResponse } from "./comment";
 
-export async function getProductAction(productId: string) {
+export async function getProductAction(
+  productId: string,
+): Promise<ActionResponse<ProductWithPricing>> {
   try {
     if (!productId) {
       return { success: false, error: "شناسه محصول ارسال نشده است." };

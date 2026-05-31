@@ -1,9 +1,19 @@
 "use server";
 
-import { createOrder, getOrders } from "@/lib/mock-db";
+import {
+  createOrder,
+  getOrders,
+  getProductWithPricing,
+  Order,
+} from "@/lib/mock-db";
+import {
+  getBlendProfile,
+  calculatePriceMetrics,
+} from "@/lib/coffee-calculations";
 import { revalidatePath } from "next/cache";
+import { ActionResponse } from "./comment";
 
-export async function getOrdersAction() {
+export async function getOrdersAction(): Promise<ActionResponse<Order[]>> {
   try {
     const orders = getOrders();
     return { success: true, data: orders };
@@ -16,19 +26,19 @@ export async function submitOrderAction(payload: {
   productId: string;
   weightGrams: number;
   quantity: number;
-  grindType: string;
-  finalPrice: number;
+  blend: string;
+  grind: string;
   customerName: string;
   customerPhone: string;
   customerAddress: string;
-}) {
+}): Promise<ActionResponse<Order>> {
   try {
     const {
       productId,
       weightGrams,
       quantity,
-      grindType,
-      finalPrice,
+      blend,
+      grind,
       customerName,
       customerPhone,
       customerAddress,
@@ -38,8 +48,8 @@ export async function submitOrderAction(payload: {
       !productId ||
       !weightGrams ||
       !quantity ||
-      !grindType ||
-      !finalPrice ||
+      !blend ||
+      !grind ||
       !customerName ||
       !customerPhone ||
       !customerAddress
@@ -50,12 +60,30 @@ export async function submitOrderAction(payload: {
       };
     }
 
+    const product = getProductWithPricing(productId);
+    if (!product) {
+      return {
+        success: false,
+        error: "محصول مورد نظر یافت نشد.",
+      };
+    }
+
+    const blendProfile = getBlendProfile(blend);
+    const priceMetrics = calculatePriceMetrics(
+      product.pricing,
+      blendProfile,
+      Number(weightGrams),
+      Number(quantity),
+    );
+
+    const secureFinalPrice = priceMetrics.finalPrice;
+
     const newOrder = createOrder({
       productId,
       weightGrams: Number(weightGrams),
       quantity: Number(quantity),
-      grindType,
-      finalPrice: Number(finalPrice),
+      grindType: `ترکیب: ${blend} | آسیاب: ${grind}`,
+      finalPrice: secureFinalPrice,
       customerName,
       customerPhone,
       customerAddress,
@@ -70,7 +98,7 @@ export async function submitOrderAction(payload: {
   } catch (error) {
     return {
       success: false,
-      error: "خطایی در فرآیند نهایی‌سازی سفارش رخ داد.",
+      error: "خطایی در فرآیند محاسبات و ثبت نهایی سفارش رخ داد.",
     };
   }
 }

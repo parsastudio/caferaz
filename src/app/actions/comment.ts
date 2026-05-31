@@ -1,9 +1,15 @@
 "use server";
 
-import { getCommentsByProductId, addComment } from "@/lib/mock-db";
+import { getCommentsByProductId, addComment, Comment } from "@/lib/mock-db";
 import { revalidatePath } from "next/cache";
 
-export async function getCommentsAction(productId: string) {
+export type ActionResponse<T> =
+  | { success: true; data: T; message?: string }
+  | { success: false; error: string };
+
+export async function getCommentsAction(
+  productId: string,
+): Promise<ActionResponse<Comment[]>> {
   try {
     if (!productId) {
       return { success: false, error: "شناسه محصول معتبر نیست." };
@@ -23,7 +29,7 @@ export async function submitCommentAction(payload: {
   commentText: string;
   rating: number | null;
   parentId: string | null;
-}) {
+}): Promise<ActionResponse<Comment>> {
   try {
     const { productId, firstName, commentText, rating, parentId } = payload;
 

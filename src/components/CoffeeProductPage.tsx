@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useCoffeeProduct } from "@/hooks/useCoffeeProduct";
+import { useCoffeeProduct, CoffeeProduct } from "@/hooks/useCoffeeProduct";
 import ProductVisuals from "./product/ProductVisuals";
 import WeightSelector from "./product/WeightSelector";
 import BlendSelector from "./product/BlendSelector";
@@ -9,11 +9,11 @@ import GrindSelector from "./product/GrindSelector";
 import QuantitySelector from "./product/QuantitySelector";
 import PriceSummary from "./product/PriceSummary";
 import CheckoutDialog from "./CheckoutDialog";
-import ProductTabsSection from "./ProductTabsSection";
+import ProductTabsSection, { UIComment } from "./ProductTabsSection";
 
 interface CoffeeProductPageProps {
-  initialProduct: any;
-  initialComments: any[];
+  initialProduct: CoffeeProduct;
+  initialComments: UIComment[];
 }
 
 export default function CoffeeProductPage({
@@ -40,7 +40,6 @@ export default function CoffeeProductPage({
     priceMetrics,
     remainingStockCount,
     isOutOfStock,
-    variantDetailsSnapshot,
   } = useCoffeeProduct(initialProduct);
 
   return (
@@ -104,11 +103,10 @@ export default function CoffeeProductPage({
       <CheckoutDialog
         isOpen={isCheckoutOpen}
         onOpenChange={setIsCheckoutOpen}
-        activeVariant={{
-          dbVariantId: "mock_variant_id",
-          grind_type: variantDetailsSnapshot,
-        }}
+        productId={initialProduct.id}
         selectedWeight={computedWeight}
+        selectedBlend={selectedBlend}
+        selectedGrind={selectedGrind}
         quantity={quantity}
         finalPrice={priceMetrics.finalPrice}
       />

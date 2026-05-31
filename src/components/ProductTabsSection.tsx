@@ -6,10 +6,21 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { Button } from "./ui/button";
 import CommentDialog from "./CommentDialog";
 
+export interface UIComment {
+  id: string;
+  first_name: string;
+  last_name: string;
+  rating: number | null;
+  comment_text: string;
+  created_at: string;
+  is_pending?: boolean;
+  replies?: UIComment[];
+}
+
 interface ProductTabsSectionProps {
   productId: string;
   description: string;
-  initialComments: any[];
+  initialComments: UIComment[];
 }
 
 export default function ProductTabsSection({
@@ -17,7 +28,7 @@ export default function ProductTabsSection({
   description,
   initialComments,
 }: ProductTabsSectionProps) {
-  const [comments, setComments] = useState<any[]>(initialComments);
+  const [comments, setComments] = useState<UIComment[]>(initialComments);
   const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
   const [replyParentId, setReplyParentId] = useState<string | null>(null);
 
@@ -26,7 +37,7 @@ export default function ProductTabsSection({
     comment_text: string;
     rating: number | null;
   }) => {
-    const newLocalComment = {
+    const newLocalComment: UIComment = {
       id: `local_new_${Date.now()}`,
       first_name: newComment.first_name,
       last_name: "",
@@ -115,7 +126,7 @@ export default function ProductTabsSection({
               className="divide-y divide-stone-800/80 bg-stone-900/20 p-6 rounded-2xl border border-stone-900/60 text-right"
               dir="rtl"
             >
-              {comments.map((comment: any) => (
+              {comments.map((comment: UIComment) => (
                 <CommentNode
                   key={comment.id}
                   comment={comment}
@@ -153,7 +164,7 @@ export default function ProductTabsSection({
 }
 
 interface CommentNodeProps {
-  comment: any;
+  comment: UIComment;
   onReply: (parentId: string) => void;
 }
 
@@ -209,7 +220,7 @@ function CommentNode({ comment, onReply }: CommentNodeProps) {
 
       {comment.replies && comment.replies.length > 0 && (
         <div className="mr-9 pr-4 border-r border-stone-800/80 space-y-3 mt-4">
-          {comment.replies.map((reply: any) => (
+          {comment.replies.map((reply: UIComment) => (
             <CommentNode key={reply.id} comment={reply} onReply={onReply} />
           ))}
         </div>
