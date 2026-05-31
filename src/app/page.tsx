@@ -1,17 +1,25 @@
 import CoffeeProductPage from "@/components/CoffeeProductPage";
-import { getProductWithPricing, getCommentsByProductId } from "@/lib/mock-db";
+import { getProductAction } from "@/app/actions/product";
+import { getCommentsAction } from "@/app/actions/comment";
 
 export default async function Page() {
-  const product = getProductWithPricing("prod_coffee_bulk_01");
-  const comments = getCommentsByProductId("prod_coffee_bulk_01");
+  const productResult = await getProductAction("prod_coffee_bulk_01");
+  const commentsResult = await getCommentsAction("prod_coffee_bulk_01");
 
-  if (!product) {
-    return <div className="text-center py-20">محصول یافت نشد.</div>;
+  if (!productResult.success || !productResult.data) {
+    return (
+      <div className="text-center py-20 text-stone-400">
+        {productResult.error || "محصول یافت نشد."}
+      </div>
+    );
   }
 
   return (
     <main className="min-h-screen bg-background text-foreground pb-20">
-      <CoffeeProductPage initialProduct={product} initialComments={comments} />
+      <CoffeeProductPage
+        initialProduct={productResult.data}
+        initialComments={commentsResult.success ? commentsResult.data : []}
+      />
     </main>
   );
 }

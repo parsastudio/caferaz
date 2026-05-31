@@ -478,7 +478,10 @@ PATH: ./src/components/CommentDialog.tsx
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { MessageSquare, Star, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -488,6 +491,29 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
+import { submitCommentAction } from "@/app/actions/comment";
+
+const commentSchema = z.object({
+  firstName: z
+    .string()
+    .min(1, "لطفاً نام خود را وارد کنید")
+    .min(2, "نام باید حداقل ۲ حرف باشد")
+    .max(50, "نام بیش از حد طولانی است"),
+  phone: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^09[0-9]{9}$/.test(val), {
+      message: "لطفاً یک شماره موبایل معتبر (مانند ۰۹۱۲۳۴۵۶۷۸۹) وارد کنید",
+    }),
+  rating: z.number().min(1).max(5).nullable().optional(),
+  commentText: z
+    .string()
+    .min(1, "لطفاً متن دیدگاه خود را وارد کنید")
+    .min(5, "دیدگاه باید حداقل ۵ کاراکتر باشد")
+    .max(1000, "دیدگاه بیش از حد طولانی است"),
+});
+
+type CommentFormValues = z.infer<typeof commentSchema>;
 
 interface CommentDialogProps {
   isOpen: boolean;
@@ -508,57 +534,65 @@ export default function CommentDialog({
   replyParentId,
   onCommentSubmitted,
 }: CommentDialogProps) {
-  const [commentName, setCommentName] = useState("");
-  const [commentPhone, setCommentPhone] = useState("");
-  const [commentText, setCommentText] = useState("");
-  const [commentRating, setCommentRating] = useState<number>(5);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [commentMessage, setCommentMessage] = useState<string | null>(null);
   const [commentError, setCommentError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!commentName || !commentText) {
-      setCommentError("لطفاً تمامی موارد ستاره‌دار را تکمیل نمایید.");
-      return;
-    }
+  const methods = useForm<CommentFormValues>({
+    resolver: zodResolver(commentSchema),
+    defaultValues: {
+      firstName: "",
+      phone: "",
+      rating: 5,
+      commentText: "",
+    },
+    mode: "onTouched",
+  });
 
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+  } = methods;
+
+  useEffect(() => {
+    if (!isOpen) {
+      reset();
+      setCommentMessage(null);
+      setCommentError(null);
+    }
+  }, [isOpen, reset]);
+
+  const onSubmit = async (values: CommentFormValues) => {
     setIsSubmitting(true);
     setCommentError(null);
     setCommentMessage(null);
 
     try {
-      const response = await fetch("/api/comments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId,
-          phone: commentPhone || null,
-          firstName: commentName,
-          commentText,
-          rating: replyParentId ? null : commentRating,
-          parentId: replyParentId,
-        }),
+      const result = await submitCommentAction({
+        productId,
+        phone: values.phone || null,
+        firstName: values.firstName,
+        commentText: values.commentText,
+        rating: replyParentId ? null : (values.rating ?? 5),
+        parentId: replyParentId,
       });
 
-      const result = await response.json();
-
       if (result.success) {
-        setCommentMessage(result.message);
+        setCommentMessage(result.message || "دیدگاه شما ثبت گردید.");
         onCommentSubmitted({
-          first_name: commentName,
-          comment_text: commentText,
-          rating: replyParentId ? null : commentRating,
+          first_name: values.firstName,
+          comment_text: values.commentText,
+          rating: replyParentId ? null : (values.rating ?? 5),
         });
-        setCommentName("");
-        setCommentPhone("");
-        setCommentText("");
-        setCommentRating(5);
+        reset();
       } else {
         setCommentError(result.error || "خطایی رخ داد.");
       }
     } catch (err) {
-      setCommentError("خطا در ارتباط با سرور فرضی.");
+      setCommentError("خطا در ارتباط با سیستم ثبت بازخورد.");
     } finally {
       setIsSubmitting(false);
     }
@@ -599,19 +633,30 @@ export default function CommentDialog({
             </Button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4 mt-3" dir="rtl">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4 mt-3"
+            dir="rtl"
+          >
             <div className="space-y-1.5 text-right">
               <label className="text-xs font-bold text-stone-300">
                 نام شما <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                required
-                value={commentName}
-                onChange={(e) => setCommentName(e.target.value)}
-                className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-3 py-2 text-sm text-stone-100 outline-none transition-all text-right"
+                {...register("firstName")}
+                className={`w-full bg-stone-950 border focus:ring-1 rounded-xl px-3 py-2 text-sm text-stone-100 outline-none transition-all text-right ${
+                  errors.firstName
+                    ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
+                    : "border-stone-800 focus:border-gold-500 focus:ring-gold-500"
+                }`}
                 placeholder="مثال: مریم"
               />
+              {errors.firstName && (
+                <p className="text-[10px] text-destructive font-bold mt-1">
+                  {errors.firstName.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-1.5 text-right">
@@ -620,13 +665,20 @@ export default function CommentDialog({
               </label>
               <input
                 type="tel"
-                pattern="09[0-9]{9}"
-                value={commentPhone}
-                onChange={(e) => setCommentPhone(e.target.value)}
-                className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-3 py-2 text-sm text-stone-100 outline-none transition-all text-left"
+                {...register("phone")}
+                className={`w-full bg-stone-950 border focus:ring-1 rounded-xl px-3 py-2 text-sm text-stone-100 outline-none transition-all text-left ${
+                  errors.phone
+                    ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
+                    : "border-stone-800 focus:border-gold-500 focus:ring-gold-500"
+                }`}
                 dir="ltr"
                 placeholder="09123456789"
               />
+              {errors.phone && (
+                <p className="text-[10px] text-destructive font-bold mt-1">
+                  {errors.phone.message}
+                </p>
+              )}
             </div>
 
             {!replyParentId && (
@@ -634,24 +686,30 @@ export default function CommentDialog({
                 <label className="text-xs font-bold text-stone-300 block mb-1">
                   امتیاز شما به کیفیت قهوه:
                 </label>
-                <div className="flex items-center gap-2.5">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setCommentRating(star)}
-                      className="transition-transform active:scale-90 hover:scale-110 cursor-pointer focus:outline-none"
-                    >
-                      <Star
-                        className={`w-8 h-8 transition-colors ${
-                          star <= commentRating
-                            ? "fill-gold-500 text-gold-500"
-                            : "text-stone-700 hover:text-stone-500"
-                        }`}
-                      />
-                    </button>
-                  ))}
-                </div>
+                <Controller
+                  name="rating"
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <div className="flex items-center gap-2.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => onChange(star)}
+                          className="transition-transform active:scale-90 hover:scale-110 cursor-pointer focus:outline-none"
+                        >
+                          <Star
+                            className={`w-8 h-8 transition-colors ${
+                              star <= (value ?? 5)
+                                ? "fill-gold-500 text-gold-500"
+                                : "text-stone-700 hover:text-stone-500"
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                />
               </div>
             )}
 
@@ -660,13 +718,20 @@ export default function CommentDialog({
                 متن دیدگاه <span className="text-red-500">*</span>
               </label>
               <textarea
-                required
                 rows={3}
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-3 py-2 text-sm text-stone-100 outline-none transition-all resize-none text-right leading-relaxed"
+                {...register("commentText")}
+                className={`w-full bg-stone-950 border focus:ring-1 rounded-xl px-3 py-2 text-sm text-stone-100 outline-none transition-all resize-none text-right leading-relaxed ${
+                  errors.commentText
+                    ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
+                    : "border-stone-800 focus:border-gold-500 focus:ring-gold-500"
+                }`}
                 placeholder="دیدگاه خود را اینجا یادداشت کنید..."
               />
+              {errors.commentText && (
+                <p className="text-[10px] text-destructive font-bold mt-1">
+                  {errors.commentText.message}
+                </p>
+              )}
             </div>
 
             {commentError && (
@@ -858,6 +923,7 @@ import ShippingStep from "./checkout/ShippingStep";
 import OtpStep from "./checkout/OtpStep";
 import SuccessStep from "./checkout/SuccessStep";
 import { checkoutSchema, CheckoutFormValues } from "./checkout/schema";
+import { submitOrderAction } from "@/app/actions/order";
 
 interface CheckoutDialogProps {
   isOpen: boolean;
@@ -933,26 +999,18 @@ export default function CheckoutDialog({
     const values = getValues();
 
     try {
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId: "prod_coffee_bulk_01",
-          weightGrams: selectedWeight,
-          quantity: quantity,
-          grindType: activeVariant.grind_type,
-          finalPrice: finalPrice,
-          customerName: `${values.firstName} ${values.lastName}`,
-          customerPhone: values.phone,
-          customerAddress: values.shippingAddress,
-        }),
+      const result = await submitOrderAction({
+        productId: "prod_coffee_bulk_01",
+        weightGrams: selectedWeight,
+        quantity: quantity,
+        grindType: activeVariant.grind_type,
+        finalPrice: finalPrice,
+        customerName: `${values.firstName} ${values.lastName}`,
+        customerPhone: values.phone,
+        customerAddress: values.shippingAddress,
       });
 
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
+      if (!result.success || !result.data) {
         throw new Error(result.error || "خطایی در ثبت نهایی سفارش رخ داد.");
       }
 
@@ -2477,46 +2535,62 @@ export default function BlendSelector({
         ))}
       </div>
 
-      <div className="p-5 bg-stone-900/25 border border-stone-800/60 rounded-2xl space-y-4.5">
-        <div className="flex items-center justify-between">
+      <div className="p-4 sm:p-5 bg-stone-900/25 border border-stone-800/60 rounded-2xl space-y-4">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
-            <Percent className="w-4 h-4 text-gold-500" />
+            <Percent className="w-4 h-4 text-gold-500 shrink-0" />
             شناسنامه طعمی و ویژگی‌های ترکیب
           </span>
-          <span className="text-[11px] font-bold text-gold-400 bg-gold-500/10 px-2.5 py-1 rounded-full">
+          <span className="text-[11px] font-bold text-gold-400 bg-gold-500/10 px-2.5 py-1.5 rounded-full w-fit max-w-full leading-normal">
             {blendProfile.label}
           </span>
         </div>
 
-        <div className="space-y-3">
-          <div className="h-4.5 w-full bg-stone-950 rounded-full overflow-hidden flex border border-stone-800 p-[2px]">
-            <div
-              style={{ width: `${blendProfile.robusta}%` }}
-              className="h-full bg-gradient-to-l from-stone-800 to-stone-700 rounded-r-full transition-all duration-500 ease-out flex items-center justify-center relative min-w-[20px]"
-            >
-              {blendProfile.robusta > 0 && (
-                <span className="text-[9px] font-black text-stone-300">
+        <div className="space-y-4">
+          <div
+            className="h-5 w-full bg-stone-950 rounded-full overflow-hidden flex border border-stone-800 p-[2px]"
+            dir="rtl"
+          >
+            {blendProfile.robusta > 0 && (
+              <div
+                style={{
+                  width: `${blendProfile.robusta}%`,
+                }}
+                className={`h-full bg-gradient-to-l from-stone-800 to-stone-700 transition-all duration-500 ease-out flex items-center justify-center relative text-center min-w-[50px] ${
+                  blendProfile.arabica === 0 ? "rounded-full" : "rounded-r-full"
+                }`}
+              >
+                <span className="text-[9px] font-black text-stone-300 px-1 truncate select-none">
                   {blendProfile.robusta}٪ روبوستا
                 </span>
-              )}
-            </div>
-            <div
-              style={{ width: `${blendProfile.arabica}%` }}
-              className="h-full bg-gradient-to-r from-gold-500 to-gold-400 rounded-l-full transition-all duration-500 ease-out flex items-center justify-center relative min-w-[20px]"
-            >
-              {blendProfile.arabica > 0 && (
-                <span className="text-[9px] font-black text-stone-950">
+              </div>
+            )}
+            {blendProfile.arabica > 0 && (
+              <div
+                style={{
+                  width: `${blendProfile.arabica}%`,
+                }}
+                className={`h-full bg-gradient-to-r from-gold-500 to-gold-400 transition-all duration-500 ease-out flex items-center justify-center relative text-center min-w-[50px] ${
+                  blendProfile.robusta === 0 ? "rounded-full" : "rounded-l-full"
+                }`}
+              >
+                <span className="text-[9px] font-black text-stone-950 px-1 truncate select-none">
                   {blendProfile.arabica}٪ عربیکا
                 </span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-3 gap-4 pt-2 border-t border-stone-800/50">
-            <div className="space-y-1">
-              <span className="text-[10px] text-stone-400 font-bold flex items-center gap-1">
-                <Zap className="w-3.5 h-3.5 text-gold-500" />
-                کافئین و انرژی
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-stone-800/50">
+            <div className="space-y-1.5">
+              <span className="text-[10px] text-stone-400 font-bold flex items-center justify-between gap-1">
+                <span className="flex items-center gap-1">
+                  <Zap className="w-3.5 h-3.5 text-gold-500 shrink-0" />
+                  کافئین و انرژی
+                </span>
+                <span className="text-gold-400 font-black text-[10px]">
+                  {blendProfile.caffeine}٪
+                </span>
               </span>
               <div className="h-2 w-full bg-stone-950 rounded-full overflow-hidden">
                 <div
@@ -2526,10 +2600,15 @@ export default function BlendSelector({
               </div>
             </div>
 
-            <div className="space-y-1">
-              <span className="text-[10px] text-stone-400 font-bold flex items-center gap-1">
-                <Coffee className="w-3.5 h-3.5 text-stone-400" />
-                غلظت و تنواری (Body)
+            <div className="space-y-1.5">
+              <span className="text-[10px] text-stone-400 font-bold flex items-center justify-between gap-1">
+                <span className="flex items-center gap-1">
+                  <Coffee className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                  غلظت و تنواری (Body)
+                </span>
+                <span className="text-stone-300 font-black text-[10px]">
+                  {blendProfile.body}٪
+                </span>
               </span>
               <div className="h-2 w-full bg-stone-950 rounded-full overflow-hidden">
                 <div
@@ -2539,10 +2618,15 @@ export default function BlendSelector({
               </div>
             </div>
 
-            <div className="space-y-1">
-              <span className="text-[10px] text-stone-400 font-bold flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-gold-400" />
-                اسیدیته و عطر (Aroma)
+            <div className="space-y-1.5">
+              <span className="text-[10px] text-stone-400 font-bold flex items-center justify-between gap-1">
+                <span className="flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-gold-400 shrink-0" />
+                  اسیدیته و عطر (Aroma)
+                </span>
+                <span className="text-gold-300 font-black text-[10px]">
+                  {blendProfile.aroma}٪
+                </span>
               </span>
               <div className="h-2 w-full bg-stone-950 rounded-full overflow-hidden">
                 <div
@@ -2853,7 +2937,7 @@ export interface Comment {
   productId: string;
   first_name: string;
   last_name: string;
-  rating: number;
+  rating: number | null;
   comment_text: string;
   created_at: string;
   replies?: CommentReply[];
@@ -2892,7 +2976,7 @@ export const MOCK_PRICING_RULES: ProductVariantPricing[] = [
   },
 ];
 
-export let MOCK_COMMENTS: Comment[] = [
+export const MOCK_COMMENTS: Comment[] = [
   {
     id: "comm_1",
     productId: "prod_coffee_bulk_01",
@@ -2948,27 +3032,50 @@ export function getCommentsByProductId(productId: string): Comment[] {
   return MOCK_COMMENTS.filter((c) => c.productId === productId);
 }
 
-export function createComment(
+export function addComment(
   productId: string,
   data: {
     first_name: string;
     last_name: string;
-    rating: number;
+    rating: number | null;
     comment_text: string;
+    parentId: string | null;
   },
-): Comment {
-  const newComment: Comment = {
-    id: `comm_${Date.now()}`,
-    productId,
-    first_name: data.first_name,
-    last_name: data.last_name,
-    rating: data.rating,
-    comment_text: data.comment_text,
-    created_at: new Date().toISOString(),
-    replies: [],
-  };
-  MOCK_COMMENTS.push(newComment);
-  return newComment;
+): Comment | CommentReply {
+  const newId = `comm_${Date.now()}`;
+  const createdAt = new Date().toISOString();
+
+  if (data.parentId) {
+    const reply: CommentReply = {
+      id: newId,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      rating: null,
+      comment_text: data.comment_text,
+      created_at: createdAt,
+    };
+    const parentComment = MOCK_COMMENTS.find((c) => c.id === data.parentId);
+    if (parentComment) {
+      if (!parentComment.replies) {
+        parentComment.replies = [];
+      }
+      parentComment.replies.push(reply);
+    }
+    return reply;
+  } else {
+    const comment: Comment = {
+      id: newId,
+      productId,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      rating: data.rating,
+      comment_text: data.comment_text,
+      created_at: createdAt,
+      replies: [],
+    };
+    MOCK_COMMENTS.unshift(comment);
+    return comment;
+  }
 }
 
 export function createOrder(
@@ -2980,8 +3087,12 @@ export function createOrder(
     createdAt: new Date().toISOString(),
     status: "pending",
   };
-  MOCK_ORDERS.push(newOrder);
+  MOCK_ORDERS.unshift(newOrder);
   return newOrder;
+}
+
+export function getOrders(): Order[] {
+  return MOCK_ORDERS;
 }
 
 
@@ -3049,19 +3160,27 @@ PATH: ./src/app/page.tsx
 ================================================================
 
 import CoffeeProductPage from "@/components/CoffeeProductPage";
-import { getProductWithPricing, getCommentsByProductId } from "@/lib/mock-db";
+import { getProductAction } from "@/app/actions/product";
+import { getCommentsAction } from "@/app/actions/comment";
 
 export default async function Page() {
-  const product = getProductWithPricing("prod_coffee_bulk_01");
-  const comments = getCommentsByProductId("prod_coffee_bulk_01");
+  const productResult = await getProductAction("prod_coffee_bulk_01");
+  const commentsResult = await getCommentsAction("prod_coffee_bulk_01");
 
-  if (!product) {
-    return <div className="text-center py-20">محصول یافت نشد.</div>;
+  if (!productResult.success || !productResult.data) {
+    return (
+      <div className="text-center py-20 text-stone-400">
+        {productResult.error || "محصول یافت نشد."}
+      </div>
+    );
   }
 
   return (
     <main className="min-h-screen bg-background text-foreground pb-20">
-      <CoffeeProductPage initialProduct={product} initialComments={comments} />
+      <CoffeeProductPage
+        initialProduct={productResult.data}
+        initialComments={commentsResult.success ? commentsResult.data : []}
+      />
     </main>
   );
 }
@@ -3199,124 +3318,34 @@ PATH: ./src/app/globals.css
 ----------------------------------------------------------------
 
 ================================================================
-PATH: ./src/app/api/[id]/route.ts
+PATH: ./src/app/actions/order.ts
 ================================================================
 
-export interface Product {
-  id: string;
-  name: string;
-  description: string;
-  stock_grams: number;
-}
+"use server";
 
-export interface ProductVariantPricing {
-  id: string;
-  productId: string;
-  pricePerKgArabica: number;
-  pricePerKgRobusta: number;
-}
+import { createOrder, getOrders } from "@/lib/mock-db";
+import { revalidatePath } from "next/cache";
 
-export const MOCK_PRODUCTS: Product[] = [
-  {
-    id: "prod_coffee_bulk_01",
-    name: "قهوه فله میکس ویژه اسپرسو",
-    description:
-      "ترکیب دانه‌های مرغوب عربیکا و روبوستا با رست هفتگی، عطر ماندگار و کرمای مخملی غلیظ. ایده‌آل برای مصارف روزانه کافه‌ها، هتل‌ها و مصارف خانگی.",
-    stock_grams: 150000,
-  },
-];
-
-export const MOCK_PRICING_RULES: ProductVariantPricing[] = [
-  {
-    id: "v_rule_01",
-    productId: "prod_coffee_bulk_01",
-    pricePerKgArabica: 2200000,
-    pricePerKgRobusta: 1800000,
-  },
-];
-
-export function getProductWithPricing(id: string) {
-  const product = MOCK_PRODUCTS.find((p) => p.id === id);
-  if (!product) return null;
-
-  const pricing = MOCK_PRICING_RULES.find((pr) => pr.productId === id);
-  return {
-    ...product,
-    pricing: pricing
-      ? {
-          pricePerKgArabica: pricing.pricePerKgArabica,
-          pricePerKgRobusta: pricing.pricePerKgRobusta,
-        }
-      : null,
-  };
-}
-
-
-----------------------------------------------------------------
-
-================================================================
-PATH: ./src/app/api/comments/route.ts
-================================================================
-
-import { NextRequest, NextResponse } from "next/server";
-import { getCommentsByProductId, createComment } from "@/lib/mock-db";
-
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const productId = searchParams.get("productId");
-
-  if (!productId) {
-    return NextResponse.json(
-      { success: false, error: "شناسه محصول ارسال نشده است" },
-      { status: 400 },
-    );
-  }
-
-  const comments = getCommentsByProductId(productId);
-  return NextResponse.json({ success: true, data: comments });
-}
-
-export async function POST(req: NextRequest) {
+export async function getOrdersAction() {
   try {
-    const body = await req.json();
-    const { productId, first_name, last_name, rating, comment_text } = body;
-
-    if (!productId || !first_name || !last_name || !rating || !comment_text) {
-      return NextResponse.json(
-        { success: false, error: "تمامی اطلاعات اجباری هستند" },
-        { status: 400 },
-      );
-    }
-
-    const newComment = createComment(productId, {
-      first_name,
-      last_name,
-      rating: Number(rating),
-      comment_text,
-    });
-
-    return NextResponse.json({ success: true, data: newComment });
+    const orders = getOrders();
+    return { success: true, data: orders };
   } catch (error) {
-    return NextResponse.json(
-      { success: false, error: "خطایی رخ داده است" },
-      { status: 500 },
-    );
+    return { success: false, error: "خطا در دریافت تاریخچه سفارش‌ها رخ داد." };
   }
 }
 
-
-----------------------------------------------------------------
-
-================================================================
-PATH: ./src/app/api/orders/route.ts
-================================================================
-
-import { NextRequest, NextResponse } from "next/server";
-import { createOrder } from "@/lib/mock-db";
-
-export async function POST(req: NextRequest) {
+export async function submitOrderAction(payload: {
+  productId: string;
+  weightGrams: number;
+  quantity: number;
+  grindType: string;
+  finalPrice: number;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+}) {
   try {
-    const body = await req.json();
     const {
       productId,
       weightGrams,
@@ -3326,7 +3355,7 @@ export async function POST(req: NextRequest) {
       customerName,
       customerPhone,
       customerAddress,
-    } = body;
+    } = payload;
 
     if (
       !productId ||
@@ -3338,10 +3367,10 @@ export async function POST(req: NextRequest) {
       !customerPhone ||
       !customerAddress
     ) {
-      return NextResponse.json(
-        { success: false, error: "تمامی فیلدهای ستاره‌دار الزامی هستند" },
-        { status: 400 },
-      );
+      return {
+        success: false,
+        error: "اطلاعات ارسالی برای ثبت سفارش ناقص است.",
+      };
     }
 
     const newOrder = createOrder({
@@ -3355,15 +3384,109 @@ export async function POST(req: NextRequest) {
       customerAddress,
     });
 
-    return NextResponse.json({
+    revalidatePath("/");
+
+    return {
       success: true,
       data: newOrder,
-    });
+    };
   } catch (error) {
-    return NextResponse.json(
-      { success: false, error: "خطایی در ثبت اطلاعات سفارش رخ داده است" },
-      { status: 500 },
-    );
+    return {
+      success: false,
+      error: "خطایی در فرآیند نهایی‌سازی سفارش رخ داد.",
+    };
+  }
+}
+
+
+----------------------------------------------------------------
+
+================================================================
+PATH: ./src/app/actions/product.ts
+================================================================
+
+"use server";
+
+import { getProductWithPricing } from "@/lib/mock-db";
+
+export async function getProductAction(productId: string) {
+  try {
+    if (!productId) {
+      return { success: false, error: "شناسه محصول ارسال نشده است." };
+    }
+
+    const product = getProductWithPricing(productId);
+
+    if (!product) {
+      return { success: false, error: "محصول مورد نظر یافت نشد." };
+    }
+
+    return { success: true, data: product };
+  } catch (error) {
+    return { success: false, error: "خطا در دریافت اطلاعات محصول رخ داد." };
+  }
+}
+
+
+----------------------------------------------------------------
+
+================================================================
+PATH: ./src/app/actions/comment.ts
+================================================================
+
+"use server";
+
+import { getCommentsByProductId, addComment } from "@/lib/mock-db";
+import { revalidatePath } from "next/cache";
+
+export async function getCommentsAction(productId: string) {
+  try {
+    if (!productId) {
+      return { success: false, error: "شناسه محصول معتبر نیست." };
+    }
+
+    const comments = getCommentsByProductId(productId);
+    return { success: true, data: comments };
+  } catch (error) {
+    return { success: false, error: "خطا در بارگذاری دیدگاه‌ها رخ داد." };
+  }
+}
+
+export async function submitCommentAction(payload: {
+  productId: string;
+  phone?: string | null;
+  firstName: string;
+  commentText: string;
+  rating: number | null;
+  parentId: string | null;
+}) {
+  try {
+    const { productId, firstName, commentText, rating, parentId } = payload;
+
+    if (!productId || !firstName || !commentText) {
+      return {
+        success: false,
+        error: "تکمیل تمامی فیلدهای ستاره‌دار الزامی است.",
+      };
+    }
+
+    const newComment = addComment(productId, {
+      first_name: firstName,
+      last_name: "",
+      rating,
+      comment_text: commentText,
+      parentId,
+    });
+
+    revalidatePath("/");
+
+    return {
+      success: true,
+      message: "دیدگاه شما ثبت گردید و پس از بازبینی تایید خواهد شد.",
+      data: newComment,
+    };
+  } catch (error) {
+    return { success: false, error: "مشکلی در ذخیره دیدگاه شما وجود دارد." };
   }
 }
 

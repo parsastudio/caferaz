@@ -26,7 +26,7 @@ export interface Comment {
   productId: string;
   first_name: string;
   last_name: string;
-  rating: number;
+  rating: number | null;
   comment_text: string;
   created_at: string;
   replies?: CommentReply[];
@@ -65,7 +65,7 @@ export const MOCK_PRICING_RULES: ProductVariantPricing[] = [
   },
 ];
 
-export let MOCK_COMMENTS: Comment[] = [
+export const MOCK_COMMENTS: Comment[] = [
   {
     id: "comm_1",
     productId: "prod_coffee_bulk_01",
@@ -121,27 +121,50 @@ export function getCommentsByProductId(productId: string): Comment[] {
   return MOCK_COMMENTS.filter((c) => c.productId === productId);
 }
 
-export function createComment(
+export function addComment(
   productId: string,
   data: {
     first_name: string;
     last_name: string;
-    rating: number;
+    rating: number | null;
     comment_text: string;
+    parentId: string | null;
   },
-): Comment {
-  const newComment: Comment = {
-    id: `comm_${Date.now()}`,
-    productId,
-    first_name: data.first_name,
-    last_name: data.last_name,
-    rating: data.rating,
-    comment_text: data.comment_text,
-    created_at: new Date().toISOString(),
-    replies: [],
-  };
-  MOCK_COMMENTS.push(newComment);
-  return newComment;
+): Comment | CommentReply {
+  const newId = `comm_${Date.now()}`;
+  const createdAt = new Date().toISOString();
+
+  if (data.parentId) {
+    const reply: CommentReply = {
+      id: newId,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      rating: null,
+      comment_text: data.comment_text,
+      created_at: createdAt,
+    };
+    const parentComment = MOCK_COMMENTS.find((c) => c.id === data.parentId);
+    if (parentComment) {
+      if (!parentComment.replies) {
+        parentComment.replies = [];
+      }
+      parentComment.replies.push(reply);
+    }
+    return reply;
+  } else {
+    const comment: Comment = {
+      id: newId,
+      productId,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      rating: data.rating,
+      comment_text: data.comment_text,
+      created_at: createdAt,
+      replies: [],
+    };
+    MOCK_COMMENTS.unshift(comment);
+    return comment;
+  }
 }
 
 export function createOrder(
@@ -153,6 +176,10 @@ export function createOrder(
     createdAt: new Date().toISOString(),
     status: "pending",
   };
-  MOCK_ORDERS.push(newOrder);
+  MOCK_ORDERS.unshift(newOrder);
   return newOrder;
+}
+
+export function getOrders(): Order[] {
+  return MOCK_ORDERS;
 }

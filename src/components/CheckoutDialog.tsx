@@ -18,6 +18,7 @@ import ShippingStep from "./checkout/ShippingStep";
 import OtpStep from "./checkout/OtpStep";
 import SuccessStep from "./checkout/SuccessStep";
 import { checkoutSchema, CheckoutFormValues } from "./checkout/schema";
+import { submitOrderAction } from "@/app/actions/order";
 
 interface CheckoutDialogProps {
   isOpen: boolean;
@@ -93,26 +94,18 @@ export default function CheckoutDialog({
     const values = getValues();
 
     try {
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId: "prod_coffee_bulk_01",
-          weightGrams: selectedWeight,
-          quantity: quantity,
-          grindType: activeVariant.grind_type,
-          finalPrice: finalPrice,
-          customerName: `${values.firstName} ${values.lastName}`,
-          customerPhone: values.phone,
-          customerAddress: values.shippingAddress,
-        }),
+      const result = await submitOrderAction({
+        productId: "prod_coffee_bulk_01",
+        weightGrams: selectedWeight,
+        quantity: quantity,
+        grindType: activeVariant.grind_type,
+        finalPrice: finalPrice,
+        customerName: `${values.firstName} ${values.lastName}`,
+        customerPhone: values.phone,
+        customerAddress: values.shippingAddress,
       });
 
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
+      if (!result.success || !result.data) {
         throw new Error(result.error || "خطایی در ثبت نهایی سفارش رخ داد.");
       }
 

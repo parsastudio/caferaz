@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { MessageSquare, Star, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -10,6 +13,29 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
+import { submitCommentAction } from "@/app/actions/comment";
+
+const commentSchema = z.object({
+  firstName: z
+    .string()
+    .min(1, "لطفاً نام خود را وارد کنید")
+    .min(2, "نام باید حداقل ۲ حرف باشد")
+    .max(50, "نام بیش از حد طولانی است"),
+  phone: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^09[0-9]{9}$/.test(val), {
+      message: "لطفاً یک شماره موبایل معتبر (مانند ۰۹۱۲۳۴۵۶۷۸۹) وارد کنید",
+    }),
+  rating: z.number().min(1).max(5).nullable().optional(),
+  commentText: z
+    .string()
+    .min(1, "لطفاً متن دیدگاه خود را وارد کنید")
+    .min(5, "دیدگاه باید حداقل ۵ کاراکتر باشد")
+    .max(1000, "دیدگاه بیش از حد طولانی است"),
+});
+
+type CommentFormValues = z.infer<typeof commentSchema>;
 
 interface CommentDialogProps {
   isOpen: boolean;
@@ -30,57 +56,65 @@ export default function CommentDialog({
   replyParentId,
   onCommentSubmitted,
 }: CommentDialogProps) {
-  const [commentName, setCommentName] = useState("");
-  const [commentPhone, setCommentPhone] = useState("");
-  const [commentText, setCommentText] = useState("");
-  const [commentRating, setCommentRating] = useState<number>(5);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [commentMessage, setCommentMessage] = useState<string | null>(null);
   const [commentError, setCommentError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!commentName || !commentText) {
-      setCommentError("لطفاً تمامی موارد ستاره‌دار را تکمیل نمایید.");
-      return;
-    }
+  const methods = useForm<CommentFormValues>({
+    resolver: zodResolver(commentSchema),
+    defaultValues: {
+      firstName: "",
+      phone: "",
+      rating: 5,
+      commentText: "",
+    },
+    mode: "onTouched",
+  });
 
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+  } = methods;
+
+  useEffect(() => {
+    if (!isOpen) {
+      reset();
+      setCommentMessage(null);
+      setCommentError(null);
+    }
+  }, [isOpen, reset]);
+
+  const onSubmit = async (values: CommentFormValues) => {
     setIsSubmitting(true);
     setCommentError(null);
     setCommentMessage(null);
 
     try {
-      const response = await fetch("/api/comments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId,
-          phone: commentPhone || null,
-          firstName: commentName,
-          commentText,
-          rating: replyParentId ? null : commentRating,
-          parentId: replyParentId,
-        }),
+      const result = await submitCommentAction({
+        productId,
+        phone: values.phone || null,
+        firstName: values.firstName,
+        commentText: values.commentText,
+        rating: replyParentId ? null : (values.rating ?? 5),
+        parentId: replyParentId,
       });
 
-      const result = await response.json();
-
       if (result.success) {
-        setCommentMessage(result.message);
+        setCommentMessage(result.message || "دیدگاه شما ثبت گردید.");
         onCommentSubmitted({
-          first_name: commentName,
-          comment_text: commentText,
-          rating: replyParentId ? null : commentRating,
+          first_name: values.firstName,
+          comment_text: values.commentText,
+          rating: replyParentId ? null : (values.rating ?? 5),
         });
-        setCommentName("");
-        setCommentPhone("");
-        setCommentText("");
-        setCommentRating(5);
+        reset();
       } else {
         setCommentError(result.error || "خطایی رخ داد.");
       }
     } catch (err) {
-      setCommentError("خطا در ارتباط با سرور فرضی.");
+      setCommentError("خطا در ارتباط با سیستم ثبت بازخورد.");
     } finally {
       setIsSubmitting(false);
     }
@@ -121,19 +155,30 @@ export default function CommentDialog({
             </Button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4 mt-3" dir="rtl">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4 mt-3"
+            dir="rtl"
+          >
             <div className="space-y-1.5 text-right">
               <label className="text-xs font-bold text-stone-300">
                 نام شما <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                required
-                value={commentName}
-                onChange={(e) => setCommentName(e.target.value)}
-                className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-3 py-2 text-sm text-stone-100 outline-none transition-all text-right"
+                {...register("firstName")}
+                className={`w-full bg-stone-950 border focus:ring-1 rounded-xl px-3 py-2 text-sm text-stone-100 outline-none transition-all text-right ${
+                  errors.firstName
+                    ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
+                    : "border-stone-800 focus:border-gold-500 focus:ring-gold-500"
+                }`}
                 placeholder="مثال: مریم"
               />
+              {errors.firstName && (
+                <p className="text-[10px] text-destructive font-bold mt-1">
+                  {errors.firstName.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-1.5 text-right">
@@ -142,13 +187,20 @@ export default function CommentDialog({
               </label>
               <input
                 type="tel"
-                pattern="09[0-9]{9}"
-                value={commentPhone}
-                onChange={(e) => setCommentPhone(e.target.value)}
-                className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-3 py-2 text-sm text-stone-100 outline-none transition-all text-left"
+                {...register("phone")}
+                className={`w-full bg-stone-950 border focus:ring-1 rounded-xl px-3 py-2 text-sm text-stone-100 outline-none transition-all text-left ${
+                  errors.phone
+                    ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
+                    : "border-stone-800 focus:border-gold-500 focus:ring-gold-500"
+                }`}
                 dir="ltr"
                 placeholder="09123456789"
               />
+              {errors.phone && (
+                <p className="text-[10px] text-destructive font-bold mt-1">
+                  {errors.phone.message}
+                </p>
+              )}
             </div>
 
             {!replyParentId && (
@@ -156,24 +208,30 @@ export default function CommentDialog({
                 <label className="text-xs font-bold text-stone-300 block mb-1">
                   امتیاز شما به کیفیت قهوه:
                 </label>
-                <div className="flex items-center gap-2.5">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setCommentRating(star)}
-                      className="transition-transform active:scale-90 hover:scale-110 cursor-pointer focus:outline-none"
-                    >
-                      <Star
-                        className={`w-8 h-8 transition-colors ${
-                          star <= commentRating
-                            ? "fill-gold-500 text-gold-500"
-                            : "text-stone-700 hover:text-stone-500"
-                        }`}
-                      />
-                    </button>
-                  ))}
-                </div>
+                <Controller
+                  name="rating"
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <div className="flex items-center gap-2.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => onChange(star)}
+                          className="transition-transform active:scale-90 hover:scale-110 cursor-pointer focus:outline-none"
+                        >
+                          <Star
+                            className={`w-8 h-8 transition-colors ${
+                              star <= (value ?? 5)
+                                ? "fill-gold-500 text-gold-500"
+                                : "text-stone-700 hover:text-stone-500"
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                />
               </div>
             )}
 
@@ -182,13 +240,20 @@ export default function CommentDialog({
                 متن دیدگاه <span className="text-red-500">*</span>
               </label>
               <textarea
-                required
                 rows={3}
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-3 py-2 text-sm text-stone-100 outline-none transition-all resize-none text-right leading-relaxed"
+                {...register("commentText")}
+                className={`w-full bg-stone-950 border focus:ring-1 rounded-xl px-3 py-2 text-sm text-stone-100 outline-none transition-all resize-none text-right leading-relaxed ${
+                  errors.commentText
+                    ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
+                    : "border-stone-800 focus:border-gold-500 focus:ring-gold-500"
+                }`}
                 placeholder="دیدگاه خود را اینجا یادداشت کنید..."
               />
+              {errors.commentText && (
+                <p className="text-[10px] text-destructive font-bold mt-1">
+                  {errors.commentText.message}
+                </p>
+              )}
             </div>
 
             {commentError && (
