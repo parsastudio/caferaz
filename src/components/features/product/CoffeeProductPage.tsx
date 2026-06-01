@@ -2,13 +2,13 @@
 
 import React from "react";
 import { useCoffeeProduct, CoffeeProduct } from "@/hooks/useCoffeeProduct";
-import ProductVisuals from "./product/ProductVisuals";
-import WeightSelector from "./product/WeightSelector";
-import BlendSelector from "./product/BlendSelector";
-import GrindSelector from "./product/GrindSelector";
-import QuantitySelector from "./product/QuantitySelector";
-import PriceSummary from "./product/PriceSummary";
-import CheckoutDialog from "./CheckoutDialog";
+import ProductVisuals from "./ProductVisuals";
+import WeightSelector from "./WeightSelector";
+import BlendSelector from "./BlendSelector";
+import GrindSelector from "./GrindSelector";
+import QuantitySelector from "./QuantitySelector";
+import PriceSummary from "./PriceSummary";
+import CheckoutDialog from "../checkout/CheckoutDialog";
 import ProductTabsSection, { UIComment } from "./ProductTabsSection";
 import { useCheckout } from "@/context/CheckoutContext";
 import { Coupon } from "@/lib/mock-db";
@@ -123,4 +123,3 @@ export default function CoffeeProductPage({
     </div>
   );
 }
-  

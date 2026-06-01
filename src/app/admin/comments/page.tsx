@@ -1,6 +1,6 @@
 import React from "react";
 import { getAdminCommentsAction } from "@/actions/comment";
-import AdminCommentsClientList from "@/components/admin/AdminCommentsClientList";
+import AdminCommentsClientList from "@/components/features/admin/AdminCommentsClientList";
 
 export default async function AdminCommentsPage() {
   const commentsResult = await getAdminCommentsAction("prod_coffee_bulk_01");

@@ -1,10 +1,10 @@
-import CoffeeProductPage from "@/components/CoffeeProductPage";
+import CoffeeProductPage from "@/components/features/product/CoffeeProductPage";
 import { getProductAction } from "@/actions/product";
 import { getCommentsAction } from "@/actions/comment";
 import { getCouponsAction } from "@/actions/coupon";
 import { getOption } from "@/lib/mock-db";
-import WhyCafeRaz from "@/components/landing/WhyCafeRaz";
-import FAQSection from "@/components/landing/FAQSection";
+import WhyCafeRaz from "@/components/features/landing/WhyCafeRaz";
+import FAQSection from "@/components/features/landing/FAQSection";
 
 export default async function Page() {
   const productResult = await getProductAction("prod_coffee_bulk_01");

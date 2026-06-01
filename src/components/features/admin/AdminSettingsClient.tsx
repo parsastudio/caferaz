@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../ui/tabs";
 import GeneralSettings from "./settings/GeneralSettings";
 import FAQSettings from "./settings/FAQSettings";
-import { FAQ } from "@/components/landing/FAQSection";
+import { FAQ } from "@/components/features/landing/FAQSection";
 
 interface AdminSettingsClientProps {
   initialSettings: {

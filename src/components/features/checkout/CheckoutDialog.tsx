@@ -10,12 +10,12 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "./ui/dialog";
+} from "../../ui/dialog";
 
-import UserInfoStep from "./checkout/UserInfoStep";
-import ShippingStep from "./checkout/ShippingStep";
-import OtpStep from "./checkout/OtpStep";
-import SuccessStep from "./checkout/SuccessStep";
+import UserInfoStep from "./UserInfoStep";
+import ShippingStep from "./ShippingStep";
+import OtpStep from "./OtpStep";
+import SuccessStep from "./SuccessStep";
 import { useCheckoutForm } from "@/hooks/useCheckoutForm";
 
 export default function CheckoutDialog() {

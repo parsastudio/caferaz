@@ -1,7 +1,7 @@
 import React from "react";
 import { getSettingsAction } from "@/actions/settings";
 import { getProductAction } from "@/actions/product";
-import AdminSettingsClient from "@/components/admin/AdminSettingsClient";
+import AdminSettingsClient from "@/components/features/admin/AdminSettingsClient";
 
 export default async function AdminSettingsPage() {
   const result = await getSettingsAction();

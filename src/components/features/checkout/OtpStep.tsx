@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Smartphone, Loader2 } from "lucide-react";
 import { useFormContext } from "react-hook-form";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { CheckoutFormValues } from "./schema";
 
 interface OtpStepProps {

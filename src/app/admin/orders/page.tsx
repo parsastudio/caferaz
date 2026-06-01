@@ -1,6 +1,6 @@
 import React from "react";
 import { getOrdersAction } from "@/actions/order";
-import AdminOrdersClientList from "@/components/admin/AdminOrdersClientList";
+import AdminOrdersClientList from "@/components/features/admin/AdminOrdersClientList";
 
 export default async function AdminOrdersPage() {
   const ordersResult = await getOrdersAction();

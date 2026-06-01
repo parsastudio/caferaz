@@ -3,7 +3,7 @@
 import React from "react";
 import { Sparkles, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 
 interface SuccessStepProps {
   firstName: string;

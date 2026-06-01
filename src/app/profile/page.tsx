@@ -2,7 +2,7 @@ import React from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getUserByPhone, getOrdersByPhone } from "@/lib/mock-db";
-import ProfileDashboardClient from "@/components/profile/ProfileDashboardClient";
+import ProfileDashboardClient from "@/components/features/profile/ProfileDashboardClient";
 
 export default async function ProfilePage() {
   const cookieStore = await cookies();

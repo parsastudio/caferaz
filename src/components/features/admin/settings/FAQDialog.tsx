@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
-import { FAQ } from "@/components/landing/FAQSection";
+import { FAQ } from "@/components/features/landing/FAQSection";
 
 interface FAQDialogProps {
   isOpen: boolean;

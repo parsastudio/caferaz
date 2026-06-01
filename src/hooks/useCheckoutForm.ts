@@ -7,7 +7,7 @@ import { useCheckout } from "@/context/CheckoutContext";
 import {
   checkoutSchema,
   CheckoutFormValues,
-} from "@/components/checkout/schema";
+} from "@/components/features/checkout/schema";
 import { submitOrderAction } from "@/actions/order";
 import {
   getCurrentUserAction,

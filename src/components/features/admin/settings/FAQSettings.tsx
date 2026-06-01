@@ -5,7 +5,7 @@ import { HelpCircle, Plus, Trash, Edit3, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { updateSettingsAction } from "@/actions/settings";
-import { FAQ } from "@/components/landing/FAQSection";
+import { FAQ } from "@/components/features/landing/FAQSection";
 import FAQDialog from "./FAQDialog";
 
 interface FAQSettingsProps {

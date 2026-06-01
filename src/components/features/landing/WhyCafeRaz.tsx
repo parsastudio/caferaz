@@ -14,14 +14,14 @@ export default function WhyCafeRaz() {
     >
       <div className="text-center md:text-right max-w-2xl mb-12">
         <span className="text-[10px] bg-gold-500/10 border border-gold-500/20 text-gold-400 px-3 py-1 rounded-full font-black tracking-widest uppercase">
-          اصالت و تمایز کارگاه
+          ارزش خرید بالا و تحویل سریع
         </span>
         <h2 className="text-xl md:text-3xl font-black text-stone-100 mt-3">
-          چرا قهوه تازه کافه راز؟
+          چرا خرید از کافه راز؟
         </h2>
         <p className="text-xs md:text-sm text-stone-400 leading-relaxed mt-2">
-          با افتخار فرآیند تامین، برشته‌کاری و بسته‌بندی را تحت کنترل مستقیم
-          داریم تا فنجانی بی‌نقص ارائه دهیم.
+          ما با کوتاه‌کردن مسیر عرضه و تمرکز روی کیفیت و قیمت منصفانه، لذت
+          نوشیدن یک فنجان قهوه خوش‌طعم و اقتصادی را برای شما فراهم کرده‌ایم.
         </p>
       </div>
 
@@ -56,3 +56,4 @@ export default function WhyCafeRaz() {
     </section>
   );
 }
+  

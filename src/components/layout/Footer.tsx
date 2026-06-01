@@ -16,13 +16,27 @@ interface FooterProps {
   config?: FooterConfig | null;
 }
 
+function toPersianDigits(str: string): string {
+  return str
+    .replace(/0/g, "۰")
+    .replace(/1/g, "۱")
+    .replace(/2/g, "۲")
+    .replace(/3/g, "۳")
+    .replace(/4/g, "۴")
+    .replace(/5/g, "۵")
+    .replace(/6/g, "۶")
+    .replace(/7/g, "۷")
+    .replace(/8/g, "۸")
+    .replace(/9/g, "۹");
+}
+
 export default function Footer({ config }: FooterProps) {
   const phones = config?.phones || [
     "09002570060",
     "09002570040",
     "021-77311806",
   ];
-  const address = config?.address || "تهران، کارگاه رست کافه راز";
+  const address = config?.address || "تهران، کافه راز";
   const eitaa = config?.eitaa || "https://eitaa.com/razcoffee";
 
   return (
@@ -41,14 +55,14 @@ export default function Footer({ config }: FooterProps) {
                 کافه راز
               </span>
               <span className="text-[10px] text-gold-500 font-bold block mt-0.5">
-                رست تخصصی و تامین مستقیم قهوه فله
+                عرضه مستقیم و پخش عمده قهوه فله باکیفیت
               </span>
             </div>
           </div>
           <p className="text-xs text-stone-400 leading-relaxed max-w-sm">
-            کافه راز با تامین مستقیم برترین دانه‌های قهوه سبز و انجام فرآیند رست
-            در کارگاه مدرن خود، لذت طعم اصیل و عطر ماندگار قهوه را با
-            اقتصادی‌ترین قیمت بدون واسطه به شما هدیه می‌دهد.
+            کافه راز یک فروشگاه مستقیم برای خرید قهوه فله باکیفیت و
+            مقرون‌به‌صرفه است. ما با حذف واسطه‌ها، انواع میکس‌های قهوه را با
+            قیمت بسیار منصفانه، کیفیت مناسب و ارسال سریع به دست شما می‌رسانیم.
           </p>
           <div className="flex items-center gap-3">
             <a
@@ -73,9 +87,21 @@ export default function Footer({ config }: FooterProps) {
               <Phone className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
               <div className="flex flex-col gap-1.5 font-sans">
                 <span className="font-sans">
-                  پشتیبانی همراه: {phones[0]} | {phones[1]}
+                  پشتیبانی همراه:{" "}
+                  <span dir="ltr" className="inline-block">
+                    {toPersianDigits(phones[0])}
+                  </span>{" "}
+                  |{" "}
+                  <span dir="ltr" className="inline-block">
+                    {toPersianDigits(phones[1])}
+                  </span>
                 </span>
-                <span className="font-sans">شماره ثابت: {phones[2]}</span>
+                <span className="font-sans">
+                  شماره ثابت:{" "}
+                  <span dir="ltr" className="inline-block">
+                    {toPersianDigits(phones[2])}
+                  </span>
+                </span>
               </div>
             </li>
             <li className="flex items-start gap-2.5">
@@ -100,7 +126,7 @@ export default function Footer({ config }: FooterProps) {
                 ضمانت اصالت
               </span>
               <span className="text-[8px] text-stone-500 mt-0.5">
-                ۱۰۰٪ دان سبز
+                ۱۰۰٪ دانه باکیفیت
               </span>
             </div>
           </div>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { loginUserAction } from "@/actions/auth";
 import { Smartphone, User, ArrowRight, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 
 export default function ProfileLoginClient() {
   const router = useRouter();

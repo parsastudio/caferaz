@@ -7,8 +7,8 @@ import React, {
   useEffect,
 } from "react";
 import { MessageSquare, Star, Plus, Clock } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
-import { Button } from "./ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../ui/tabs";
+import { Button } from "../../ui/button";
 import CommentDialog from "./CommentDialog";
 import { Comment } from "@/lib/mock-db";
 
