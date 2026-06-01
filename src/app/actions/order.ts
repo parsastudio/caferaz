@@ -99,7 +99,7 @@ export async function submitOrderAction(payload: {
       return {
         success: false,
         error:
-          validated.error.errors[0]?.message || "اطلاعات ارسالی معتبر نیست.",
+          validated.error.issues[0]?.message || "اطلاعات ارسالی معتبر نیست.",
       };
     }
 

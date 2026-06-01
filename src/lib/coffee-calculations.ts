@@ -1,4 +1,5 @@
 import { getTehranTodayString } from "./jalali-converter";
+import { Coupon, CouponUsage } from "./mock-db";
 
 export interface BlendProfile {
   robusta: number;
@@ -119,10 +120,10 @@ export function calculateAdvancedPriceMetrics(params: {
   blendProfile: BlendProfile;
   weightGrams: number;
   quantity: number;
-  activeCoupons: any[];
+  activeCoupons: Coupon[];
   appliedUserCouponCode?: string | null;
   userPhone?: string | null;
-  couponUsages?: any[];
+  couponUsages?: CouponUsage[];
 }): AdvancedPriceMetrics {
   const activePricing = params.pricing || {
     pricePerKgArabica: 2200000,
@@ -143,7 +144,6 @@ export function calculateAdvancedPriceMetrics(params: {
 
   const tehranTodayStr = getTehranTodayString();
 
-  // تبدیل تاریخ به زمان معتبر جهانی UTC به صورت مستقل از ریجن سرور یا لوکیشن مرورگر
   const normalizeDateToTimestamp = (dateStr: string): number => {
     const normalized = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
     const [year, month, day] = normalized.split(/[-/]/).map(Number);
@@ -153,7 +153,7 @@ export function calculateAdvancedPriceMetrics(params: {
   const [ty, tm, td] = tehranTodayStr.split("-").map(Number);
   const todayTimestamp = Date.UTC(ty, tm - 1, td);
 
-  const isCouponDateValid = (coupon: any): boolean => {
+  const isCouponDateValid = (coupon: Coupon): boolean => {
     if (coupon.validFrom) {
       const fromTimestamp = normalizeDateToTimestamp(coupon.validFrom);
       if (todayTimestamp < fromTimestamp) return false;
@@ -166,7 +166,7 @@ export function calculateAdvancedPriceMetrics(params: {
   };
 
   const getStandaloneDiscount = (
-    coupon: any,
+    coupon: Coupon,
     originalPrice: number,
   ): number => {
     if (coupon.discountType === "percentage") {
@@ -188,7 +188,7 @@ export function calculateAdvancedPriceMetrics(params: {
       isCouponDateValid(c),
   );
 
-  let bestDirect: any = null;
+  let bestDirect: Coupon | null = null;
   let directDiscountAmount = 0;
   if (directCoupons.length > 0) {
     directCoupons.forEach((c) => {
@@ -207,7 +207,7 @@ export function calculateAdvancedPriceMetrics(params: {
     return isCouponDateValid(c);
   });
 
-  let bestConditional: any = null;
+  let bestConditional: Coupon | null = null;
   let conditionalDiscountAmount = 0;
   if (conditionalCoupons.length > 0) {
     conditionalCoupons.forEach((c) => {
@@ -219,7 +219,7 @@ export function calculateAdvancedPriceMetrics(params: {
     });
   }
 
-  let eligibleUserCoupon: any = null;
+  let eligibleUserCoupon: Coupon | null = null;
   let userCouponDiscountAmount = 0;
   if (params.appliedUserCouponCode) {
     const code = params.appliedUserCouponCode.trim().toUpperCase();

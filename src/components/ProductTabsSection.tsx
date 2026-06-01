@@ -5,14 +5,9 @@ import { MessageSquare, Star, Plus, Clock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { Button } from "./ui/button";
 import CommentDialog from "./CommentDialog";
+import { Comment } from "@/lib/mock-db";
 
-export interface UIComment {
-  id: string;
-  first_name: string;
-  last_name: string;
-  rating: number | null;
-  comment_text: string;
-  created_at: string;
+export interface UIComment extends Omit<Comment, "replies"> {
   is_pending?: boolean;
   replies?: UIComment[];
   parent_id_temp?: string | null;
@@ -33,12 +28,10 @@ export default function ProductTabsSection({
   const [replyParentId, setReplyParentId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // نگهداری دیدگاه‌های در انتظار تایید به صورت محلی برای جلوگیری از غیب شدن پس از اتمام Transition
   const [localPendingComments, setLocalPendingComments] = useState<UIComment[]>(
     [],
   );
 
-  // تجمیع دیدگاه‌های پایگاه‌داده و محلی و بازسازی ساختار درخت نظرات
   const getMergedComments = (): UIComment[] => {
     let merged = [...initialComments];
 
@@ -122,10 +115,16 @@ export default function ProductTabsSection({
     addOptimisticComment(newLocalComment);
   };
 
-  const handleCommentSuccess = (tempId: string, realComment: UIComment) => {
+  const handleCommentSuccess = (tempId: string, realComment: Comment) => {
     setLocalPendingComments((prev) =>
       prev.map((c) =>
-        c.id === tempId ? { ...realComment, is_pending: true } : c,
+        c.id === tempId
+          ? {
+              ...realComment,
+              is_pending: true,
+              replies: realComment.replies as UIComment[] | undefined,
+            }
+          : c,
       ),
     );
   };

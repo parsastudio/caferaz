@@ -76,6 +76,11 @@ export interface CouponUsage {
   usedAt: string;
 }
 
+export interface Option {
+  key: string;
+  value: string;
+}
+
 class dbTransactionMutex {
   private activePromises: Promise<any> = Promise.resolve();
 
@@ -93,7 +98,7 @@ export const MOCK_PRODUCTS: Product[] = [
     id: "prod_coffee_bulk_01",
     name: "قهوه فله میکس ویژه اسپرسو",
     description:
-      "ترکیب دانه‌های مرغوب عربیکا و روبوستا با رست هفتگی، عطر ماندگار و کرمای مخملی غلیظ. ایده‌آل برای مصارف روزانه کافه‌ها، هتل‌ها و مصارف خانگی.",
+      "ترکیب دانه‌های مرغوب عربیکا و روبوستا با رست تخصصی، عطر ماندگار و کرمای مخملی غلیظ. ایده‌آل برای مصارف روزانه کافه‌ها، هتل‌ها و مصارف خانگی.",
     stock_grams: 150000,
   },
 ];
@@ -225,6 +230,76 @@ export const MOCK_COUPONS: Coupon[] = [
 
 export const MOCK_COUPON_USAGES: CouponUsage[] = [];
 
+export const MOCK_OPTIONS: Option[] = [
+  {
+    key: "site_footer",
+    value: JSON.stringify({
+      phones: ["09002570060", "09002570040", "021-77311806"],
+      address: "تهران، کارگاه رست کافه راز",
+      eitaa: "https://eitaa.com/razcoffee",
+      website: "https://caferaz.ir",
+    }),
+  },
+  {
+    key: "site_usps",
+    value: JSON.stringify([
+      {
+        id: "usp_1",
+        icon: "Flame",
+        title: "رست تخصصی و استاندارد",
+        description:
+          "تمامی دانه‌ها با متدهای مدرن و کنترل مداوم دما رست شده تا طعم یادهای اصیل قهوه حفظ شود.",
+      },
+      {
+        id: "usp_2",
+        icon: "MapPin",
+        title: "ارسال رایگان در پیروزی و حکیمیه",
+        description:
+          "ارسال کاملاً رایگان سفارشات قهوه بدون محدودیت در وزن و تعداد در محدوده محله‌های پیروزی و حکیمیه تهران.",
+      },
+      {
+        id: "usp_3",
+        icon: "Sliders",
+        title: "شخصی‌سازی بالانس طعمی",
+        description:
+          "امکان تعیین نسبت دقیق عربیکا و روبوستا برای رسیدن به تلخی، کافئین و بادی دلخواه شما.",
+      },
+      {
+        id: "usp_4",
+        icon: "Coffee",
+        title: "آسیاب دقیق دانه قهوه",
+        description:
+          "آسیاب همگن دانه‌ها متناسب با تجهیزات و روش‌های گوناگون دم‌آوری شما اعم از خانگی و صنعتی.",
+      },
+    ]),
+  },
+  {
+    key: "site_faq",
+    value: JSON.stringify([
+      {
+        question: "مدت زمان ارسال سفارش‌ها چقدر است؟",
+        answer:
+          "سفارشات ثبت‌شده بلافاصله وارد فرآیند آماده‌سازی و بسته‌بندی شده و ظرف مدت ۲۴ الی ۷۲ ساعت کاری از طریق پیک یا پست پیشتاز تحویل می‌گردند.",
+      },
+      {
+        question: "چگونه می‌توانم ترکیب قهوه اختصاصی خودم را سفارش دهم؟",
+        answer:
+          "در بخش خرید بالای همین صفحه می‌توانید نسبت‌های متفاوتی از دانه عربیکا و روبوستا را بر اساس ذائقه خود انتخاب کنید و ویژگی‌های ترکیب را فوراً بسنجید.",
+      },
+      {
+        question: "آیا پرداخت در محل فعال است؟",
+        answer:
+          "بله، به منظور افزایش امنیت و جلب اطمینان کامل شما، امکان پرداخت فاکتور پس از دریافت کالا درب منزل یا محل کار در سراسر کشور فراهم شده است.",
+      },
+      {
+        question: "تفاوت میان درجات مختلف آسیاب چیست؟",
+        answer:
+          "هر روش دم‌آوری نیازمند میزان درشتی یا نرمی مشخصی از پودر قهوه است. ما بر اساس انتخاب دستگاه شما (اسپرسوساز، موکاپات، فرانسه یا قهوه ترک) دانه‌ها را آسیاب می‌کنیم.",
+      },
+    ]),
+  },
+];
+
 export function getProductWithPricing(id: string): ProductWithPricing | null {
   const product = MOCK_PRODUCTS.find((p) => p.id === id);
   if (!product) return null;
@@ -331,7 +406,8 @@ export function deleteComment(commentId: string): boolean {
         list.splice(i, 1);
         return true;
       }
-      if (list[i].replies && findAndRemove(list[i].replies)) {
+      const replies = list[i].replies;
+      if (replies && findAndRemove(replies)) {
         return true;
       }
     }
@@ -537,4 +613,26 @@ export function hasUserUsedCoupon(couponId: string, phone: string): boolean {
   return MOCK_COUPON_USAGES.some(
     (u) => u.couponId === couponId && u.phone === phone,
   );
+}
+
+export function getOption(key: string): any {
+  const opt = MOCK_OPTIONS.find((o) => o.key === key);
+  if (!opt) return null;
+  try {
+    return JSON.parse(opt.value);
+  } catch {
+    return opt.value;
+  }
+}
+
+export function updateOption(key: string, value: any): boolean {
+  const opt = MOCK_OPTIONS.find((o) => o.key === key);
+  const strValue = typeof value === "string" ? value : JSON.stringify(value);
+  if (opt) {
+    opt.value = strValue;
+    return true;
+  } else {
+    MOCK_OPTIONS.push({ key, value: strValue });
+    return true;
+  }
 }

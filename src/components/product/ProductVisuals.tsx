@@ -30,7 +30,7 @@ export default function ProductVisuals({ productName }: ProductVisualsProps) {
         <div className="flex flex-col items-center justify-center p-1.5">
           <Truck className="w-5 h-5 text-gold-500 mb-1.5" />
           <span className="text-[11px] font-bold text-stone-300">
-            ارسال فوری و تازه
+            ارسال سریع و مطمئن
           </span>
         </div>
         <div className="flex flex-col items-center justify-center p-1.5 border-x border-stone-800">
@@ -42,7 +42,7 @@ export default function ProductVisuals({ productName }: ProductVisualsProps) {
         <div className="flex flex-col items-center justify-center p-1.5">
           <Flame className="w-5 h-5 text-orange-500 mb-1.5" />
           <span className="text-[11px] font-bold text-stone-300">
-            رست هفتگی و منظم
+            رست تخصصی و منظم
           </span>
         </div>
       </div>

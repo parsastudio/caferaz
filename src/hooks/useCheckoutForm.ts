@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCheckout } from "@/context/CheckoutContext";
 import {
@@ -53,7 +53,9 @@ export function useCheckoutForm() {
   const finalPrice = checkoutData?.finalPrice || 0;
 
   const methods = useForm<CheckoutFormValues>({
-    resolver: zodResolver(checkoutSchema),
+    resolver: zodResolver(
+      checkoutSchema,
+    ) as unknown as Resolver<CheckoutFormValues>,
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -68,7 +70,6 @@ export function useCheckoutForm() {
 
   const watchedPhone = watch("phone");
 
-  // بازنویسی هوشمند: کوپن صرفاً زمانی حذف می‌شود که شماره تلفن ورودی جدید، یک شماره تلفن کامل و معتبرِ مغایر باشد
   useEffect(() => {
     if (appliedCoupon) {
       const cleanWatchedPhone = toEnglishDigits(watchedPhone?.trim() || "");
@@ -127,7 +128,7 @@ export function useCheckoutForm() {
       blend: selectedBlend,
     });
 
-    if (res.success && res.data) {
+    if (res.success) {
       setAppliedCoupon({
         code: res.data.code,
         discountAmount: res.data.discountAmount,
@@ -135,7 +136,7 @@ export function useCheckoutForm() {
       setCheckoutFinalPrice(res.data.finalPrice);
       setLastValidatedPhone(cleanPhone);
     } else {
-      setCouponError(res.error || "خطا در ارزیابی کد تخفیف.");
+      setCouponError(res.error);
     }
     setIsApplyingCoupon(false);
   };
@@ -225,8 +226,8 @@ export function useCheckoutForm() {
           appliedCouponCode: appliedCoupon?.code || null,
         });
 
-        if (!result.success || !result.data) {
-          throw new Error(result.error || "خطایی در ثبت سفارش رخ داد.");
+        if (!result.success) {
+          throw new Error(result.error);
         }
 
         setFakeTrackingCode(result.data.id);
@@ -267,7 +268,7 @@ export function useCheckoutForm() {
           setValue("otp", "");
           setStep("shipping");
         } else {
-          throw new Error(loginRes.error || "کد تایید اشتباه است.");
+          throw new Error(loginRes.error);
         }
       } else {
         const result = await submitOrderAction({
@@ -283,8 +284,8 @@ export function useCheckoutForm() {
           appliedCouponCode: appliedCoupon?.code || null,
         });
 
-        if (!result.success || !result.data) {
-          throw new Error(result.error || "کد تایید اشتباه است.");
+        if (!result.success) {
+          throw new Error(result.error);
         }
 
         setFakeTrackingCode(result.data.id);

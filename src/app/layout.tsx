@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { CheckoutProvider } from "@/context/CheckoutContext";
+import Footer from "@/components/layout/Footer";
+import { getOption } from "@/lib/mock-db";
 
 const vazirMatn = localFont({
   src: "../../public/Vazirmatn.woff2",
@@ -10,7 +12,7 @@ const vazirMatn = localFont({
 
 export const metadata: Metadata = {
   title: "کافه راز | خرید قهوه فله اسپرسو",
-  description: "رست تخصصی هفتگی و فروش مستقیم قهوه میکس ویژه اسپرسو",
+  description: "رست تخصصی و فروش مستقیم قهوه میکس ویژه اسپرسو",
 };
 
 export default function RootLayout({
@@ -18,6 +20,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const footerData = getOption("site_footer");
+
   return (
     <html
       lang="fa"
@@ -28,7 +32,10 @@ export default function RootLayout({
         className="min-h-full flex flex-col bg-background text-foreground"
         dir="rtl"
       >
-        <CheckoutProvider>{children}</CheckoutProvider>
+        <CheckoutProvider>
+          <div className="flex-grow">{children}</div>
+          <Footer config={footerData} />
+        </CheckoutProvider>
       </body>
     </html>
   );

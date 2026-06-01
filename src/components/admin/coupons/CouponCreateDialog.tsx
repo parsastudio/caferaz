@@ -1,8 +1,7 @@
-
 "use client";
 
 import React from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Sparkles, Scale, Calendar, ChevronDown } from "lucide-react";
@@ -84,12 +83,23 @@ const schema = z
     },
   );
 
-type FormValues = z.infer<typeof schema>;
+export type CouponFormValues = {
+  code?: string;
+  type: "product_direct" | "conditional" | "user_code";
+  discountType: "percentage" | "fixed";
+  discountValue: number;
+  productId?: string;
+  minWeightGrams?: number;
+  validFrom?: string;
+  validTo?: string;
+  maxDiscountAmount?: number;
+  allowStacking?: boolean;
+};
 
 interface CouponCreateDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: FormValues) => void;
+  onSubmit: (data: CouponFormValues) => void;
   isPending: boolean;
 }
 
@@ -99,8 +109,8 @@ export default function CouponCreateDialog({
   onSubmit,
   isPending,
 }: CouponCreateDialogProps) {
-  const methods = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  const methods = useForm<CouponFormValues>({
+    resolver: zodResolver(schema) as unknown as Resolver<CouponFormValues>,
     defaultValues: {
       code: "",
       type: "user_code",
@@ -365,7 +375,7 @@ export default function CouponCreateDialog({
                     type="checkbox"
                     id="allowStacking"
                     checked={value || false}
-                    onChange={(e) => onChange(e.target.checked)} // رفع باگ منطقی رویداد تغییر استاندارد react
+                    onChange={(e) => onChange(e.target.checked)}
                     className="w-4 h-4 rounded border-stone-800 text-gold-500 focus:ring-gold-500 accent-gold-500 bg-stone-950 cursor-pointer shrink-0"
                   />
                 )}

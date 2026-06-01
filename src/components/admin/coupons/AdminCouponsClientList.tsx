@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { parseJalaliString } from "@/lib/jalali-converter";
 import CouponStats from "./CouponStats";
 import CouponCard from "./CouponCard";
-import CouponCreateDialog from "./CouponCreateDialog";
+import CouponCreateDialog, { CouponFormValues } from "./CouponCreateDialog";
 
 interface AdminCouponsClientListProps {
   initialCoupons: Coupon[];
@@ -53,7 +53,7 @@ export default function AdminCouponsClientList({
     });
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: CouponFormValues) => {
     startTransition(async () => {
       let miladiValidFrom: string | undefined = undefined;
       let miladiValidTo: string | undefined = undefined;
@@ -80,6 +80,7 @@ export default function AdminCouponsClientList({
         validTo: miladiValidTo,
         maxDiscountAmount: data.maxDiscountAmount || undefined,
         isActive: true,
+        allowStacking: data.allowStacking ?? false,
       };
 
       const result = await createCouponAction(payload);

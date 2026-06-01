@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import { useCommentForm } from "@/hooks/useCommentForm";
+import { Comment } from "@/lib/mock-db";
 
 interface CommentDialogProps {
   isOpen: boolean;
@@ -25,7 +26,7 @@ interface CommentDialogProps {
     rating: number | null;
     parentId: string | null;
   }) => void;
-  onCommentSuccess: (tempId: string, realComment: any) => void;
+  onCommentSuccess: (tempId: string, realComment: Comment) => void;
   onCommentFailed: (tempId: string) => void;
   startTransition: React.TransitionStartFunction;
 }
