@@ -1,5 +1,5 @@
 import React from "react";
-import { getProductAction } from "@/app/actions/product";
+import { getProductAction } from "@/actions/product";
 import AdminPricingForm from "@/components/admin/AdminPricingForm";
 
 export default async function AdminPricingPage() {

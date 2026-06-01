@@ -9,7 +9,7 @@ import {
   approveCommentAction,
   rejectCommentAction,
   editCommentAction,
-} from "@/app/actions/comment";
+} from "@/actions/comment";
 
 export function useAdminComments(initialComments: Comment[]) {
   const [comments, setComments] = useState<Comment[]>(initialComments);

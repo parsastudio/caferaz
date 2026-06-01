@@ -24,7 +24,6 @@ export default function Footer({ config }: FooterProps) {
   ];
   const address = config?.address || "تهران، کارگاه رست کافه راز";
   const eitaa = config?.eitaa || "https://eitaa.com/razcoffee";
-  const website = config?.website || "https://caferaz.ir";
 
   return (
     <footer
@@ -32,7 +31,6 @@ export default function Footer({ config }: FooterProps) {
       dir="rtl"
     >
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-        {/* Brand Column */}
         <div className="md:col-span-6 space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center text-xl font-black">
@@ -53,7 +51,6 @@ export default function Footer({ config }: FooterProps) {
             اقتصادی‌ترین قیمت بدون واسطه به شما هدیه می‌دهد.
           </p>
           <div className="flex items-center gap-3">
-            {/* Eitaa channel with nofollow instruction */}
             <a
               href={eitaa}
               target="_blank"
@@ -67,7 +64,6 @@ export default function Footer({ config }: FooterProps) {
           </div>
         </div>
 
-        {/* Contact Column */}
         <div className="md:col-span-6 space-y-4">
           <h4 className="text-xs font-black text-stone-200 tracking-wider">
             تماس و اطلاعات ارتباطی
@@ -88,21 +84,24 @@ export default function Footer({ config }: FooterProps) {
             </li>
           </ul>
 
-          {/* Placeholders for Trust Badges */}
           <div className="pt-4 flex items-center gap-3">
-            <div className="w-20 h-20 rounded-2xl bg-stone-900/60 border border-stone-850 flex flex-col items-center justify-center text-center p-2 hover:border-gold-500/20 transition-all select-none">
-              <ShieldCheck className="w-6 h-6 text-stone-600 mb-1" />
-              <span className="text-[8px] text-stone-500 font-bold">
-                نماد الکترونیکی
+            <div className="w-24 h-24 rounded-2xl bg-stone-900/40 border border-stone-850/80 flex flex-col items-center justify-center text-center p-2 hover:border-gold-500/20 transition-all select-none">
+              <ShieldCheck className="w-7 h-7 text-gold-500 mb-1" />
+              <span className="text-[9px] text-stone-200 font-black">
+                پرداخت امن
               </span>
-              <span className="text-[6px] text-stone-600">(Placeholder)</span>
+              <span className="text-[8px] text-stone-500 mt-0.5">
+                در محل خریدار
+              </span>
             </div>
-            <div className="w-20 h-20 rounded-2xl bg-stone-900/60 border border-stone-850 flex flex-col items-center justify-center text-center p-2 hover:border-gold-500/20 transition-all select-none">
-              <Award className="w-6 h-6 text-stone-600 mb-1" />
-              <span className="text-[8px] text-stone-500 font-bold">
-                نشان ساماندهی
+            <div className="w-24 h-24 rounded-2xl bg-stone-900/40 border border-stone-850/80 flex flex-col items-center justify-center text-center p-2 hover:border-gold-500/20 transition-all select-none">
+              <Award className="w-7 h-7 text-gold-500 mb-1" />
+              <span className="text-[9px] text-stone-200 font-black">
+                ضمانت اصالت
               </span>
-              <span className="text-[6px] text-stone-600">(Placeholder)</span>
+              <span className="text-[8px] text-stone-500 mt-0.5">
+                ۱۰۰٪ دان سبز
+              </span>
             </div>
           </div>
         </div>

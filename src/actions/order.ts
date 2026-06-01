@@ -124,7 +124,7 @@ export async function submitOrderAction(payload: {
       };
     }
 
-    const { getCurrentUserAction } = await import("@/app/actions/auth");
+    const { getCurrentUserAction } = await import("@/actions/auth");
     const currentUserRes = await getCurrentUserAction();
     const securePhone =
       currentUserRes.success && currentUserRes.user

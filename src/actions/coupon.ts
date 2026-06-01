@@ -51,7 +51,7 @@ export async function validateCouponAction(payload: {
     const cleanCode = code.trim().toUpperCase();
     const cleanPhone = phone ? toEnglishDigits(phone.trim()) : null;
 
-    const { getCurrentUserAction } = await import("@/app/actions/auth");
+    const { getCurrentUserAction } = await import("@/actions/auth");
     const currentUserRes = await getCurrentUserAction();
     const securePhone =
       currentUserRes.success && currentUserRes.user

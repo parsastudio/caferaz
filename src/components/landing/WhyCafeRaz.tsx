@@ -4,6 +4,8 @@ import React from "react";
 import * as Icons from "lucide-react";
 import { STATIC_USPS } from "@/lib/constants";
 
+type LucideIconType = React.ComponentType<{ className?: string }>;
+
 export default function WhyCafeRaz() {
   return (
     <section
@@ -25,7 +27,9 @@ export default function WhyCafeRaz() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {STATIC_USPS.map((usp) => {
-          const IconComponent = (Icons as any)[usp.icon] || Icons.HelpCircle;
+          const IconComponent =
+            (Icons[usp.icon as keyof typeof Icons] as LucideIconType) ||
+            Icons.HelpCircle;
 
           return (
             <div

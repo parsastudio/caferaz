@@ -1,5 +1,5 @@
 import React from "react";
-import { getAdminCommentsAction } from "@/app/actions/comment";
+import { getAdminCommentsAction } from "@/actions/comment";
 import AdminCommentsClientList from "@/components/admin/AdminCommentsClientList";
 
 export default async function AdminCommentsPage() {

@@ -1,6 +1,6 @@
 import React from "react";
-import { getSettingsAction } from "@/app/actions/settings";
-import { getProductAction } from "@/app/actions/product";
+import { getSettingsAction } from "@/actions/settings";
+import { getProductAction } from "@/actions/product";
 import AdminSettingsClient from "@/components/admin/AdminSettingsClient";
 
 export default async function AdminSettingsPage() {

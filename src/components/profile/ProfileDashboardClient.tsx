@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition } from "react";
 import { User, Order } from "@/lib/mock-db";
-import { logoutUserAction } from "@/app/actions/auth";
+import { logoutUserAction } from "@/actions/auth";
 import { motion } from "framer-motion";
 import {
   ShoppingBag,

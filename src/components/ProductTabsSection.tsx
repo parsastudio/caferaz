@@ -1,6 +1,11 @@
 "use client";
 
-import React, { useState, useOptimistic, useTransition } from "react";
+import React, {
+  useState,
+  useOptimistic,
+  useTransition,
+  useEffect,
+} from "react";
 import { MessageSquare, Star, Plus, Clock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { Button } from "./ui/button";
@@ -32,16 +37,46 @@ export default function ProductTabsSection({
     [],
   );
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(`pending_comments_${productId}`);
+      if (stored) {
+        try {
+          const parsed: UIComment[] = JSON.parse(stored);
+
+          const isApproved = (id: string, list: UIComment[]): boolean => {
+            return list.some(
+              (c) => c.id === id || (c.replies && isApproved(id, c.replies)),
+            );
+          };
+
+          const stillPending = parsed.filter((pending) => {
+            return !isApproved(pending.id, initialComments);
+          });
+
+          setLocalPendingComments(stillPending);
+          localStorage.setItem(
+            `pending_comments_${productId}`,
+            JSON.stringify(stillPending),
+          );
+        } catch (e) {
+          console.error(
+            "Failed to parse pending comments from localStorage",
+            e,
+          );
+        }
+      }
+    }
+  }, [productId, initialComments]);
+
   const getMergedComments = (): UIComment[] => {
     let merged = [...initialComments];
 
     localPendingComments.forEach((pending) => {
       if (pending.parent_id_temp) {
-        let found = false;
         const insertReply = (list: UIComment[]): UIComment[] => {
           return list.map((c) => {
             if (c.id === pending.parent_id_temp) {
-              found = true;
               const alreadyExists = (c.replies || []).some(
                 (r) => r.id === pending.id,
               );
@@ -78,15 +113,24 @@ export default function ProductTabsSection({
     mergedCommentsSnapshot,
     (state, newComment: UIComment) => {
       if (newComment.parent_id_temp) {
-        return state.map((c) => {
-          if (c.id === newComment.parent_id_temp) {
-            return {
-              ...c,
-              replies: [...(c.replies || []), newComment],
-            };
-          }
-          return c;
-        });
+        const insertReply = (list: UIComment[]): UIComment[] => {
+          return list.map((c) => {
+            if (c.id === newComment.parent_id_temp) {
+              return {
+                ...c,
+                replies: [...(c.replies || []), newComment],
+              };
+            }
+            if (c.replies && c.replies.length > 0) {
+              return {
+                ...c,
+                replies: insertReply(c.replies),
+              };
+            }
+            return c;
+          });
+        };
+        return insertReply(state);
       }
       return [newComment, ...state];
     },
@@ -111,26 +155,33 @@ export default function ProductTabsSection({
       parent_id_temp: newComment.parentId,
     };
 
-    setLocalPendingComments((prev) => [newLocalComment, ...prev]);
     addOptimisticComment(newLocalComment);
   };
 
-  const handleCommentSuccess = (tempId: string, realComment: Comment) => {
-    setLocalPendingComments((prev) =>
-      prev.map((c) =>
-        c.id === tempId
-          ? {
-              ...realComment,
-              is_pending: true,
-              replies: realComment.replies as UIComment[] | undefined,
-            }
-          : c,
-      ),
-    );
+  const handleCommentSuccess = (
+    tempId: string,
+    realComment: Comment,
+    parentId: string | null,
+  ) => {
+    const newUIComment: UIComment = {
+      ...realComment,
+      is_pending: true,
+      replies: realComment.replies as UIComment[] | undefined,
+      parent_id_temp: parentId,
+    };
+
+    setLocalPendingComments((prev) => {
+      const updated = [newUIComment, ...prev];
+      localStorage.setItem(
+        `pending_comments_${productId}`,
+        JSON.stringify(updated),
+      );
+      return updated;
+    });
   };
 
   const handleCommentFailed = (tempId: string) => {
-    setLocalPendingComments((prev) => prev.filter((c) => c.id !== tempId));
+    // Optimistic UI automatically handles revert on fail. No local state cleanup needed.
   };
 
   const openNewCommentDialog = () => {
@@ -228,6 +279,7 @@ export default function ProductTabsSection({
         onCommentSubmitted={handleCommentSubmitted}
         onCommentSuccess={handleCommentSuccess}
         onCommentFailed={handleCommentFailed}
+        isPending={isPending}
         startTransition={startTransition}
       />
     </div>

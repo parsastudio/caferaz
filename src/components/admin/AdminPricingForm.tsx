@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { updateProductDetailsAction } from "@/app/actions/product";
+import { updateProductDetailsAction } from "@/actions/product";
 import { ProductWithPricing } from "@/lib/mock-db";
 import { toast } from "sonner";
 import { Loader2, Sparkles, Coffee } from "lucide-react";

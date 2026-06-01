@@ -8,7 +8,7 @@ import {
   createCouponAction,
   deleteCouponAction,
   toggleCouponStatusAction,
-} from "@/app/actions/coupon";
+} from "@/actions/coupon";
 import { Button } from "@/components/ui/button";
 import { parseJalaliString } from "@/lib/jalali-converter";
 import CouponStats from "./CouponStats";

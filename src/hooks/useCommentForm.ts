@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { submitCommentAction } from "@/app/actions/comment";
+import { submitCommentAction } from "@/actions/comment";
 import { Comment } from "@/lib/mock-db";
 
 export const commentSchema = z.object({
@@ -40,7 +40,11 @@ interface UseCommentFormProps {
     rating: number | null;
     parentId: string | null;
   }) => void;
-  onCommentSuccess: (tempId: string, realComment: Comment) => void;
+  onCommentSuccess: (
+    tempId: string,
+    realComment: Comment,
+    parentId: string | null,
+  ) => void;
   onCommentFailed: (tempId: string) => void;
   startTransition: React.TransitionStartFunction;
 }
@@ -56,7 +60,6 @@ export function useCommentForm({
 }: UseCommentFormProps) {
   const [commentMessage, setCommentMessage] = useState<string | null>(null);
   const [commentError, setCommentError] = useState<string | null>(null);
-  const [isPending, setIsPending] = useState(false);
 
   const methods = useForm<CommentFormValues>({
     resolver: zodResolver(commentSchema),
@@ -82,7 +85,6 @@ export function useCommentForm({
   const onSubmit = async (values: CommentFormValues) => {
     setCommentError(null);
     setCommentMessage(null);
-    setIsPending(true);
 
     const tempId = `local_new_${Date.now()}`;
 
@@ -109,7 +111,7 @@ export function useCommentForm({
 
         if (result.success) {
           setCommentMessage(result.message || "دیدگاه شما ثبت گردید.");
-          onCommentSuccess(tempId, result.data);
+          onCommentSuccess(tempId, result.data, replyParentId);
           reset();
         } else {
           setCommentError(result.error);
@@ -118,8 +120,6 @@ export function useCommentForm({
       } catch (err) {
         setCommentError("خطا در ارتباط با سیستم ثبت بازخورد.");
         onCommentFailed(tempId);
-      } finally {
-        setIsPending(false);
       }
     });
   };
@@ -129,7 +129,6 @@ export function useCommentForm({
     commentMessage,
     setCommentMessage,
     commentError,
-    isPending,
     onSubmit,
   };
 }

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Percent, Zap, Coffee, Sparkles } from "lucide-react";
+import { CoffeeBlend } from "@/lib/constants";
 
 interface BlendProfile {
   robusta: number;
@@ -16,29 +17,69 @@ interface BlendSelectorProps {
   selectedBlend: string;
   setSelectedBlend: (blend: string) => void;
   blendProfile: BlendProfile;
-  blends?: any[];
+  blends?: CoffeeBlend[];
 }
 
-const fallbackBlends = [
+const fallbackBlends: CoffeeBlend[] = [
   {
     value: "۵۰٪ روبوستا / ۵۰٪ عربیکا",
     desc: "ترکیب متعادل، اسیدیته بسیار ملایم، بادی مناسب و عطر دلپذیر روزانه",
+    profile: {
+      robusta: 50,
+      arabica: 50,
+      caffeine: 60,
+      body: 60,
+      aroma: 65,
+      label: "بالانس عالی از عطر عربیکا و گیرایی روبوستا",
+    },
   },
   {
     value: "۷۰٪ روبوستا / ۳۰٪ عربیکا",
     desc: "کافئین بالا، تنواری سنگین، کرمای ضخیم و تلخی جذاب",
+    profile: {
+      robusta: 70,
+      arabica: 30,
+      caffeine: 80,
+      body: 80,
+      aroma: 45,
+      label: "کافئین بالا، غلظت سنگین و تلخی جذاب",
+    },
   },
   {
     value: "۳۰٪ روبوستا / ۷۰٪ عربیکا",
     desc: "اسیدیته ملایم رو به بالا، معطر و طعم یاد مرکباتی و شکلاتی",
+    profile: {
+      robusta: 30,
+      arabica: 70,
+      caffeine: 45,
+      body: 45,
+      aroma: 80,
+      label: "بسیار خوش‌عطر، ترشی ملایم و طعم یاد مرکباتی",
+    },
   },
   {
     value: "۱۰۰٪ روبوستا",
     desc: "بسیار سنگین، خامه ضخیم، کافئین حداکثری و بدون ترشی",
+    profile: {
+      robusta: 100,
+      arabica: 0,
+      caffeine: 95,
+      body: 95,
+      aroma: 25,
+      label: "کافئین فوق‌العاده بالا و خامه (کرما) ضخیم",
+    },
   },
   {
     value: "۱۰۰٪ عربیکا",
     desc: "بسیار معطر، ترشی ظریف، طعم یاد گلی و میوه‌ای تخصصی",
+    profile: {
+      robusta: 0,
+      arabica: 100,
+      caffeine: 25,
+      body: 25,
+      aroma: 98,
+      label: "رایحه گلی بی‌نظیر، اسیدیته شفاف و طعم تخصصی",
+    },
   },
 ];
 

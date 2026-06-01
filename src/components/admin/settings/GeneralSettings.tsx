@@ -4,8 +4,8 @@ import React, { useState, useTransition } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { updateSettingsAction } from "@/app/actions/settings";
-import { updateProductBasicInfoAction } from "@/app/actions/product";
+import { updateSettingsAction } from "@/actions/settings";
+import { updateProductBasicInfoAction } from "@/actions/product";
 
 interface GeneralSettingsProps {
   initialSettings: {

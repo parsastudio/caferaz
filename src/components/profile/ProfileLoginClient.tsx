@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { loginUserAction } from "@/app/actions/auth";
+import { loginUserAction } from "@/actions/auth";
 import { Smartphone, User, ArrowRight, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../ui/button";
@@ -145,9 +145,6 @@ export default function ProfileLoginClient() {
                     {phone}
                   </span>{" "}
                   ارسال شد.
-                </p>
-                <p className="text-[10px] text-gold-500 font-bold mt-1">
-                  💡 کد تست ورود به سیستم: 1234
                 </p>
               </div>
 

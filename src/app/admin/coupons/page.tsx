@@ -1,5 +1,5 @@
 import React from "react";
-import { getCouponsAction } from "@/app/actions/coupon";
+import { getCouponsAction } from "@/actions/coupon";
 import AdminCouponsClientList from "@/components/admin/coupons/AdminCouponsClientList";
 
 export default async function AdminCouponsPage() {

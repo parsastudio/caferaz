@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { updateAdminPasswordAction } from "@/app/actions/auth";
+import { updateAdminPasswordAction } from "@/actions/auth";
 import { toast } from "sonner";
 import { Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";

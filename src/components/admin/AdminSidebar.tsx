@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { ChevronRight, ChevronLeft, LogOut, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { logoutAdminAction } from "@/app/actions/auth";
+import { logoutAdminAction } from "@/actions/auth";
 
 const menuItems = [
   {

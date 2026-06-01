@@ -12,7 +12,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { Order } from "@/lib/mock-db";
-import { updateOrderStatusAction } from "@/app/actions/order";
+import { updateOrderStatusAction } from "@/actions/order";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 

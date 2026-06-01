@@ -1,7 +1,7 @@
 import CoffeeProductPage from "@/components/CoffeeProductPage";
-import { getProductAction } from "@/app/actions/product";
-import { getCommentsAction } from "@/app/actions/comment";
-import { getCouponsAction } from "@/app/actions/coupon";
+import { getProductAction } from "@/actions/product";
+import { getCommentsAction } from "@/actions/comment";
+import { getCouponsAction } from "@/actions/coupon";
 import { getOption } from "@/lib/mock-db";
 import WhyCafeRaz from "@/components/landing/WhyCafeRaz";
 import FAQSection from "@/components/landing/FAQSection";

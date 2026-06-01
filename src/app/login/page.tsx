@@ -7,7 +7,7 @@ import {
   loginUserWithOtpAction,
   checkPhoneRegisteredAction,
   registerUserAction,
-} from "@/app/actions/auth";
+} from "@/actions/auth";
 import {
   Smartphone,
   ArrowRight,
@@ -243,9 +243,6 @@ function LoginForm() {
                 {phone}
               </span>{" "}
               ارسال گردید.
-            </p>
-            <p className="text-[10px] text-gold-500 font-bold mt-1">
-              💡 کد تستی جهت ورود سریع: 1234
             </p>
           </div>
 

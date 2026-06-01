@@ -4,7 +4,7 @@ import React, { useState, useTransition } from "react";
 import { HelpCircle, Plus, Trash, Edit3, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { updateSettingsAction } from "@/app/actions/settings";
+import { updateSettingsAction } from "@/actions/settings";
 import { FAQ } from "@/components/landing/FAQSection";
 import FAQDialog from "./FAQDialog";
 

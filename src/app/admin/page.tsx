@@ -1,7 +1,7 @@
 import React from "react";
-import { getOrdersAction } from "@/app/actions/order";
-import { getAdminCommentsAction } from "@/app/actions/comment";
-import { getProductAction } from "@/app/actions/product";
+import { getOrdersAction } from "@/actions/order";
+import { getAdminCommentsAction } from "@/actions/comment";
+import { getProductAction } from "@/actions/product";
 
 export default async function AdminDashboardPage() {
   const ordersResult = await getOrdersAction();

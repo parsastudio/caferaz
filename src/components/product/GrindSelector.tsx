@@ -1,14 +1,15 @@
 "use client";
 
 import React from "react";
+import { CoffeeGrind } from "@/lib/constants";
 
 interface GrindSelectorProps {
   selectedGrind: string;
   setSelectedGrind: (grind: string) => void;
-  grinds?: any[];
+  grinds?: CoffeeGrind[];
 }
 
-const fallbackGrinds = [
+const fallbackGrinds: CoffeeGrind[] = [
   {
     value: "دانه کامل (آسیاب نشده)",
     desc: "دانه‌های قهوه سالم، مناسب برای نگهداری طولانی‌مدت",
@@ -70,4 +71,3 @@ export default function GrindSelector({
     </div>
   );
 }
-  

@@ -8,13 +8,13 @@ import {
   checkoutSchema,
   CheckoutFormValues,
 } from "@/components/checkout/schema";
-import { submitOrderAction } from "@/app/actions/order";
+import { submitOrderAction } from "@/actions/order";
 import {
   getCurrentUserAction,
   checkPhoneRegisteredAction,
   loginUserWithOtpAction,
-} from "@/app/actions/auth";
-import { validateCouponAction } from "@/app/actions/coupon";
+} from "@/actions/auth";
+import { validateCouponAction } from "@/actions/coupon";
 import { toEnglishDigits } from "@/lib/utils";
 
 export type Step = "user_info" | "shipping" | "otp" | "success";

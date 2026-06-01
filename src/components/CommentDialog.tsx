@@ -26,8 +26,13 @@ interface CommentDialogProps {
     rating: number | null;
     parentId: string | null;
   }) => void;
-  onCommentSuccess: (tempId: string, realComment: Comment) => void;
+  onCommentSuccess: (
+    tempId: string,
+    realComment: Comment,
+    parentId: string | null,
+  ) => void;
   onCommentFailed: (tempId: string) => void;
+  isPending: boolean;
   startTransition: React.TransitionStartFunction;
 }
 
@@ -39,24 +44,19 @@ export default function CommentDialog({
   onCommentSubmitted,
   onCommentSuccess,
   onCommentFailed,
+  isPending,
   startTransition,
 }: CommentDialogProps) {
-  const {
-    methods,
-    commentMessage,
-    setCommentMessage,
-    commentError,
-    isPending,
-    onSubmit,
-  } = useCommentForm({
-    productId,
-    replyParentId,
-    isOpen,
-    onCommentSubmitted,
-    onCommentSuccess,
-    onCommentFailed,
-    startTransition,
-  });
+  const { methods, commentMessage, setCommentMessage, commentError, onSubmit } =
+    useCommentForm({
+      productId,
+      replyParentId,
+      isOpen,
+      onCommentSubmitted,
+      onCommentSuccess,
+      onCommentFailed,
+      startTransition,
+    });
 
   const {
     register,
@@ -112,6 +112,7 @@ export default function CommentDialog({
               <input
                 type="text"
                 {...register("firstName")}
+                disabled={isPending}
                 className={`w-full bg-stone-950 border focus:ring-1 rounded-xl px-3 py-2.5 text-sm text-stone-100 outline-none transition-all text-right ${
                   errors.firstName
                     ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
@@ -133,6 +134,7 @@ export default function CommentDialog({
               <input
                 type="tel"
                 {...register("phone")}
+                disabled={isPending}
                 className={`w-full bg-stone-950 border focus:ring-1 rounded-xl px-3 py-2.5 text-sm text-stone-100 outline-none transition-all text-left ${
                   errors.phone
                     ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
@@ -162,6 +164,7 @@ export default function CommentDialog({
                         <button
                           key={star}
                           type="button"
+                          disabled={isPending}
                           onClick={() => onChange(star)}
                           className="transition-transform active:scale-90 hover:scale-110 cursor-pointer focus:outline-none"
                         >
@@ -187,6 +190,7 @@ export default function CommentDialog({
               <textarea
                 rows={4}
                 {...register("commentText")}
+                disabled={isPending}
                 className={`w-full bg-stone-950 border focus:ring-1 rounded-xl px-3 py-2.5 text-sm text-stone-100 outline-none transition-all resize-none text-right leading-relaxed ${
                   errors.commentText
                     ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
@@ -212,6 +216,7 @@ export default function CommentDialog({
                 type="button"
                 variant="ghost"
                 onClick={() => onOpenChange(false)}
+                disabled={isPending}
                 className="text-stone-400 hover:text-stone-200 cursor-pointer"
               >
                 انصراف
