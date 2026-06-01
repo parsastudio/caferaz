@@ -19,11 +19,14 @@ interface CommentDialogProps {
   productId: string;
   replyParentId: string | null;
   onCommentSubmitted: (newComment: {
+    id: string;
     first_name: string;
     comment_text: string;
     rating: number | null;
     parentId: string | null;
   }) => void;
+  onCommentSuccess: (tempId: string, realComment: any) => void;
+  onCommentFailed: (tempId: string) => void;
   startTransition: React.TransitionStartFunction;
 }
 
@@ -33,6 +36,8 @@ export default function CommentDialog({
   productId,
   replyParentId,
   onCommentSubmitted,
+  onCommentSuccess,
+  onCommentFailed,
   startTransition,
 }: CommentDialogProps) {
   const {
@@ -47,6 +52,8 @@ export default function CommentDialog({
     replyParentId,
     isOpen,
     onCommentSubmitted,
+    onCommentSuccess,
+    onCommentFailed,
     startTransition,
   });
 

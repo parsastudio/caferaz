@@ -81,6 +81,44 @@ export async function sendUserOtpAction(payload: { phone: string }) {
   }
 }
 
+export async function loginUserAction(payload: {
+  phone: string;
+  name: string;
+  otp: string;
+}) {
+  try {
+    const { phone, name, otp } = payload;
+
+    if (!phone || !otp) {
+      return { success: false, error: "اطلاعات ارسالی ناقص است." };
+    }
+
+    if (otp !== "1234") {
+      return {
+        success: false,
+        error: "کد تایید پیامک شده معتبر نیست. (کد تست: ۱۲۳۴)",
+      };
+    }
+
+    const { getOrCreateUser } = await import("@/lib/mock-db");
+    const displayName = name.trim() || "کاربر کافه راز";
+    getOrCreateUser(phone, displayName);
+
+    const cookieStore = await cookies();
+    cookieStore.set("user_phone", phone, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+    });
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "خطایی در فرآیند ورود رخ داد." };
+  }
+}
+
 export async function loginUserWithOtpAction(payload: {
   phone: string;
   otp: string;

@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import {
   createOrder,
   getOrders,
@@ -16,6 +17,39 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { ActionResponse } from "./comment";
 import { toEnglishDigits } from "@/lib/utils";
+
+const serverOrderSchema = z.object({
+  productId: z.string().min(1, "شناسه کالا نامعتبر است."),
+  weightGrams: z.number().min(250, "حداقل وزن سفارش ۲۵۰ گرم است."),
+  quantity: z.number().min(1, "تعداد بسته‌ها باید حداقل ۱ عدد باشد."),
+  blend: z.string().min(1, "انتخاب ترکیب دانه‌ها الزامی است."),
+  grind: z.string().min(1, "انتخاب نوع آسیاب الزامی است."),
+  customerName: z
+    .string()
+    .min(3, "نام و نام خانوادگی باید حداقل ۳ کاراکتر باشد.")
+    .max(100, "نام وارد شده بیش از حد طولانی است.")
+    .refine((val) => val.trim().split(/\s+/).length >= 2, {
+      message: "لطفاً نام و نام خانوادگی کامل خود را وارد کنید.",
+    }),
+  customerPhone: z.preprocess(
+    (val) => (typeof val === "string" ? toEnglishDigits(val.trim()) : val),
+    z
+      .string()
+      .regex(
+        /^09[0-9]{9}$/,
+        "لطفاً یک شماره موبایل معتبر (مانند ۰۹۱۲۳۴۵۶۷۸۹) وارد کنید.",
+      ),
+  ),
+  customerAddress: z
+    .string()
+    .min(10, "آدرس محل تحویل باید حداقل ۱۰ کاراکتر باشد.")
+    .max(500, "آدرس وارد شده بیش از حد طولانی است."),
+  otp: z
+    .string()
+    .length(4, "کد تایید پیامکی باید دقیقاً ۴ رقم باشد.")
+    .regex(/^[0-9]+$/, "کد تایید پیامکی باید عددی باشد."),
+  appliedCouponCode: z.string().nullable().optional(),
+});
 
 export async function getOrdersAction(): Promise<ActionResponse<Order[]>> {
   try {
@@ -60,6 +94,15 @@ export async function submitOrderAction(payload: {
   appliedCouponCode?: string | null;
 }): Promise<ActionResponse<Order>> {
   try {
+    const validated = serverOrderSchema.safeParse(payload);
+    if (!validated.success) {
+      return {
+        success: false,
+        error:
+          validated.error.errors[0]?.message || "اطلاعات ارسالی معتبر نیست.",
+      };
+    }
+
     const {
       productId,
       weightGrams,
@@ -71,24 +114,7 @@ export async function submitOrderAction(payload: {
       customerAddress,
       otp,
       appliedCouponCode,
-    } = payload;
-
-    if (
-      !productId ||
-      !weightGrams ||
-      !quantity ||
-      !blend ||
-      !grind ||
-      !customerName ||
-      !customerPhone ||
-      !customerAddress ||
-      !otp
-    ) {
-      return {
-        success: false,
-        error: "اطلاعات ارسالی برای ثبت سفارش ناقص است.",
-      };
-    }
+    } = validated.data;
 
     if (otp !== "1234") {
       return {
@@ -103,7 +129,7 @@ export async function submitOrderAction(payload: {
     const securePhone =
       currentUserRes.success && currentUserRes.user
         ? currentUserRes.user.phone
-        : toEnglishDigits(customerPhone.trim());
+        : customerPhone;
 
     const { dbTransaction } = await import("@/lib/mock-db");
 
@@ -151,10 +177,10 @@ export async function submitOrderAction(payload: {
             ? dateStr.split("T")[0]
             : dateStr;
           const [year, month, day] = normalized.split(/[-/]/).map(Number);
-          return new Date(year, month - 1, day).getTime();
+          return Date.UTC(year, month - 1, day);
         };
         const [ty, tm, td] = tehranTodayStr.split("-").map(Number);
-        const todayTimestamp = new Date(ty, tm - 1, td).getTime();
+        const todayTimestamp = Date.UTC(ty, tm - 1, td);
 
         if (activeCoupon.validFrom) {
           const fromTimestamp = normalizeDateToTimestamp(
@@ -193,8 +219,8 @@ export async function submitOrderAction(payload: {
         productId,
         pricing: product.pricing,
         blendProfile,
-        weightGrams: Number(weightGrams),
-        quantity: Number(quantity),
+        weightGrams: weightGrams,
+        quantity: quantity,
         activeCoupons: MOCK_COUPONS,
         appliedUserCouponCode: appliedCouponCode,
         userPhone: securePhone,
@@ -221,8 +247,8 @@ export async function submitOrderAction(payload: {
 
       const newOrder = createOrder({
         productId,
-        weightGrams: Number(weightGrams),
-        quantity: Number(quantity),
+        weightGrams: weightGrams,
+        quantity: quantity,
         grindType: `ترکیب: ${blend} | آسیاب: ${grind}`,
         finalPrice: secureFinalPrice,
         customerName,

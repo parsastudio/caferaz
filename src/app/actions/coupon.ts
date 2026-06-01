@@ -51,7 +51,6 @@ export async function validateCouponAction(payload: {
     const cleanCode = code.trim().toUpperCase();
     const cleanPhone = phone ? toEnglishDigits(phone.trim()) : null;
 
-    // گام امنیتی: تایید شماره موبایل از سشن واقعی سرور جهت انسداد دستکاری شبکه کلاینت
     const { getCurrentUserAction } = await import("@/app/actions/auth");
     const currentUserRes = await getCurrentUserAction();
     const securePhone =
@@ -81,17 +80,16 @@ export async function validateCouponAction(payload: {
       };
     }
 
-    // مقایسه زمان‌بندی تاریخ بر مبنای لوکال تایم تهران بدون وابستگی به تایم‌زون فیزیکی سرور خارجی
     const tehranTodayStr = getTehranTodayString();
     const normalizeDateToTimestamp = (dateStr: string): number => {
       const normalized = dateStr.includes("T")
         ? dateStr.split("T")[0]
         : dateStr;
       const [year, month, day] = normalized.split(/[-/]/).map(Number);
-      return new Date(year, month - 1, day).getTime();
+      return Date.UTC(year, month - 1, day);
     };
     const [ty, tm, td] = tehranTodayStr.split("-").map(Number);
-    const todayTimestamp = new Date(ty, tm - 1, td).getTime();
+    const todayTimestamp = Date.UTC(ty, tm - 1, td);
 
     if (coupon.validFrom) {
       const fromTimestamp = normalizeDateToTimestamp(coupon.validFrom);

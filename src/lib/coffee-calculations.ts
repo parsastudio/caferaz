@@ -143,15 +143,15 @@ export function calculateAdvancedPriceMetrics(params: {
 
   const tehranTodayStr = getTehranTodayString();
 
-  // تبدیل تاریخ به زمان محلی تهران برای همگام‌سازی زمان و جلوگیری از تفاوت منطقه زمانی سرورهای ابری
+  // تبدیل تاریخ به زمان معتبر جهانی UTC به صورت مستقل از ریجن سرور یا لوکیشن مرورگر
   const normalizeDateToTimestamp = (dateStr: string): number => {
     const normalized = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
     const [year, month, day] = normalized.split(/[-/]/).map(Number);
-    return new Date(year, month - 1, day).getTime();
+    return Date.UTC(year, month - 1, day);
   };
 
   const [ty, tm, td] = tehranTodayStr.split("-").map(Number);
-  const todayTimestamp = new Date(ty, tm - 1, td).getTime();
+  const todayTimestamp = Date.UTC(ty, tm - 1, td);
 
   const isCouponDateValid = (coupon: any): boolean => {
     if (coupon.validFrom) {
@@ -179,7 +179,6 @@ export function calculateAdvancedPriceMetrics(params: {
     }
   };
 
-  // ۱. ارزیابی و انتخاب بهترین کوپن تخفیف مستقیم فعال
   const directCoupons = params.activeCoupons.filter(
     (c) =>
       c.isActive &&
@@ -201,7 +200,6 @@ export function calculateAdvancedPriceMetrics(params: {
     });
   }
 
-  // ۲. ارزیابی و انتخاب بهترین کوپن تخفیف شرطی فعال (مثلاً حجم خرید)
   const conditionalCoupons = params.activeCoupons.filter((c) => {
     if (!c.isActive || c.deletedAt || c.type !== "conditional") return false;
     if (c.productId && c.productId !== params.productId) return false;
@@ -221,7 +219,6 @@ export function calculateAdvancedPriceMetrics(params: {
     });
   }
 
-  // ۳. ارزیابی کوپن کاربر دستی در صورت وجود و مجاز بودن
   let eligibleUserCoupon: any = null;
   let userCouponDiscountAmount = 0;
   if (params.appliedUserCouponCode) {
@@ -253,14 +250,12 @@ export function calculateAdvancedPriceMetrics(params: {
     }
   }
 
-  // ۴. مدیریت همپوشانی افزودنی (Additive) و یا انتخاب بهترین کوپن (Best-value Selector)
   let finalDiscount = 0;
   let finalDirect = 0;
   let finalConditional = 0;
   let finalUser = 0;
 
   if (eligibleUserCoupon && eligibleUserCoupon.allowStacking) {
-    // کوپن همپوشانی دارد: کوپن کاربر + بهترین تخفیف سیستمی موجود به صورت افزایشی (نه مرکب ضربدر هم)
     const bestAutoDiscount = Math.max(
       directDiscountAmount,
       conditionalDiscountAmount,
@@ -276,7 +271,6 @@ export function calculateAdvancedPriceMetrics(params: {
       }
     }
   } else {
-    // کوپن همپوشانی ندارد (پیش‌فرض): انتخاب بیشترین تخفیف مستقل تک کوپنی جهت حفظ سود خریدار
     finalDiscount = Math.max(
       directDiscountAmount,
       conditionalDiscountAmount,
@@ -301,11 +295,9 @@ export function calculateAdvancedPriceMetrics(params: {
     }
   }
 
-  // ممانعت از منفی شدن فاکتور
   finalDiscount = Math.min(finalDiscount, basePrice);
   const finalPrice = basePrice - finalDiscount;
 
-  // همسان‌سازی مقادیر سهمی تخفیف در صورت پر شدن سقف فاکتور
   if (finalDiscount === basePrice) {
     const totalAllocated = finalDirect + finalConditional + finalUser;
     if (totalAllocated > 0) {

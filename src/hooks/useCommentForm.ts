@@ -33,11 +33,14 @@ interface UseCommentFormProps {
   replyParentId: string | null;
   isOpen: boolean;
   onCommentSubmitted: (newComment: {
+    id: string;
     first_name: string;
     comment_text: string;
     rating: number | null;
     parentId: string | null;
   }) => void;
+  onCommentSuccess: (tempId: string, realComment: any) => void;
+  onCommentFailed: (tempId: string) => void;
   startTransition: React.TransitionStartFunction;
 }
 
@@ -46,6 +49,8 @@ export function useCommentForm({
   replyParentId,
   isOpen,
   onCommentSubmitted,
+  onCommentSuccess,
+  onCommentFailed,
   startTransition,
 }: UseCommentFormProps) {
   const [commentMessage, setCommentMessage] = useState<string | null>(null);
@@ -78,7 +83,10 @@ export function useCommentForm({
     setCommentMessage(null);
     setIsPending(true);
 
+    const tempId = `local_new_${Date.now()}`;
+
     const newCommentData = {
+      id: tempId,
       first_name: values.firstName,
       comment_text: values.commentText,
       rating: replyParentId ? null : (values.rating ?? 5),
@@ -98,14 +106,17 @@ export function useCommentForm({
           parentId: replyParentId,
         });
 
-        if (result.success) {
+        if (result.success && result.data) {
           setCommentMessage(result.message || "دیدگاه شما ثبت گردید.");
+          onCommentSuccess(tempId, result.data);
           reset();
         } else {
           setCommentError(result.error || "خطایی رخ داد.");
+          onCommentFailed(tempId);
         }
       } catch (err) {
         setCommentError("خطا در ارتباط با سیستم ثبت بازخورد.");
+        onCommentFailed(tempId);
       } finally {
         setIsPending(false);
       }

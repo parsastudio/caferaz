@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Star, Trash, Reply, X, Check, EyeOff, Eye, Edit3 } from "lucide-react";
 import { Comment } from "@/lib/mock-db";
 import { Badge } from "@/components/ui/badge";
@@ -12,21 +12,16 @@ interface CommentRowProps {
   setReplyTargetId: (id: string | null) => void;
   editTargetId: string | null;
   setEditTargetId: (id: string | null) => void;
-  editText: string;
-  setEditText: (text: string) => void;
-  adminName: string;
-  setAdminName: (name: string) => void;
-  replyText: string;
-  setReplyText: (text: string) => void;
   isSubmitting: boolean;
   handleDelete: (id: string) => void;
   handleStatusChange: (id: string, status: "approved" | "rejected") => void;
-  handleEditSubmit: (id: string) => void;
+  handleEditSubmit: (id: string, text: string) => Promise<boolean>;
   handleReplySubmit: (
-    e: React.FormEvent,
     parentId: string,
     productId: string,
-  ) => void;
+    name: string,
+    text: string,
+  ) => Promise<boolean>;
 }
 
 export default function CommentRow({
@@ -36,12 +31,6 @@ export default function CommentRow({
   setReplyTargetId,
   editTargetId,
   setEditTargetId,
-  editText,
-  setEditText,
-  adminName,
-  setAdminName,
-  replyText,
-  setReplyText,
   isSubmitting,
   handleDelete,
   handleStatusChange,
@@ -126,7 +115,6 @@ export default function CommentRow({
           <button
             onClick={() => {
               setEditTargetId(comment.id);
-              setEditText(comment.comment_text);
             }}
             className={`p-2 text-blue-400 hover:bg-blue-500/5 rounded-xl border border-stone-800 hover:border-blue-500/20 transition-all cursor-pointer ${
               isReplyNode ? "p-1 rounded" : ""
@@ -163,34 +151,11 @@ export default function CommentRow({
       </div>
 
       {editTargetId === comment.id ? (
-        <div className="mr-12 bg-stone-950/40 p-4 rounded-xl border border-stone-800 space-y-3">
-          <span className="text-[10px] font-bold text-stone-400 block">
-            ویرایش متن دیدگاه:
-          </span>
-          <textarea
-            rows={3}
-            value={editText}
-            onChange={(e) => setEditText(e.target.value)}
-            className="w-full bg-stone-900 border border-stone-800 rounded-lg px-3 py-2 text-xs text-stone-200 focus:border-gold-500 outline-none resize-none leading-relaxed"
-          />
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setEditTargetId(null)}
-              className="px-3 py-1.5 rounded-lg text-[10px] text-stone-400 hover:bg-stone-900 cursor-pointer"
-            >
-              انصراف
-            </button>
-            <button
-              type="button"
-              onClick={() => handleEditSubmit(comment.id)}
-              className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-black text-[10px] px-4 py-1.5 rounded-lg cursor-pointer flex items-center gap-1"
-            >
-              <Check className="w-3.5 h-3.5" />
-              <span>ذخیره تغییرات</span>
-            </button>
-          </div>
-        </div>
+        <CommentEditForm
+          initialText={comment.comment_text}
+          onCancel={() => setEditTargetId(null)}
+          onSave={(newText) => handleEditSubmit(comment.id, newText)}
+        />
       ) : (
         <p
           className={`text-xs text-stone-300 leading-relaxed ${isReplyNode ? "" : "pr-12"}`}
@@ -200,67 +165,18 @@ export default function CommentRow({
       )}
 
       {replyTargetId === comment.id && (
-        <form
-          onSubmit={(e) =>
+        <CommentReplyForm
+          onCancel={() => setReplyTargetId(null)}
+          onSubmit={(name, text) =>
             handleReplySubmit(
-              e,
               comment.id,
               comment.productId || "prod_coffee_bulk_01",
+              name,
+              text,
             )
           }
-          className="mr-12 bg-stone-950/40 p-4 rounded-xl border border-stone-800 space-y-3"
-        >
-          <div className="flex items-center justify-between border-b border-stone-800 pb-2">
-            <span className="text-[10px] font-bold text-stone-400">
-              ثبت پاسخ به دیدگاه
-            </span>
-            <button
-              type="button"
-              onClick={() => setReplyTargetId(null)}
-              className="text-stone-500 hover:text-stone-300 cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-stone-400">
-                نام پاسخ‌دهنده:
-              </label>
-              <input
-                type="text"
-                value={adminName}
-                onChange={(e) => setAdminName(e.target.value)}
-                className="w-full bg-stone-900 border border-stone-800 rounded-lg px-3 py-1.5 text-xs text-stone-200 focus:border-gold-500 outline-none animate-none"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-stone-400">
-              متن پاسخ شما:
-            </label>
-            <textarea
-              rows={2}
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              placeholder="پاسخ خود را بنویسید..."
-              className="w-full bg-stone-900 border border-stone-800 rounded-lg px-3 py-1.5 text-xs text-stone-200 focus:border-gold-500 outline-none resize-none leading-relaxed"
-            />
-          </div>
-
-          <div className="flex justify-end pt-1">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-black text-[10px] px-4 py-2 rounded-lg cursor-pointer transition-colors flex items-center gap-1"
-            >
-              <Check className="w-3.5 h-3.5" />
-              <span>{isSubmitting ? "در حال ثبت..." : "ارسال نهایی پاسخ"}</span>
-            </button>
-          </div>
-        </form>
+          isSubmitting={isSubmitting}
+        />
       )}
 
       {comment.replies && comment.replies.length > 0 && (
@@ -274,12 +190,6 @@ export default function CommentRow({
               setReplyTargetId={setReplyTargetId}
               editTargetId={editTargetId}
               setEditTargetId={setEditTargetId}
-              editText={editText}
-              setEditText={setEditText}
-              adminName={adminName}
-              setAdminName={setAdminName}
-              replyText={replyText}
-              setReplyText={setReplyText}
               isSubmitting={isSubmitting}
               handleDelete={handleDelete}
               handleStatusChange={handleStatusChange}
@@ -290,5 +200,135 @@ export default function CommentRow({
         </div>
       )}
     </div>
+  );
+}
+
+interface CommentEditFormProps {
+  initialText: string;
+  onCancel: () => void;
+  onSave: (text: string) => Promise<boolean>;
+}
+
+function CommentEditForm({
+  initialText,
+  onCancel,
+  onSave,
+}: CommentEditFormProps) {
+  const [text, setText] = useState(initialText);
+
+  const handleSubmit = async () => {
+    await onSave(text);
+  };
+
+  return (
+    <div className="mr-12 bg-stone-950/40 p-4 rounded-xl border border-stone-800 space-y-3">
+      <span className="text-[10px] font-bold text-stone-400 block">
+        ویرایش متن دیدگاه:
+      </span>
+      <textarea
+        rows={3}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        className="w-full bg-stone-900 border border-stone-800 rounded-lg px-3 py-2 text-xs text-stone-200 focus:border-gold-500 outline-none resize-none leading-relaxed"
+      />
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-3 py-1.5 rounded-lg text-[10px] text-stone-400 hover:bg-stone-900 cursor-pointer"
+        >
+          انصراف
+        </button>
+        <button
+          type="button"
+          onClick={handleSubmit}
+          className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-black text-[10px] px-4 py-1.5 rounded-lg cursor-pointer flex items-center gap-1"
+        >
+          <Check className="w-3.5 h-3.5" />
+          <span>ذخیره تغییرات</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface CommentReplyFormProps {
+  onCancel: () => void;
+  onSubmit: (name: string, text: string) => Promise<boolean>;
+  isSubmitting: boolean;
+}
+
+function CommentReplyForm({
+  onCancel,
+  onSubmit,
+  isSubmitting,
+}: CommentReplyFormProps) {
+  const [adminName, setAdminName] = useState("پشتیبان کافه راز");
+  const [replyText, setReplyText] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const success = await onSubmit(adminName, replyText);
+    if (success) {
+      setReplyText("");
+    }
+  };
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="mr-12 bg-stone-950/40 p-4 rounded-xl border border-stone-800 space-y-3"
+    >
+      <div className="flex items-center justify-between border-b border-stone-800 pb-2">
+        <span className="text-[10px] font-bold text-stone-400">
+          ثبت پاسخ به دیدگاه
+        </span>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-stone-500 hover:text-stone-300 cursor-pointer"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold text-stone-400">
+            نام پاسخ‌دهنده:
+          </label>
+          <input
+            type="text"
+            value={adminName}
+            onChange={(e) => setAdminName(e.target.value)}
+            className="w-full bg-stone-900 border border-stone-800 rounded-lg px-3 py-1.5 text-xs text-stone-200 focus:border-gold-500 outline-none"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-[10px] font-bold text-stone-400">
+          متن پاسخ شما:
+        </label>
+        <textarea
+          rows={2}
+          value={replyText}
+          onChange={(e) => setReplyText(e.target.value)}
+          placeholder="پاسخ خود را بنویسید..."
+          className="w-full bg-stone-900 border border-stone-800 rounded-lg px-3 py-1.5 text-xs text-stone-200 focus:border-gold-500 outline-none resize-none leading-relaxed"
+        />
+      </div>
+
+      <div className="flex justify-end pt-1">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-black text-[10px] px-4 py-2 rounded-lg cursor-pointer transition-colors flex items-center gap-1"
+        >
+          <Check className="w-3.5 h-3.5" />
+          <span>{isSubmitting ? "در حال ثبت..." : "ارسال نهایی پاسخ"}</span>
+        </button>
+      </div>
+    </form>
   );
 }

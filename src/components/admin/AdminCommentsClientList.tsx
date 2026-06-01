@@ -23,12 +23,6 @@ export default function AdminCommentsClientList({
     setReplyTargetId,
     editTargetId,
     setEditTargetId,
-    editText,
-    setEditText,
-    adminName,
-    setAdminName,
-    replyText,
-    setReplyText,
     isSubmitting,
     handleDelete,
     handleStatusChange,
@@ -60,12 +54,6 @@ export default function AdminCommentsClientList({
             setReplyTargetId={setReplyTargetId}
             editTargetId={editTargetId}
             setEditTargetId={setEditTargetId}
-            editText={editText}
-            setEditText={setEditText}
-            adminName={adminName}
-            setAdminName={setAdminName}
-            replyText={replyText}
-            setReplyText={setReplyText}
             isSubmitting={isSubmitting}
             handleDelete={handleDelete}
             handleStatusChange={handleStatusChange}

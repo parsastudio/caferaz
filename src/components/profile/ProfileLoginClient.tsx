@@ -3,7 +3,7 @@
 import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { loginUserAction } from "@/app/actions/auth";
-import { Smartphone, User, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { Smartphone, User, ArrowRight, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../ui/button";
 
@@ -34,14 +34,14 @@ export default function ProfileLoginClient() {
     e.preventDefault();
     setError(null);
 
-    if (otp !== "1234") {
-      setError("کد تایید پیامک شده نامعتبر است (کد تستی ۱۲۳۴ است).");
+    if (!otp || otp.length !== 4) {
+      setError("لطفاً کد تایید ۴ رقمی را وارد کنید.");
       return;
     }
 
     startTransition(async () => {
       try {
-        const result = await loginUserAction({ phone, name });
+        const result = await loginUserAction({ phone, name, otp });
         if (result.success) {
           router.refresh();
         } else {

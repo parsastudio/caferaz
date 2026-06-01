@@ -33,8 +33,56 @@ export default function ProductTabsSection({
   const [replyParentId, setReplyParentId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  // نگهداری دیدگاه‌های در انتظار تایید به صورت محلی برای جلوگیری از غیب شدن پس از اتمام Transition
+  const [localPendingComments, setLocalPendingComments] = useState<UIComment[]>(
+    [],
+  );
+
+  // تجمیع دیدگاه‌های پایگاه‌داده و محلی و بازسازی ساختار درخت نظرات
+  const getMergedComments = (): UIComment[] => {
+    let merged = [...initialComments];
+
+    localPendingComments.forEach((pending) => {
+      if (pending.parent_id_temp) {
+        let found = false;
+        const insertReply = (list: UIComment[]): UIComment[] => {
+          return list.map((c) => {
+            if (c.id === pending.parent_id_temp) {
+              found = true;
+              const alreadyExists = (c.replies || []).some(
+                (r) => r.id === pending.id,
+              );
+              return {
+                ...c,
+                replies: alreadyExists
+                  ? c.replies
+                  : [...(c.replies || []), pending],
+              };
+            }
+            if (c.replies && c.replies.length > 0) {
+              return {
+                ...c,
+                replies: insertReply(c.replies),
+              };
+            }
+            return c;
+          });
+        };
+        merged = insertReply(merged);
+      } else {
+        if (!merged.some((c) => c.id === pending.id)) {
+          merged = [pending, ...merged];
+        }
+      }
+    });
+
+    return merged;
+  };
+
+  const mergedCommentsSnapshot = getMergedComments();
+
   const [optimisticComments, addOptimisticComment] = useOptimistic(
-    initialComments,
+    mergedCommentsSnapshot,
     (state, newComment: UIComment) => {
       if (newComment.parent_id_temp) {
         return state.map((c) => {
@@ -52,13 +100,14 @@ export default function ProductTabsSection({
   );
 
   const handleCommentSubmitted = (newComment: {
+    id: string;
     first_name: string;
     comment_text: string;
     rating: number | null;
     parentId: string | null;
   }) => {
     const newLocalComment: UIComment = {
-      id: `local_new_${Date.now()}`,
+      id: newComment.id,
       first_name: newComment.first_name,
       last_name: "",
       rating: newComment.rating,
@@ -69,7 +118,20 @@ export default function ProductTabsSection({
       parent_id_temp: newComment.parentId,
     };
 
+    setLocalPendingComments((prev) => [newLocalComment, ...prev]);
     addOptimisticComment(newLocalComment);
+  };
+
+  const handleCommentSuccess = (tempId: string, realComment: UIComment) => {
+    setLocalPendingComments((prev) =>
+      prev.map((c) =>
+        c.id === tempId ? { ...realComment, is_pending: true } : c,
+      ),
+    );
+  };
+
+  const handleCommentFailed = (tempId: string) => {
+    setLocalPendingComments((prev) => prev.filter((c) => c.id !== tempId));
   };
 
   const openNewCommentDialog = () => {
@@ -165,6 +227,8 @@ export default function ProductTabsSection({
         productId={productId}
         replyParentId={replyParentId}
         onCommentSubmitted={handleCommentSubmitted}
+        onCommentSuccess={handleCommentSuccess}
+        onCommentFailed={handleCommentFailed}
         startTransition={startTransition}
       />
     </div>

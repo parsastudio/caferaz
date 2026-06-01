@@ -15,9 +15,6 @@ export function useAdminComments(initialComments: Comment[]) {
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [replyTargetId, setReplyTargetId] = useState<string | null>(null);
   const [editTargetId, setEditTargetId] = useState<string | null>(null);
-  const [editText, setEditText] = useState("");
-  const [adminName, setAdminName] = useState("پشتیبان کافه راز");
-  const [replyText, setReplyText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusFilter, setStatusFilter] = useState<
     "all" | "pending" | "approved" | "rejected"
@@ -91,21 +88,24 @@ export function useAdminComments(initialComments: Comment[]) {
     }
   };
 
-  const handleEditSubmit = async (commentId: string) => {
-    if (!editText.trim()) {
+  const handleEditSubmit = async (
+    commentId: string,
+    newText: string,
+  ): Promise<boolean> => {
+    if (!newText.trim()) {
       toast.error("متن دیدگاه نمی‌تواند خالی باشد.");
-      return;
+      return false;
     }
 
     try {
-      const result = await editCommentAction(commentId, editText);
+      const result = await editCommentAction(commentId, newText);
       if (result.success) {
         toast.success("تغییرات با موفقیت ذخیره شد.");
         setComments((prev) => {
           const updateText = (list: Comment[]): Comment[] => {
             return list.map((c) => {
               if (c.id === commentId) {
-                return { ...c, comment_text: editText };
+                return { ...c, comment_text: newText };
               }
               return {
                 ...c,
@@ -116,56 +116,70 @@ export function useAdminComments(initialComments: Comment[]) {
           return updateText(prev);
         });
         setEditTargetId(null);
+        return true;
       } else {
         toast.error(result.error || "خطا در ویرایش دیدگاه.");
+        return false;
       }
     } catch {
       toast.error("خطا در برقراری ارتباط با سرور.");
+      return false;
     }
   };
 
   const handleReplySubmit = async (
-    e: React.FormEvent,
     parentId: string,
     productId: string,
-  ) => {
-    e.preventDefault();
-    if (!replyText.trim() || !adminName.trim()) {
+    responderName: string,
+    responderText: string,
+  ): Promise<boolean> => {
+    if (!responderText.trim() || !responderName.trim()) {
       toast.error("لطفاً تمامی فیلدها را پر کنید.");
-      return;
+      return false;
     }
 
     setIsSubmitting(true);
     try {
       const result = await submitCommentAction({
         productId,
-        firstName: adminName,
-        commentText: replyText,
+        firstName: responderName,
+        commentText: responderText,
         rating: null,
         parentId,
       });
 
       if (result.success && result.data) {
         const newReply = result.data;
-        setComments((prev) =>
-          prev.map((c) => {
-            if (c.id === parentId) {
-              return {
-                ...c,
-                replies: [...(c.replies || []), newReply],
-              };
-            }
-            return c;
-          }),
-        );
+        setComments((prev) => {
+          const addReplyToParent = (list: Comment[]): Comment[] => {
+            return list.map((c) => {
+              if (c.id === parentId) {
+                return {
+                  ...c,
+                  replies: [...(c.replies || []), newReply],
+                };
+              }
+              if (c.replies && c.replies.length > 0) {
+                return {
+                  ...c,
+                  replies: addReplyToParent(c.replies),
+                };
+              }
+              return c;
+            });
+          };
+          return addReplyToParent(prev);
+        });
         toast.success("پاسخ شما با موفقیت ثبت شد.");
-        setReplyText("");
         setReplyTargetId(null);
+        return true;
       } else {
         toast.error("خطا در ثبت پاسخ.");
+        return false;
       }
     } catch {
       toast.error("خطای غیرمنتظره رخ داد.");
+      return false;
     } finally {
       setIsSubmitting(false);
     }
@@ -181,12 +195,6 @@ export function useAdminComments(initialComments: Comment[]) {
     setReplyTargetId,
     editTargetId,
     setEditTargetId,
-    editText,
-    setEditText,
-    adminName,
-    setAdminName,
-    replyText,
-    setReplyText,
     isSubmitting,
     handleDelete,
     handleStatusChange,
