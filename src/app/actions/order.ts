@@ -4,6 +4,8 @@ import {
   createOrder,
   getOrders,
   getProductWithPricing,
+  getOrCreateUser,
+  updateOrderStatus,
   Order,
 } from "@/lib/mock-db";
 import {
@@ -11,6 +13,7 @@ import {
   calculatePriceMetrics,
 } from "@/lib/coffee-calculations";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { ActionResponse } from "./comment";
 
 export async function getOrdersAction(): Promise<ActionResponse<Order[]>> {
@@ -19,6 +22,27 @@ export async function getOrdersAction(): Promise<ActionResponse<Order[]>> {
     return { success: true, data: orders };
   } catch (error) {
     return { success: false, error: "خطا در دریافت تاریخچه سفارش‌ها رخ داد." };
+  }
+}
+
+export async function updateOrderStatusAction(
+  orderId: string,
+  status: "pending" | "completed",
+): Promise<ActionResponse<boolean>> {
+  try {
+    const updated = updateOrderStatus(orderId, status);
+    if (!updated) {
+      return { success: false, error: "سفارش مورد نظر یافت نشد." };
+    }
+    revalidatePath("/admin/orders");
+    revalidatePath("/profile");
+    return {
+      success: true,
+      data: true,
+      message: "وضعیت سفارش با موفقیت به روزرسانی شد.",
+    };
+  } catch (error) {
+    return { success: false, error: "خطا در به روزرسانی وضعیت سفارش." };
   }
 }
 
@@ -31,6 +55,7 @@ export async function submitOrderAction(payload: {
   customerName: string;
   customerPhone: string;
   customerAddress: string;
+  otp: string;
 }): Promise<ActionResponse<Order>> {
   try {
     const {
@@ -42,6 +67,7 @@ export async function submitOrderAction(payload: {
       customerName,
       customerPhone,
       customerAddress,
+      otp,
     } = payload;
 
     if (
@@ -52,11 +78,20 @@ export async function submitOrderAction(payload: {
       !grind ||
       !customerName ||
       !customerPhone ||
-      !customerAddress
+      !customerAddress ||
+      !otp
     ) {
       return {
         success: false,
         error: "اطلاعات ارسالی برای ثبت سفارش ناقص است.",
+      };
+    }
+
+    if (otp !== "1234") {
+      return {
+        success: false,
+        error:
+          "کد تایید پیامکی معتبر نیست. لطفاً مجدداً تلاش کنید. (کد تست: ۱۲۳۴)",
       };
     }
 
@@ -89,7 +124,19 @@ export async function submitOrderAction(payload: {
       customerAddress,
     });
 
+    getOrCreateUser(customerPhone, customerName);
+
+    const cookieStore = await cookies();
+    cookieStore.set("user_phone", customerPhone, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+    });
+
     revalidatePath("/");
+    revalidatePath("/profile");
 
     return {
       success: true,

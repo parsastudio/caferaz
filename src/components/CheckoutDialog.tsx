@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import { ShoppingBag, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useCheckout } from "@/context/CheckoutContext";
 import {
   Dialog,
   DialogContent,
@@ -19,35 +20,35 @@ import OtpStep from "./checkout/OtpStep";
 import SuccessStep from "./checkout/SuccessStep";
 import { checkoutSchema, CheckoutFormValues } from "./checkout/schema";
 import { submitOrderAction } from "@/app/actions/order";
-
-interface CheckoutDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  productId: string;
-  selectedWeight: number;
-  selectedBlend: string;
-  selectedGrind: string;
-  quantity: number;
-  finalPrice: number;
-}
+import {
+  getCurrentUserAction,
+  checkPhoneRegisteredAction,
+  loginUserWithOtpAction,
+} from "@/app/actions/auth";
 
 type Step = "user_info" | "shipping" | "otp" | "success";
 
-export default function CheckoutDialog({
-  isOpen,
-  onOpenChange,
-  productId,
-  selectedWeight,
-  selectedBlend,
-  selectedGrind,
-  quantity,
-  finalPrice,
-}: CheckoutDialogProps) {
+export default function CheckoutDialog() {
+  const { isOpen, checkoutData, closeCheckout } = useCheckout();
   const [step, setStep] = useState<Step>("user_info");
+  const [isPending, startTransition] = useTransition();
+
+  const [isLoginMode, setIsLoginMode] = useState(false);
+  const [otpPurpose, setOtpPurpose] = useState<"login" | "checkout">(
+    "checkout",
+  );
+  const [isLoggedInUser, setIsLoggedInUser] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fakeTrackingCode, setFakeTrackingCode] = useState("");
+
+  const productId = checkoutData?.productId || "";
+  const selectedWeight = checkoutData?.selectedWeight || 0;
+  const selectedBlend = checkoutData?.selectedBlend || "";
+  const selectedGrind = checkoutData?.selectedGrind || "";
+  const quantity = checkoutData?.quantity || 1;
+  const finalPrice = checkoutData?.finalPrice || 0;
 
   const methods = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -61,36 +62,115 @@ export default function CheckoutDialog({
     mode: "onTouched",
   });
 
-  const { trigger, getValues, reset } = methods;
+  const { trigger, getValues, reset, setValue } = methods;
+
+  useEffect(() => {
+    if (isOpen) {
+      startTransition(async () => {
+        const res = await getCurrentUserAction();
+        if (res.success && res.user) {
+          setIsLoggedInUser(true);
+          const nameParts = res.user.name.split(" ");
+          setValue("firstName", nameParts[0] || "");
+          setValue("lastName", nameParts.slice(1).join(" ") || "");
+          setValue("phone", res.user.phone);
+          setValue("shippingAddress", res.user.address || "");
+          setStep("shipping");
+        } else {
+          setIsLoggedInUser(false);
+          setStep("user_info");
+        }
+      });
+    }
+  }, [isOpen, setValue]);
 
   const handleReset = () => {
     setStep("user_info");
+    setIsLoginMode(false);
+    setOtpPurpose("checkout");
+    setIsLoggedInUser(false);
     setErrorMessage(null);
     reset();
   };
 
-  const handleNextToShipping = async (e: React.FormEvent) => {
+  const handleUserInfoNext = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isValid = await trigger(["firstName", "lastName", "phone"]);
-    if (isValid) {
-      setErrorMessage(null);
-      setStep("shipping");
+    setErrorMessage(null);
+
+    if (isLoginMode) {
+      const isPhoneValid = await trigger(["phone"]);
+      if (!isPhoneValid) return;
+
+      const phoneVal = getValues("phone");
+      startTransition(async () => {
+        const checkRes = await checkPhoneRegisteredAction({ phone: phoneVal });
+        if (checkRes.success && checkRes.registered && checkRes.user) {
+          const nameParts = checkRes.user.name.split(" ");
+          setValue("firstName", nameParts[0] || "");
+          setValue("lastName", nameParts.slice(1).join(" ") || "");
+          setValue("shippingAddress", checkRes.user.address || "");
+          setOtpPurpose("login");
+          setStep("otp");
+        } else {
+          setErrorMessage(
+            "این شماره همراه قبلاً ثبت‌نام نکرده است. لطفاً ثبت‌نام کنید.",
+          );
+        }
+      });
+    } else {
+      const isFieldsValid = await trigger(["firstName", "lastName", "phone"]);
+      if (isFieldsValid) {
+        setOtpPurpose("checkout");
+        setStep("shipping");
+      }
     }
   };
 
-  const handleNextToOtp = async (e: React.FormEvent) => {
+  const handleShippingNext = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isValid = await trigger(["shippingAddress"]);
-    if (isValid) {
-      setErrorMessage(null);
+    const isAddressValid = await trigger(["shippingAddress"]);
+    if (!isAddressValid) return;
+
+    setErrorMessage(null);
+
+    if (isLoggedInUser) {
+      setIsSubmitting(true);
+      const values = getValues();
+      try {
+        const result = await submitOrderAction({
+          productId,
+          weightGrams: selectedWeight,
+          quantity,
+          blend: selectedBlend,
+          grind: selectedGrind,
+          customerName: `${values.firstName} ${values.lastName}`,
+          customerPhone: values.phone,
+          customerAddress: values.shippingAddress,
+          otp: "1234",
+        });
+
+        if (!result.success || !result.data) {
+          throw new Error(result.error || "خطایی در ثبت سفارش رخ داد.");
+        }
+
+        setFakeTrackingCode(result.data.id);
+        setStep("success");
+      } catch (err) {
+        setErrorMessage(
+          err instanceof Error ? err.message : "خطا در برقراری ارتباط با سرور.",
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
       setStep("otp");
     }
   };
 
-  const handleVerifyOtpAndSubmit = async (e: React.FormEvent) => {
+  const handleOtpVerifyAndSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isValid = await trigger(["otp"]);
-    if (!isValid) return;
+    const isOtpValid = await trigger(["otp"]);
+    if (!isOtpValid) return;
 
     setIsSubmitting(true);
     setErrorMessage(null);
@@ -98,29 +178,44 @@ export default function CheckoutDialog({
     const values = getValues();
 
     try {
-      const result = await submitOrderAction({
-        productId,
-        weightGrams: selectedWeight,
-        quantity,
-        blend: selectedBlend,
-        grind: selectedGrind,
-        customerName: `${values.firstName} ${values.lastName}`,
-        customerPhone: values.phone,
-        customerAddress: values.shippingAddress,
-      });
+      if (otpPurpose === "login") {
+        const loginRes = await loginUserWithOtpAction({
+          phone: values.phone,
+          otp: values.otp || "",
+        });
 
-      if (!result.success || !result.data) {
-        throw new Error(result.error || "خطایی در ثبت نهایی سفارش رخ داد.");
+        if (loginRes.success) {
+          setIsLoggedInUser(true);
+          setIsLoginMode(false);
+          setValue("otp", "");
+          setStep("shipping");
+        } else {
+          throw new Error(loginRes.error || "کد تایید اشتباه است.");
+        }
+      } else {
+        const result = await submitOrderAction({
+          productId,
+          weightGrams: selectedWeight,
+          quantity,
+          blend: selectedBlend,
+          grind: selectedGrind,
+          customerName: `${values.firstName} ${values.lastName}`,
+          customerPhone: values.phone,
+          customerAddress: values.shippingAddress,
+          otp: values.otp || "",
+        });
+
+        if (!result.success || !result.data) {
+          throw new Error(result.error || "کد تایید اشتباه است.");
+        }
+
+        setFakeTrackingCode(result.data.id);
+        setStep("success");
       }
-
-      setFakeTrackingCode(result.data.id);
-      setStep("success");
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "خطایی رخ داد. مجدداً تلاش فرمایید.";
-      setErrorMessage(message);
+      setErrorMessage(
+        err instanceof Error ? err.message : "خطا در پردازش اطلاعات.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -130,8 +225,8 @@ export default function CheckoutDialog({
     <Dialog
       open={isOpen}
       onOpenChange={(open) => {
-        onOpenChange(open);
         if (!open) {
+          closeCheckout();
           setTimeout(handleReset, 300);
         }
       }}
@@ -166,7 +261,13 @@ export default function CheckoutDialog({
               onClick={() => {
                 setErrorMessage(null);
                 if (step === "shipping") setStep("user_info");
-                if (step === "otp") setStep("shipping");
+                if (step === "otp") {
+                  if (otpPurpose === "login") {
+                    setStep("user_info");
+                  } else {
+                    setStep("shipping");
+                  }
+                }
               }}
               className="text-stone-400 hover:text-stone-200 p-1.5 rounded-lg hover:bg-stone-800/40 transition-colors cursor-pointer"
             >
@@ -187,9 +288,15 @@ export default function CheckoutDialog({
                   transition={{ duration: 0.2 }}
                 >
                   <UserInfoStep
-                    onSubmit={handleNextToShipping}
+                    onSubmit={handleUserInfoNext}
                     finalPrice={finalPrice}
-                    onClose={() => onOpenChange(false)}
+                    onClose={closeCheckout}
+                    isLoginMode={isLoginMode}
+                    onToggleLoginMode={() => {
+                      setErrorMessage(null);
+                      setIsLoginMode(!isLoginMode);
+                    }}
+                    isCheckingPhone={isPending}
                   />
                 </motion.div>
               )}
@@ -203,9 +310,11 @@ export default function CheckoutDialog({
                   transition={{ duration: 0.2 }}
                 >
                   <ShippingStep
-                    onSubmit={handleNextToOtp}
+                    onSubmit={handleShippingNext}
                     onBack={() => setStep("user_info")}
                     finalPrice={finalPrice}
+                    isLoggedIn={isLoggedInUser}
+                    isSubmitting={isSubmitting}
                   />
                 </motion.div>
               )}
@@ -220,8 +329,14 @@ export default function CheckoutDialog({
                 >
                   <OtpStep
                     phone={getValues("phone")}
-                    onBack={() => setStep("shipping")}
-                    onSubmit={handleVerifyOtpAndSubmit}
+                    onBack={() => {
+                      if (otpPurpose === "login") {
+                        setStep("user_info");
+                      } else {
+                        setStep("shipping");
+                      }
+                    }}
+                    onSubmit={handleOtpVerifyAndSubmit}
                     isSubmitting={isSubmitting}
                     finalPrice={finalPrice}
                   />
@@ -244,7 +359,7 @@ export default function CheckoutDialog({
                     finalPrice={finalPrice}
                     trackingCode={fakeTrackingCode}
                     onClose={() => {
-                      onOpenChange(false);
+                      closeCheckout();
                       setTimeout(handleReset, 300);
                     }}
                   />
@@ -253,14 +368,11 @@ export default function CheckoutDialog({
             </AnimatePresence>
           </FormProvider>
 
-          {errorMessage &&
-            step !== "user_info" &&
-            step !== "shipping" &&
-            step !== "otp" && (
-              <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-xl mt-4">
-                {errorMessage}
-              </div>
-            )}
+          {errorMessage && (
+            <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-xl mt-4">
+              {errorMessage}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

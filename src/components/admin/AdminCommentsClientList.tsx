@@ -46,7 +46,11 @@ export default function AdminCommentsClientList({
     }
   };
 
-  const handleReplySubmit = async (e: React.FormEvent, parentId: string) => {
+  const handleReplySubmit = async (
+    e: React.FormEvent,
+    parentId: string,
+    productId: string,
+  ) => {
     e.preventDefault();
     if (!replyText.trim() || !adminName.trim()) {
       toast.error("لطفاً تمامی فیلدها را پر کنید.");
@@ -56,7 +60,7 @@ export default function AdminCommentsClientList({
     setIsSubmitting(true);
     try {
       const result = await submitCommentAction({
-        productId: "prod_coffee_bulk_01",
+        productId,
         firstName: adminName,
         commentText: replyText,
         rating: null,
@@ -140,7 +144,13 @@ export default function AdminCommentsClientList({
 
           {replyTargetId === comment.id && (
             <form
-              onSubmit={(e) => handleReplySubmit(e, comment.id)}
+              onSubmit={(e) =>
+                handleReplySubmit(
+                  e,
+                  comment.id,
+                  comment.productId || "prod_coffee_bulk_01",
+                )
+              }
               className="mr-12 bg-stone-950/40 p-4 rounded-xl border border-stone-800 space-y-3"
             >
               <div className="flex items-center justify-between border-b border-stone-800 pb-2">

@@ -46,16 +46,17 @@ export default function OtpStep({
 
   const handleOtpChange = (value: string, index: number) => {
     const cleanValue = value.replace(/[^0-9]/g, "");
-    if (!cleanValue) return;
 
     const newOtp = [...otpDigits];
-    newOtp[index] = cleanValue.substring(cleanValue.length - 1);
+    newOtp[index] = cleanValue
+      ? cleanValue.substring(cleanValue.length - 1)
+      : "";
     setOtpDigits(newOtp);
 
     const fullOtpString = newOtp.join("");
     setValue("otp", fullOtpString, { shouldValidate: true });
 
-    if (index < 3) {
+    if (cleanValue && index < 3) {
       otpInputsRef.current[index + 1]?.focus();
     }
   };

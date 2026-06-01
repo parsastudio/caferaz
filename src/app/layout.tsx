@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { CheckoutProvider } from "@/context/CheckoutContext";
 
 const vazirMatn = localFont({
   src: "../../public/Vazirmatn.woff2",
@@ -27,7 +28,7 @@ export default function RootLayout({
         className="min-h-full flex flex-col bg-background text-foreground"
         dir="rtl"
       >
-        {children}
+        <CheckoutProvider>{children}</CheckoutProvider>
       </body>
     </html>
   );

@@ -10,6 +10,7 @@ import QuantitySelector from "./product/QuantitySelector";
 import PriceSummary from "./product/PriceSummary";
 import CheckoutDialog from "./CheckoutDialog";
 import ProductTabsSection, { UIComment } from "./ProductTabsSection";
+import { useCheckout } from "@/context/CheckoutContext";
 
 interface CoffeeProductPageProps {
   initialProduct: CoffeeProduct;
@@ -33,14 +34,14 @@ export default function CoffeeProductPage({
     setSelectedGrind,
     quantity,
     setQuantity,
-    isCheckoutOpen,
-    setIsCheckoutOpen,
     blendProfile,
     computedWeight,
     priceMetrics,
     remainingStockCount,
     isOutOfStock,
   } = useCoffeeProduct(initialProduct);
+
+  const { openCheckout } = useCheckout();
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-12" dir="rtl">
@@ -89,7 +90,16 @@ export default function CoffeeProductPage({
           <PriceSummary
             finalPrice={priceMetrics.finalPrice}
             isOutOfStock={isOutOfStock}
-            onCheckout={() => setIsCheckoutOpen(true)}
+            onCheckout={() =>
+              openCheckout({
+                productId: initialProduct.id,
+                selectedWeight: computedWeight,
+                selectedBlend,
+                selectedGrind,
+                quantity,
+                finalPrice: priceMetrics.finalPrice,
+              })
+            }
           />
         </div>
       </div>
@@ -100,16 +110,7 @@ export default function CoffeeProductPage({
         initialComments={initialComments}
       />
 
-      <CheckoutDialog
-        isOpen={isCheckoutOpen}
-        onOpenChange={setIsCheckoutOpen}
-        productId={initialProduct.id}
-        selectedWeight={computedWeight}
-        selectedBlend={selectedBlend}
-        selectedGrind={selectedGrind}
-        quantity={quantity}
-        finalPrice={priceMetrics.finalPrice}
-      />
+      <CheckoutDialog />
     </div>
   );
 }

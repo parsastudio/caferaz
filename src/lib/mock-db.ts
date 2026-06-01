@@ -44,6 +44,14 @@ export interface ProductWithPricing extends Product {
   } | null;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  phone: string;
+  createdAt: string;
+  address?: string;
+}
+
 export const MOCK_PRODUCTS: Product[] = [
   {
     id: "prod_coffee_bulk_01",
@@ -125,6 +133,23 @@ export const MOCK_ORDERS: Order[] = [
     customerAddress: "شیراز، بلوار ارم، کوچه بنفشه، ساختمان طلوع، طبقه همکف",
     createdAt: "2026-05-29T18:40:00.000Z",
     status: "pending",
+  },
+];
+
+export const MOCK_USERS: User[] = [
+  {
+    id: "usr_default_1",
+    name: "علیرضا شفیعی",
+    phone: "09121112233",
+    createdAt: "2026-05-30T10:15:00.000Z",
+    address: "تهران، میدان ونک، خیابان گاندی، کوچه چهارم، پلاک ۱۲، واحد ۳",
+  },
+  {
+    id: "usr_default_2",
+    name: "سارا فلاحی",
+    phone: "09354445566",
+    createdAt: "2026-05-29T18:40:00.000Z",
+    address: "شیراز، بلوار ارم، کوچه بنفشه، ساختمان طلوع، طبقه همکف",
   },
 ];
 
@@ -250,4 +275,48 @@ export function createOrder(
 
 export function getOrders(): Order[] {
   return MOCK_ORDERS;
+}
+
+export function updateOrderStatus(
+  orderId: string,
+  status: "pending" | "completed",
+): boolean {
+  const order = MOCK_ORDERS.find((o) => o.id === orderId);
+  if (order) {
+    order.status = status;
+    return true;
+  }
+  return false;
+}
+
+export function getOrCreateUser(
+  phone: string,
+  name: string,
+  address?: string,
+): User {
+  let user = MOCK_USERS.find((u) => u.phone === phone);
+  if (!user) {
+    user = {
+      id: `usr_${Date.now()}`,
+      name,
+      phone,
+      createdAt: new Date().toISOString(),
+      address,
+    };
+    MOCK_USERS.push(user);
+  } else {
+    user.name = name;
+    if (address) {
+      user.address = address;
+    }
+  }
+  return user;
+}
+
+export function getOrdersByPhone(phone: string): Order[] {
+  return MOCK_ORDERS.filter((o) => o.customerPhone === phone);
+}
+
+export function getUserByPhone(phone: string): User | null {
+  return MOCK_USERS.find((u) => u.phone === phone) || null;
 }

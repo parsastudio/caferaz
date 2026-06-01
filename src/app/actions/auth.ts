@@ -68,3 +68,119 @@ export async function updateAdminPasswordAction(payload: {
     return { success: false, error: "خطا در تغییر رمز عبور رخ داد." };
   }
 }
+
+export async function sendUserOtpAction(payload: { phone: string }) {
+  try {
+    const { phone } = payload;
+    if (!phone) {
+      return { success: false, error: "شماره همراه ارسال نشده است." };
+    }
+    return { success: true, message: "کد تایید با موفقیت ارسال شد." };
+  } catch {
+    return { success: false, error: "خطا در ارسال پیامک." };
+  }
+}
+
+export async function loginUserWithOtpAction(payload: {
+  phone: string;
+  otp: string;
+}) {
+  try {
+    const { phone, otp } = payload;
+
+    if (!phone || !otp) {
+      return { success: false, error: "اطلاعات ارسالی ناقص است." };
+    }
+
+    if (otp !== "1234") {
+      return { success: false, error: "کد تایید معتبر نیست. (کد تست: ۱۲۳۴)" };
+    }
+
+    const { getOrCreateUser, getUserByPhone } = await import("@/lib/mock-db");
+
+    const existingUser = getUserByPhone(phone);
+    const displayName = existingUser ? existingUser.name : "کاربر کافه راز";
+
+    getOrCreateUser(phone, displayName);
+
+    const cookieStore = await cookies();
+    cookieStore.set("user_phone", phone, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+    });
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "خطایی در فرآیند ورود رخ داد." };
+  }
+}
+
+export async function registerUserAction(payload: {
+  phone: string;
+  name: string;
+  address: string;
+  otp: string;
+}) {
+  try {
+    const { phone, name, address, otp } = payload;
+
+    if (!phone || !name || !address || !otp) {
+      return { success: false, error: "پر کردن تمامی فیلدها الزامی است." };
+    }
+
+    if (otp !== "1234") {
+      return { success: false, error: "کد تایید نامعتبر است. (کد تست: ۱۲۳۴)" };
+    }
+
+    const { getOrCreateUser } = await import("@/lib/mock-db");
+    getOrCreateUser(phone, name, address);
+
+    const cookieStore = await cookies();
+    cookieStore.set("user_phone", phone, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+    });
+
+    return { success: true };
+  } catch {
+    return { success: false, error: "خطایی در فرآیند ثبت نام رخ داد." };
+  }
+}
+
+export async function checkPhoneRegisteredAction(payload: { phone: string }) {
+  try {
+    const { phone } = payload;
+    const { getUserByPhone } = await import("@/lib/mock-db");
+    const user = getUserByPhone(phone);
+    return { success: true, registered: !!user, user };
+  } catch {
+    return { success: false, error: "خطا در بررسی شماره تماس." };
+  }
+}
+
+export async function getCurrentUserAction() {
+  try {
+    const cookieStore = await cookies();
+    const phone = cookieStore.get("user_phone")?.value;
+    if (!phone) {
+      return { success: true, user: null };
+    }
+    const { getUserByPhone } = await import("@/lib/mock-db");
+    const user = getUserByPhone(phone);
+    return { success: true, user };
+  } catch {
+    return { success: false, user: null };
+  }
+}
+
+export async function logoutUserAction() {
+  const cookieStore = await cookies();
+  cookieStore.delete("user_phone");
+  redirect("/");
+}

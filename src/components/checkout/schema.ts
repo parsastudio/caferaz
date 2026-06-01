@@ -24,8 +24,10 @@ export const checkoutSchema = z.object({
     .max(500, "آدرس بیش از حد طولانی است"),
   otp: z
     .string()
-    .length(4, "لطفاً کد تایید ۴ رقمی را به طور کامل وارد سازید")
-    .regex(/^[0-9]+$/, "کد تایید فقط باید شامل اعداد باشد"),
+    .optional()
+    .refine((val) => !val || (val.length === 4 && /^[0-9]+$/.test(val)), {
+      message: "کد تایید ۴ رقمی عددی را به درستی وارد کنید",
+    }),
 });
 
 export type CheckoutFormValues = z.infer<typeof checkoutSchema>;

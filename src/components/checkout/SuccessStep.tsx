@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 
 interface SuccessStepProps {
@@ -25,8 +26,16 @@ export default function SuccessStep({
   trackingCode,
   onClose,
 }: SuccessStepProps) {
+  const router = useRouter();
+
+  const handleViewProfile = () => {
+    onClose();
+    router.push("/profile");
+    router.refresh();
+  };
+
   return (
-    <div className="text-center py-6 space-y-5">
+    <div className="text-center py-4 space-y-5">
       <div className="w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center mx-auto text-2xl font-bold animate-bounce">
         ✓
       </div>
@@ -37,7 +46,7 @@ export default function SuccessStep({
         </p>
         <p className="text-xs text-stone-400 font-bold flex items-center justify-center gap-1">
           کد پیگیری سفارش:{" "}
-          <span className="text-gold-500 font-black tracking-wider">
+          <span className="text-gold-500 font-black tracking-wider font-sans">
             {trackingCode}
           </span>
         </p>
@@ -49,34 +58,47 @@ export default function SuccessStep({
         </span>
         <div className="grid grid-cols-2 gap-y-2 text-xs font-bold text-stone-300">
           <div>تحویل‌گیرنده:</div>
-          <div className="text-left text-stone-200">
+          <div className="text-left text-stone-200 font-sans">
             {firstName} {lastName}
           </div>
           <div>شماره تماس:</div>
-          <div className="text-left text-stone-200">{phone}</div>
+          <div className="text-left text-stone-200 font-sans">{phone}</div>
           <div>وزن بسته‌بندی:</div>
-          <div className="text-left text-stone-200">{selectedWeight} گرم</div>
+          <div className="text-left text-stone-200 font-sans">
+            {selectedWeight} گرم
+          </div>
           <div>تعداد بسته:</div>
-          <div className="text-left text-stone-200">{quantity} عدد</div>
+          <div className="text-left text-stone-200 font-sans">
+            {quantity} عدد
+          </div>
           <div>هزینه پرداخت در محل:</div>
-          <div className="text-left text-gold-400 font-black">
+          <div className="text-left text-gold-400 font-black font-sans">
             {finalPrice.toLocaleString()} تومان
           </div>
         </div>
       </div>
 
       <p className="text-[11px] text-stone-400 leading-relaxed max-w-xs mx-auto">
-        آماده‌سازی، رست تخصصی و بسته‌بندی نهایی قهوه شما بر اساس اولویت‌های
-        انتخابی با موفقیت ثبت شد. به زودی پشتیبانان ما جهت هماهنگی نهایی ارسال
-        با شما تماس خواهند گرفت.
+        رست تازه و بسته‌بندی نهایی بر اساس ویژگی‌های سفارشی شما با موفقیت ثبت
+        گردید. به زودی پشتیبانان ما جهت ارسال بسته با شما تماس خواهند گرفت.
       </p>
 
-      <Button
-        onClick={onClose}
-        className="w-full max-w-xs bg-stone-850 hover:bg-stone-800 text-stone-100 font-bold py-3 rounded-xl cursor-pointer text-xs"
-      >
-        متوجه شدم، بستن پنجره
-      </Button>
+      <div className="flex flex-col gap-2 max-w-xs mx-auto pt-2">
+        <Button
+          onClick={handleViewProfile}
+          className="w-full bg-gold-500 hover:bg-gold-600 text-stone-950 font-black py-4 rounded-xl cursor-pointer text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-gold-500/5"
+        >
+          مشاهده وضعیت آنلاین سفارش در پیشخوان کاربری
+          <ArrowRight className="w-4 h-4" />
+        </Button>
+        <Button
+          onClick={onClose}
+          variant="ghost"
+          className="w-full text-stone-400 hover:text-stone-200 text-[11px] font-bold animate-pulse"
+        >
+          بستن پنجره سفارش
+        </Button>
+      </div>
     </div>
   );
 }

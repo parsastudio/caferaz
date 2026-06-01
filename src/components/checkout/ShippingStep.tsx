@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MapPin, Check, Truck } from "lucide-react";
+import { MapPin, Check, Truck, Loader2 } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "../ui/button";
 import { CheckoutFormValues } from "./schema";
@@ -10,12 +10,16 @@ interface ShippingStepProps {
   onSubmit: (e: React.FormEvent) => void;
   onBack: () => void;
   finalPrice: number;
+  isLoggedIn?: boolean;
+  isSubmitting?: boolean;
 }
 
 export default function ShippingStep({
   onSubmit,
   onBack,
   finalPrice,
+  isLoggedIn,
+  isSubmitting,
 }: ShippingStepProps) {
   const {
     register,
@@ -74,19 +78,31 @@ export default function ShippingStep({
           </span>
         </div>
         <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onBack}
-            className="text-stone-400 hover:text-stone-200 cursor-pointer text-xs"
-          >
-            بازگشت
-          </Button>
+          {!isLoggedIn && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onBack}
+              className="text-stone-400 hover:text-stone-200 cursor-pointer text-xs"
+            >
+              بازگشت
+            </Button>
+          )}
           <Button
             type="submit"
+            disabled={isSubmitting}
             className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-bold px-5 py-2.5 rounded-xl cursor-pointer"
           >
-            دریافت کد تایید
+            {isSubmitting ? (
+              <span className="flex items-center gap-1.5">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                در حال ثبت...
+              </span>
+            ) : isLoggedIn ? (
+              "ثبت نهایی و تکمیل سفارش"
+            ) : (
+              "دریافت کد تایید"
+            )}
           </Button>
         </div>
       </div>
