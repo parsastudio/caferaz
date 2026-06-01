@@ -11,8 +11,8 @@ export default async function Page() {
   const commentsResult = await getCommentsAction("prod_coffee_bulk_01");
   const couponsResult = await getCouponsAction();
 
-  const usps = getOption("site_usps") || [];
   const faqs = getOption("site_faq") || [];
+  const siteSubtitle = getOption("site_subtitle") || "";
 
   if (!productResult.success) {
     return (
@@ -34,8 +34,9 @@ export default async function Page() {
         activeCoupons={
           couponsResult.success && couponsResult.data ? couponsResult.data : []
         }
+        siteSubtitle={siteSubtitle}
       />
-      <WhyCafeRaz usps={usps} />
+      <WhyCafeRaz />
       <FAQSection faqs={faqs} />
     </main>
   );

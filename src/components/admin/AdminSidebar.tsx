@@ -35,6 +35,11 @@ const menuItems = [
     emoji: "🎫",
   },
   {
+    path: "/admin/settings",
+    label: "تنظیمات عمومی سایت",
+    emoji: "⚙️",
+  },
+  {
     path: "/admin/change-password",
     label: "تغییر رمز عبور",
     emoji: "🔑",

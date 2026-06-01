@@ -30,26 +30,16 @@ export async function getProductAction(
 
 export async function updateProductDetailsAction(payload: {
   productId: string;
-  name: string;
-  description: string;
   pricePerKgArabica: number;
   pricePerKgRobusta: number;
   stockGrams: number;
 }): Promise<ActionResponse<boolean>> {
   try {
-    const {
-      productId,
-      name,
-      description,
-      pricePerKgArabica,
-      pricePerKgRobusta,
-      stockGrams,
-    } = payload;
+    const { productId, pricePerKgArabica, pricePerKgRobusta, stockGrams } =
+      payload;
 
     if (
       !productId ||
-      !name.trim() ||
-      !description.trim() ||
       pricePerKgArabica <= 0 ||
       pricePerKgRobusta <= 0 ||
       stockGrams < 0
@@ -57,18 +47,27 @@ export async function updateProductDetailsAction(payload: {
       return {
         success: false,
         error:
-          "تمامی فیلدهای مربوط به کالا، قیمت‌گذاری و موجودی باید به درستی تکمیل گردند.",
+          "تمامی فیلدهای مربوط به قیمت‌گذاری و موجودی باید به درستی تکمیل گردند.",
+      };
+    }
+
+    const product = getProductWithPricing(productId);
+    if (!product) {
+      return {
+        success: false,
+        error: "محصول مورد نظر یافت نشد.",
       };
     }
 
     const updated = updateProductDetails(
       productId,
-      name,
-      description,
+      product.name,
+      product.description,
       pricePerKgArabica,
       pricePerKgRobusta,
       stockGrams,
     );
+
     if (!updated) {
       return {
         success: false,
@@ -82,10 +81,64 @@ export async function updateProductDetailsAction(payload: {
     return {
       success: true,
       data: true,
-      message:
-        "اطلاعات محصول، نرخ‌های پایه و موجودی انبار با موفقیت به روزرسانی شدند.",
+      message: "نرخ‌های پایه و موجودی انبار با موفقیت به روزرسانی شدند.",
     };
   } catch (error) {
     return { success: false, error: "خطا در ذخیره جزئیات جدید محصول رخ داد." };
+  }
+}
+
+export async function updateProductBasicInfoAction(payload: {
+  productId: string;
+  name: string;
+  description: string;
+}): Promise<ActionResponse<boolean>> {
+  try {
+    const { productId, name, description } = payload;
+
+    if (!productId || !name.trim() || !description.trim()) {
+      return {
+        success: false,
+        error: "تکمیل نام و توضیحات کالا الزامی است.",
+      };
+    }
+
+    const product = getProductWithPricing(productId);
+    if (!product) {
+      return {
+        success: false,
+        error: "محصول مورد نظر یافت نشد.",
+      };
+    }
+
+    const updated = updateProductDetails(
+      productId,
+      name,
+      description,
+      product.pricing?.pricePerKgArabica || 2200000,
+      product.pricing?.pricePerKgRobusta || 1800000,
+      product.stock_grams,
+    );
+
+    if (!updated) {
+      return {
+        success: false,
+        error: "خطا در بروزرسانی مشخصات کالا.",
+      };
+    }
+
+    revalidatePath("/");
+    revalidatePath("/admin/settings");
+
+    return {
+      success: true,
+      data: true,
+      message: "عنوان و توضیحات تخصصی کالا با موفقیت بروزرسانی شد.",
+    };
+  } catch {
+    return {
+      success: false,
+      error: "خطا در ذخیره‌سازی اطلاعات پایه محصول.",
+    };
   }
 }

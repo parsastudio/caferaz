@@ -1,14 +1,15 @@
 import { useState } from "react";
+import { STATIC_BLENDS, STATIC_GRINDS } from "@/lib/constants";
 
 export function useCoffeeSelection() {
   const [selectedWeight, setSelectedWeight] = useState<number>(250);
   const [isCustomWeight, setIsCustomWeight] = useState<boolean>(false);
   const [customWeightVal, setCustomWeightVal] = useState<number>(300);
   const [selectedBlend, setSelectedBlend] = useState<string>(
-    "۵۰٪ روبوستا / ۵۰٪ عربیکا",
+    STATIC_BLENDS[0].value,
   );
   const [selectedGrind, setSelectedGrind] = useState<string>(
-    "دانه کامل (آسیاب نشده)",
+    STATIC_GRINDS[0].value,
   );
   const [quantity, setQuantity] = useState<number>(1);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);

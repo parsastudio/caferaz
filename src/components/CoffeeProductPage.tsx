@@ -12,17 +12,20 @@ import CheckoutDialog from "./CheckoutDialog";
 import ProductTabsSection, { UIComment } from "./ProductTabsSection";
 import { useCheckout } from "@/context/CheckoutContext";
 import { Coupon } from "@/lib/mock-db";
+import { STATIC_BLENDS, STATIC_GRINDS } from "@/lib/constants";
 
 interface CoffeeProductPageProps {
   initialProduct: CoffeeProduct;
   initialComments: UIComment[];
   activeCoupons: Coupon[];
+  siteSubtitle?: string;
 }
 
 export default function CoffeeProductPage({
   initialProduct,
   initialComments,
   activeCoupons,
+  siteSubtitle,
 }: CoffeeProductPageProps) {
   const {
     selectedWeight,
@@ -59,7 +62,7 @@ export default function CoffeeProductPage({
               {initialProduct.name}
             </h1>
             <p className="text-sm text-stone-400 leading-relaxed max-w-2xl">
-              {initialProduct.description}
+              {siteSubtitle || initialProduct.description}
             </p>
           </div>
 
@@ -77,11 +80,13 @@ export default function CoffeeProductPage({
             selectedBlend={selectedBlend}
             setSelectedBlend={setSelectedBlend}
             blendProfile={blendProfile}
+            blends={STATIC_BLENDS}
           />
 
           <GrindSelector
             selectedGrind={selectedGrind}
             setSelectedGrind={setSelectedGrind}
+            grinds={STATIC_GRINDS}
           />
 
           <QuantitySelector
@@ -110,7 +115,7 @@ export default function CoffeeProductPage({
 
       <ProductTabsSection
         productId={initialProduct.id}
-        description={initialProduct.description}
+        description={siteSubtitle || initialProduct.description}
         initialComments={initialComments}
       />
 
@@ -118,3 +123,4 @@ export default function CoffeeProductPage({
     </div>
   );
 }
+  

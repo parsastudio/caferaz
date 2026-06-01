@@ -16,9 +16,10 @@ interface BlendSelectorProps {
   selectedBlend: string;
   setSelectedBlend: (blend: string) => void;
   blendProfile: BlendProfile;
+  blends?: any[];
 }
 
-const blendOptions = [
+const fallbackBlends = [
   {
     value: "۵۰٪ روبوستا / ۵۰٪ عربیکا",
     desc: "ترکیب متعادل، اسیدیته بسیار ملایم، بادی مناسب و عطر دلپذیر روزانه",
@@ -45,7 +46,10 @@ export default function BlendSelector({
   selectedBlend,
   setSelectedBlend,
   blendProfile,
+  blends = [],
 }: BlendSelectorProps) {
+  const finalBlends = blends.length > 0 ? blends : fallbackBlends;
+
   return (
     <div className="space-y-4">
       <label className="text-sm font-black text-stone-300 flex items-center gap-2">
@@ -55,7 +59,7 @@ export default function BlendSelector({
         درصد ترکیب دانه‌ها (بلند):
       </label>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {blendOptions.map((blend) => (
+        {finalBlends.map((blend) => (
           <button
             key={blend.value}
             type="button"

@@ -42,7 +42,7 @@ export function useCoffeeProduct(
 
   const priceMetrics = useMemo(() => {
     return calculateAdvancedPriceMetrics({
-      productId: initialProduct.id, // تامین شناسه کالا جهت ارزیابی کوپن‌ها
+      productId: initialProduct.id,
       pricing: initialProduct.pricing,
       blendProfile,
       weightGrams: computedWeight,

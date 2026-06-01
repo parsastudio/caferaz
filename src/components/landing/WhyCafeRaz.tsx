@@ -2,21 +2,9 @@
 
 import React from "react";
 import * as Icons from "lucide-react";
+import { STATIC_USPS } from "@/lib/constants";
 
-export interface USP {
-  id: string;
-  icon: string;
-  title: string;
-  description: string;
-}
-
-interface WhyCafeRazProps {
-  usps?: USP[];
-}
-
-export default function WhyCafeRaz({ usps = [] }: WhyCafeRazProps) {
-  if (!usps || usps.length === 0) return null;
-
+export default function WhyCafeRaz() {
   return (
     <section
       className="w-full max-w-7xl mx-auto px-4 py-16 text-right"
@@ -36,8 +24,7 @@ export default function WhyCafeRaz({ usps = [] }: WhyCafeRazProps) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {usps.map((usp) => {
-          // Resolve icon components dynamically
+        {STATIC_USPS.map((usp) => {
           const IconComponent = (Icons as any)[usp.icon] || Icons.HelpCircle;
 
           return (

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { updateProductDetailsAction } from "@/app/actions/product";
 import { ProductWithPricing } from "@/lib/mock-db";
 import { toast } from "sonner";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, Coffee } from "lucide-react";
 
 interface AdminPricingFormProps {
   initialProduct: ProductWithPricing;
@@ -13,11 +13,6 @@ interface AdminPricingFormProps {
 export default function AdminPricingForm({
   initialProduct,
 }: AdminPricingFormProps) {
-  const [name, setName] = useState(initialProduct.name || "");
-  const [description, setDescription] = useState(
-    initialProduct.description || "",
-  );
-
   const [arabicaRaw, setArabicaRaw] = useState<number>(
     initialProduct.pricing?.pricePerKgArabica || 2200000,
   );
@@ -47,14 +42,8 @@ export default function AdminPricingForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !name.trim() ||
-      !description.trim() ||
-      arabicaRaw <= 0 ||
-      robustaRaw <= 0 ||
-      stockKg < 0
-    ) {
-      toast.error("لطفاً تمامی فیلدها را با مقادیر معتبر تکمیل کنید.");
+    if (arabicaRaw <= 0 || robustaRaw <= 0 || stockKg < 0) {
+      toast.error("لطفاً مقادیر قیمت و موجودی معتبر وارد کنید.");
       return;
     }
 
@@ -62,8 +51,6 @@ export default function AdminPricingForm({
     try {
       const result = await updateProductDetailsAction({
         productId: initialProduct.id,
-        name,
-        description,
         pricePerKgArabica: arabicaRaw,
         pricePerKgRobusta: robustaRaw,
         stockGrams: stockKg * 1000,
@@ -71,7 +58,7 @@ export default function AdminPricingForm({
 
       if (result.success) {
         toast.success(
-          "تنظیمات، نرخ‌ها و موجودی انبار با موفقیت به‌روزرسانی شدند.",
+          "نرخ‌های پایه و موجودی انبار با موفقیت به‌روزرسانی شدند.",
         );
       } else {
         toast.error(result.error || "خطا در ثبت تغییرات.");
@@ -85,33 +72,23 @@ export default function AdminPricingForm({
 
   return (
     <div className="bg-stone-900/30 border border-stone-800 p-6 rounded-2xl space-y-6">
+      <div className="bg-gold-500/5 border border-gold-500/20 p-4 rounded-xl flex items-center gap-3">
+        <div className="w-10 h-10 rounded-lg bg-gold-500/10 text-gold-500 flex items-center justify-center text-lg shrink-0">
+          <Coffee className="w-5 h-5" />
+        </div>
+        <div>
+          <span className="text-[10px] text-stone-400 block font-bold">
+            تغییرات قیمت و موجودی زیر برای کالا اعمال می‌گردد:
+          </span>
+          <span className="text-sm font-black text-stone-200">
+            {initialProduct.name}
+          </span>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-stone-300 block">
-            نام تجاری و عنوان کالا:
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none transition-all font-bold"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-stone-300 block">
-            توضیحات تخصصی و معرفی محصول:
-          </label>
-          <textarea
-            rows={4}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none transition-all resize-none leading-relaxed"
-          />
-        </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="space-y-2">
+          <div className="space-y-2 text-right">
             <label className="text-xs font-bold text-stone-300 block">
               قیمت هر کیلوگرم عربیکا (تومان):
             </label>
@@ -136,7 +113,7 @@ export default function AdminPricingForm({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 text-right">
             <label className="text-xs font-bold text-stone-300 block">
               قیمت هر کیلوگرم روبوستا (تومان):
             </label>
@@ -161,7 +138,7 @@ export default function AdminPricingForm({
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 text-right">
             <label className="text-xs font-bold text-stone-300 block">
               موجودی فیزیکی کل انبار (کیلوگرم):
             </label>
@@ -197,7 +174,7 @@ export default function AdminPricingForm({
                 در حال ذخیره‌سازی...
               </>
             ) : (
-              "ثبت نهایی و به‌روزرسانی کل کالا"
+              "به‌روزرسانی نرخ‌ها و موجودی انبار"
             )}
           </button>
         </div>
