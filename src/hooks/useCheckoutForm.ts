@@ -14,6 +14,8 @@ import {
   checkPhoneRegisteredAction,
   loginUserWithOtpAction,
 } from "@/app/actions/auth";
+import { validateCouponAction } from "@/app/actions/coupon";
+import { toEnglishDigits } from "@/lib/utils";
 
 export type Step = "user_info" | "shipping" | "otp" | "success";
 
@@ -31,6 +33,17 @@ export function useCheckoutForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fakeTrackingCode, setFakeTrackingCode] = useState("");
+
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountAmount: number;
+  } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [checkoutFinalPrice, setCheckoutFinalPrice] = useState(0);
+
+  const [lastValidatedPhone, setLastValidatedPhone] = useState("");
 
   const productId = checkoutData?.productId || "";
   const selectedWeight = checkoutData?.selectedWeight || 0;
@@ -51,7 +64,21 @@ export function useCheckoutForm() {
     mode: "onTouched",
   });
 
-  const { trigger, getValues, reset, setValue } = methods;
+  const { trigger, getValues, reset, setValue, watch } = methods;
+
+  const watchedPhone = watch("phone");
+
+  // بازنویسی هوشمند: کوپن صرفاً زمانی حذف می‌شود که شماره تلفن ورودی جدید، یک شماره تلفن کامل و معتبرِ مغایر باشد
+  useEffect(() => {
+    if (appliedCoupon) {
+      const cleanWatchedPhone = toEnglishDigits(watchedPhone?.trim() || "");
+      const isValidPhoneFormat = /^09[0-9]{9}$/.test(cleanWatchedPhone);
+
+      if (isValidPhoneFormat && cleanWatchedPhone !== lastValidatedPhone) {
+        handleRemoveCoupon();
+      }
+    }
+  }, [watchedPhone, appliedCoupon, lastValidatedPhone]);
 
   useEffect(() => {
     if (isOpen) {
@@ -73,12 +100,65 @@ export function useCheckoutForm() {
     }
   }, [isOpen, setValue]);
 
+  useEffect(() => {
+    if (isOpen && checkoutData) {
+      setCheckoutFinalPrice(checkoutData.finalPrice);
+      setAppliedCoupon(null);
+      setCouponError(null);
+      setCouponCode("");
+      setLastValidatedPhone("");
+    }
+  }, [isOpen, checkoutData]);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setIsApplyingCoupon(true);
+    setCouponError(null);
+
+    const rawPhone = getValues("phone") || "";
+    const cleanPhone = toEnglishDigits(rawPhone.trim());
+
+    const res = await validateCouponAction({
+      code: couponCode,
+      phone: cleanPhone || null,
+      productId,
+      weightGrams: selectedWeight,
+      quantity,
+      blend: selectedBlend,
+    });
+
+    if (res.success && res.data) {
+      setAppliedCoupon({
+        code: res.data.code,
+        discountAmount: res.data.discountAmount,
+      });
+      setCheckoutFinalPrice(res.data.finalPrice);
+      setLastValidatedPhone(cleanPhone);
+    } else {
+      setCouponError(res.error || "خطا در ارزیابی کد تخفیف.");
+    }
+    setIsApplyingCoupon(false);
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError(null);
+    setCheckoutFinalPrice(finalPrice);
+    setLastValidatedPhone("");
+  };
+
   const handleReset = () => {
     setStep("user_info");
     setIsLoginMode(false);
     setOtpPurpose("checkout");
     setIsLoggedInUser(false);
     setErrorMessage(null);
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError(null);
+    setCheckoutFinalPrice(0);
+    setLastValidatedPhone("");
     reset();
   };
 
@@ -95,7 +175,7 @@ export function useCheckoutForm() {
       const isPhoneValid = await trigger(["phone"]);
       if (!isPhoneValid) return;
 
-      const phoneVal = getValues("phone");
+      const phoneVal = toEnglishDigits(getValues("phone").trim());
       startTransition(async () => {
         const checkRes = await checkPhoneRegisteredAction({ phone: phoneVal });
         if (checkRes.success && checkRes.registered && checkRes.user) {
@@ -130,6 +210,7 @@ export function useCheckoutForm() {
     if (isLoggedInUser) {
       setIsSubmitting(true);
       const values = getValues();
+      const cleanPhone = toEnglishDigits(values.phone.trim());
       try {
         const result = await submitOrderAction({
           productId,
@@ -138,9 +219,10 @@ export function useCheckoutForm() {
           blend: selectedBlend,
           grind: selectedGrind,
           customerName: `${values.firstName} ${values.lastName}`,
-          customerPhone: values.phone,
+          customerPhone: cleanPhone,
           customerAddress: values.shippingAddress,
           otp: "1234",
+          appliedCouponCode: appliedCoupon?.code || null,
         });
 
         if (!result.success || !result.data) {
@@ -170,11 +252,12 @@ export function useCheckoutForm() {
     setErrorMessage(null);
 
     const values = getValues();
+    const cleanPhone = toEnglishDigits(values.phone.trim());
 
     try {
       if (otpPurpose === "login") {
         const loginRes = await loginUserWithOtpAction({
-          phone: values.phone,
+          phone: cleanPhone,
           otp: values.otp || "",
         });
 
@@ -194,9 +277,10 @@ export function useCheckoutForm() {
           blend: selectedBlend,
           grind: selectedGrind,
           customerName: `${values.firstName} ${values.lastName}`,
-          customerPhone: values.phone,
+          customerPhone: cleanPhone,
           customerAddress: values.shippingAddress,
           otp: values.otp || "",
+          appliedCouponCode: appliedCoupon?.code || null,
         });
 
         if (!result.success || !result.data) {
@@ -236,5 +320,13 @@ export function useCheckoutForm() {
     handleUserInfoNext,
     handleShippingNext,
     handleOtpVerifyAndSubmit,
+    couponCode,
+    setCouponCode,
+    appliedCoupon,
+    couponError,
+    isApplyingCoupon,
+    checkoutFinalPrice,
+    handleApplyCoupon,
+    handleRemoveCoupon,
   };
 }

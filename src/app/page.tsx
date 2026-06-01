@@ -1,10 +1,12 @@
 import CoffeeProductPage from "@/components/CoffeeProductPage";
 import { getProductAction } from "@/app/actions/product";
 import { getCommentsAction } from "@/app/actions/comment";
+import { getCouponsAction } from "@/app/actions/coupon";
 
 export default async function Page() {
   const productResult = await getProductAction("prod_coffee_bulk_01");
   const commentsResult = await getCommentsAction("prod_coffee_bulk_01");
+  const couponsResult = await getCouponsAction();
 
   if (!productResult.success || !productResult.data) {
     return (
@@ -19,6 +21,7 @@ export default async function Page() {
       <CoffeeProductPage
         initialProduct={productResult.data}
         initialComments={commentsResult.success ? commentsResult.data : []}
+        activeCoupons={couponsResult.success ? couponsResult.data : []}
       />
     </main>
   );

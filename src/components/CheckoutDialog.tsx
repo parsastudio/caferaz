@@ -34,12 +34,19 @@ export default function CheckoutDialog() {
     fakeTrackingCode,
     selectedWeight,
     quantity,
-    finalPrice,
     methods,
     handleClose,
     handleUserInfoNext,
     handleShippingNext,
     handleOtpVerifyAndSubmit,
+    couponCode,
+    setCouponCode,
+    appliedCoupon,
+    couponError,
+    isApplyingCoupon,
+    checkoutFinalPrice,
+    handleApplyCoupon,
+    handleRemoveCoupon,
   } = useCheckoutForm();
 
   return (
@@ -109,7 +116,7 @@ export default function CheckoutDialog() {
                 >
                   <UserInfoStep
                     onSubmit={handleUserInfoNext}
-                    finalPrice={finalPrice}
+                    finalPrice={checkoutFinalPrice}
                     onClose={handleClose}
                     isLoginMode={isLoginMode}
                     onToggleLoginMode={() => {
@@ -132,9 +139,16 @@ export default function CheckoutDialog() {
                   <ShippingStep
                     onSubmit={handleShippingNext}
                     onBack={() => setStep("user_info")}
-                    finalPrice={finalPrice}
+                    finalPrice={checkoutFinalPrice}
                     isLoggedIn={isLoggedInUser}
                     isSubmitting={isSubmitting}
+                    couponCode={couponCode}
+                    setCouponCode={setCouponCode}
+                    appliedCoupon={appliedCoupon}
+                    couponError={couponError}
+                    isApplyingCoupon={isApplyingCoupon}
+                    handleApplyCoupon={handleApplyCoupon}
+                    handleRemoveCoupon={handleRemoveCoupon}
                   />
                 </motion.div>
               )}
@@ -158,7 +172,7 @@ export default function CheckoutDialog() {
                     }}
                     onSubmit={handleOtpVerifyAndSubmit}
                     isSubmitting={isSubmitting}
-                    finalPrice={finalPrice}
+                    finalPrice={checkoutFinalPrice}
                   />
                 </motion.div>
               )}
@@ -176,7 +190,7 @@ export default function CheckoutDialog() {
                     phone={methods.getValues("phone")}
                     selectedWeight={selectedWeight}
                     quantity={quantity}
-                    finalPrice={finalPrice}
+                    finalPrice={checkoutFinalPrice}
                     trackingCode={fakeTrackingCode}
                     onClose={handleClose}
                   />

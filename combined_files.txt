@@ -819,15 +819,18 @@ import PriceSummary from "./product/PriceSummary";
 import CheckoutDialog from "./CheckoutDialog";
 import ProductTabsSection, { UIComment } from "./ProductTabsSection";
 import { useCheckout } from "@/context/CheckoutContext";
+import { Coupon } from "@/lib/mock-db";
 
 interface CoffeeProductPageProps {
   initialProduct: CoffeeProduct;
   initialComments: UIComment[];
+  activeCoupons: Coupon[];
 }
 
 export default function CoffeeProductPage({
   initialProduct,
   initialComments,
+  activeCoupons,
 }: CoffeeProductPageProps) {
   const {
     selectedWeight,
@@ -847,7 +850,7 @@ export default function CoffeeProductPage({
     priceMetrics,
     remainingStockCount,
     isOutOfStock,
-  } = useCoffeeProduct(initialProduct);
+  } = useCoffeeProduct(initialProduct, activeCoupons);
 
   const { openCheckout } = useCheckout();
 
@@ -896,6 +899,7 @@ export default function CoffeeProductPage({
           />
 
           <PriceSummary
+            basePrice={priceMetrics.basePrice}
             finalPrice={priceMetrics.finalPrice}
             isOutOfStock={isOutOfStock}
             onCheckout={() =>
@@ -966,12 +970,19 @@ export default function CheckoutDialog() {
     fakeTrackingCode,
     selectedWeight,
     quantity,
-    finalPrice,
     methods,
     handleClose,
     handleUserInfoNext,
     handleShippingNext,
     handleOtpVerifyAndSubmit,
+    couponCode,
+    setCouponCode,
+    appliedCoupon,
+    couponError,
+    isApplyingCoupon,
+    checkoutFinalPrice,
+    handleApplyCoupon,
+    handleRemoveCoupon,
   } = useCheckoutForm();
 
   return (
@@ -1041,7 +1052,7 @@ export default function CheckoutDialog() {
                 >
                   <UserInfoStep
                     onSubmit={handleUserInfoNext}
-                    finalPrice={finalPrice}
+                    finalPrice={checkoutFinalPrice}
                     onClose={handleClose}
                     isLoginMode={isLoginMode}
                     onToggleLoginMode={() => {
@@ -1064,9 +1075,16 @@ export default function CheckoutDialog() {
                   <ShippingStep
                     onSubmit={handleShippingNext}
                     onBack={() => setStep("user_info")}
-                    finalPrice={finalPrice}
+                    finalPrice={checkoutFinalPrice}
                     isLoggedIn={isLoggedInUser}
                     isSubmitting={isSubmitting}
+                    couponCode={couponCode}
+                    setCouponCode={setCouponCode}
+                    appliedCoupon={appliedCoupon}
+                    couponError={couponError}
+                    isApplyingCoupon={isApplyingCoupon}
+                    handleApplyCoupon={handleApplyCoupon}
+                    handleRemoveCoupon={handleRemoveCoupon}
                   />
                 </motion.div>
               )}
@@ -1090,7 +1108,7 @@ export default function CheckoutDialog() {
                     }}
                     onSubmit={handleOtpVerifyAndSubmit}
                     isSubmitting={isSubmitting}
-                    finalPrice={finalPrice}
+                    finalPrice={checkoutFinalPrice}
                   />
                 </motion.div>
               )}
@@ -1108,7 +1126,7 @@ export default function CheckoutDialog() {
                     phone={methods.getValues("phone")}
                     selectedWeight={selectedWeight}
                     quantity={quantity}
-                    finalPrice={finalPrice}
+                    finalPrice={checkoutFinalPrice}
                     trackingCode={fakeTrackingCode}
                     onClose={handleClose}
                   />
@@ -1740,6 +1758,11 @@ const menuItems = [
     emoji: "🏷️",
   },
   {
+    path: "/admin/coupons",
+    label: "مدیریت کوپن‌ها",
+    emoji: "🎫",
+  },
+  {
     path: "/admin/change-password",
     label: "تغییر رمز عبور",
     emoji: "🔑",
@@ -2180,6 +2203,797 @@ export default function CommentRow({
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+
+----------------------------------------------------------------
+
+================================================================
+PATH: ./src/components/admin/coupons/CouponCreateDialog.tsx
+================================================================
+
+
+"use client";
+
+import React from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Sparkles, Scale, Calendar, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { MOCK_PRODUCTS } from "@/lib/mock-db";
+import {
+  getTodayJalaliString,
+  isValidJalaaliDate,
+} from "@/lib/jalali-converter";
+
+const schema = z
+  .object({
+    code: z.string().optional(),
+    type: z.enum(["product_direct", "conditional", "user_code"]),
+    discountType: z.enum(["percentage", "fixed"]),
+    discountValue: z.number().min(1, "مقدار تخفیف باید بزرگتر از صفر باشد"),
+    productId: z.string().optional(),
+    minWeightGrams: z.number().optional(),
+    validFrom: z
+      .string()
+      .optional()
+      .refine(
+        (val) => {
+          if (!val || val.trim() === "") return true;
+          const match = val.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+          if (!match) return false;
+          const y = parseInt(match[1], 10);
+          const m = parseInt(match[2], 10);
+          const d = parseInt(match[3], 10);
+          return isValidJalaaliDate(y, m, d);
+        },
+        {
+          message:
+            "مقدار روزهای ماه یا فرمت تاریخ شروع شمسی نامعتبر است (YYYY/MM/DD)",
+        },
+      ),
+    validTo: z
+      .string()
+      .optional()
+      .refine(
+        (val) => {
+          if (!val || val.trim() === "") return true;
+          const match = val.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+          if (!match) return false;
+          const y = parseInt(match[1], 10);
+          const m = parseInt(match[2], 10);
+          const d = parseInt(match[3], 10);
+          return isValidJalaaliDate(y, m, d);
+        },
+        {
+          message:
+            "مقدار روزهای ماه یا فرمت تاریخ انقضا شمسی نامعتبر است (YYYY/MM/DD)",
+        },
+      ),
+    maxDiscountAmount: z.number().optional(),
+    allowStacking: z.boolean().optional().default(false),
+  })
+  .refine(
+    (data) => {
+      if (
+        data.type === "user_code" &&
+        (!data.code || data.code.trim().length < 2)
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message:
+        "وارد کردن کد تخفیف برای کوپن‌های دستی کاربر الزامی است (حداقل ۲ کاراکتر)",
+      path: ["code"],
+    },
+  );
+
+type FormValues = z.infer<typeof schema>;
+
+interface CouponCreateDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (data: FormValues) => void;
+  isPending: boolean;
+}
+
+export default function CouponCreateDialog({
+  isOpen,
+  onOpenChange,
+  onSubmit,
+  isPending,
+}: CouponCreateDialogProps) {
+  const methods = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      code: "",
+      type: "user_code",
+      discountType: "percentage",
+      discountValue: 10,
+      productId: "prod_coffee_bulk_01",
+      minWeightGrams: 0,
+      validFrom: "",
+      validTo: "",
+      maxDiscountAmount: 0,
+      allowStacking: false,
+    },
+  });
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    formState: { errors },
+  } = methods;
+
+  const currentType = watch("type");
+  const currentDiscountType = watch("discountType");
+  const todayShamsi = getTodayJalaliString();
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent
+        dir="rtl"
+        className="sm:max-w-lg bg-stone-900 border border-stone-800 text-stone-100 p-6 md:p-8 rounded-2xl text-right animate-in fade-in duration-200"
+      >
+        <DialogHeader className="space-y-2 text-right">
+          <DialogTitle className="text-lg font-bold text-gold-500 flex items-center gap-2">
+            <Sparkles className="w-5 h-5" />
+            تعریف کد تخفیف جدید کلاینت یا سیستم
+          </DialogTitle>
+          <DialogDescription className="text-xs text-stone-400">
+            پارامترها و قوانین کوپن را مشخص نمایید. فیلد تاریخ خالی به منزله
+            بدون محدودیت تلقی می‌شود.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4 mt-3"
+          dir="rtl"
+        >
+          <div className="space-y-1 text-right">
+            <label className="text-xs font-bold text-stone-300">
+              کد کوپن (حروف انگلیسی و عدد){" "}
+              {currentType === "user_code" && (
+                <span className="text-red-500">*</span>
+              )}
+            </label>
+            <input
+              type="text"
+              {...register("code")}
+              className={`w-full bg-stone-950 border focus:ring-1 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none transition-all text-left font-sans font-black tracking-widest ${
+                errors.code ? "border-destructive/60" : "border-stone-800"
+              }`}
+              placeholder={
+                currentType === "user_code"
+                  ? "مثال: WELCOME"
+                  : "تولید خودکار در صورت عدم ورود کد"
+              }
+              dir="ltr"
+            />
+            {errors.code && (
+              <p className="text-[10px] text-destructive font-bold">
+                {errors.code.message}
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1 text-right">
+              <label className="text-xs font-bold text-stone-300">
+                نوع کوپن
+              </label>
+              <div className="relative">
+                <Controller
+                  name="type"
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <select
+                      value={value}
+                      onChange={onChange}
+                      className="w-full bg-stone-950 border border-stone-800 rounded-xl pl-9 pr-3.5 py-3 text-xs text-stone-300 outline-none appearance-none cursor-pointer focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50 transition-all font-bold"
+                    >
+                      <option value="user_code">
+                        کوپن تخفیف دستی کاربر در تسویه
+                      </option>
+                      <option value="product_direct">
+                        تخفیف خط‌خورده مستقیم محصول
+                      </option>
+                      <option value="conditional">
+                        تخفیف شرطی حجم و زمان سیستمی
+                      </option>
+                    </select>
+                  )}
+                />
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-stone-500">
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1 text-right">
+              <label className="text-xs font-bold text-stone-300">
+                نوع کسر قیمت
+              </label>
+              <div className="relative">
+                <Controller
+                  name="discountType"
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <select
+                      value={value}
+                      onChange={onChange}
+                      className="w-full bg-stone-950 border border-stone-800 rounded-xl pl-9 pr-3.5 py-3 text-xs text-stone-300 outline-none appearance-none cursor-pointer focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50 transition-all font-bold"
+                    >
+                      <option value="percentage">درصدی (٪)</option>
+                      <option value="fixed">مبلغ ثابت (تومان)</option>
+                    </select>
+                  )}
+                />
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-stone-500">
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1 text-right">
+              <label className="text-xs font-bold text-stone-300">
+                {currentDiscountType === "percentage"
+                  ? "درصد تخفیف (٪)"
+                  : "مبلغ تخفیف (تومان)"}
+                <span className="text-red-500"> *</span>
+              </label>
+              <input
+                type="number"
+                {...register("discountValue", { valueAsNumber: true })}
+                className="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-left font-sans focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50"
+                dir="ltr"
+              />
+              {errors.discountValue && (
+                <p className="text-[10px] text-destructive font-bold">
+                  {errors.discountValue.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1 text-right">
+              <label className="text-xs font-bold text-stone-300">
+                سقف تخفیف (تومان - اختیاری)
+              </label>
+              <input
+                type="number"
+                {...register("maxDiscountAmount", { valueAsNumber: true })}
+                disabled={currentDiscountType === "fixed"}
+                className="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-left font-sans disabled:opacity-40 focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50"
+                placeholder="مخصوص تخفیف درصدی"
+                dir="ltr"
+              />
+            </div>
+          </div>
+
+          {currentType === "conditional" && (
+            <div className="space-y-1 text-right p-4 bg-stone-950/40 border border-stone-800 rounded-xl animate-in fade-in duration-200">
+              <label className="text-xs font-bold text-stone-300 flex items-center gap-1">
+                <Scale className="w-3.5 h-3.5 text-gold-500" />
+                حداقل وزن انتخابی پکیج (گرم)
+              </label>
+              <input
+                type="number"
+                {...register("minWeightGrams", { valueAsNumber: true })}
+                className="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-xs text-stone-100 outline-none text-left font-sans focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50"
+                placeholder="مثال: ۵۰۰۰ برای ۵ کیلوگرم"
+                dir="ltr"
+              />
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1 text-right">
+              <label className="text-xs font-bold text-stone-300 flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-stone-500" />
+                فعال از تاریخ (شمسی)
+              </label>
+              <input
+                type="text"
+                {...register("validFrom")}
+                className="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-center font-sans tracking-wide focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50"
+                placeholder="1405/04/11"
+                dir="ltr"
+              />
+              {errors.validFrom && (
+                <p className="text-[10px] text-destructive font-bold">
+                  {errors.validFrom.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1 text-right">
+              <label className="text-xs font-bold text-stone-300 flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-stone-500" />
+                منقضی در تاریخ (شمسی)
+              </label>
+              <input
+                type="text"
+                {...register("validTo")}
+                className="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-center font-sans tracking-wide focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50"
+                placeholder="1405/04/11"
+                dir="ltr"
+              />
+              {errors.validTo && (
+                <p className="text-[10px] text-destructive font-bold">
+                  {errors.validTo.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-1 text-right">
+            <label className="text-xs font-bold text-stone-300">
+              کالای هدف
+            </label>
+            <div className="relative">
+              <Controller
+                name="productId"
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <select
+                    value={value}
+                    onChange={onChange}
+                    className="w-full bg-stone-950 border border-stone-800 rounded-xl pl-9 pr-3.5 py-3 text-xs text-stone-300 outline-none appearance-none cursor-pointer focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50 transition-all font-bold mb-2"
+                  >
+                    {MOCK_PRODUCTS.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              />
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-stone-500 mb-2">
+                <ChevronDown className="w-4 h-4" />
+              </div>
+            </div>
+          </div>
+
+          {currentType === "user_code" && (
+            <div className="flex items-center gap-2.5 p-3.5 bg-stone-950/40 border border-stone-800 rounded-xl text-right animate-in fade-in duration-200">
+              <Controller
+                name="allowStacking"
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <input
+                    type="checkbox"
+                    id="allowStacking"
+                    checked={value || false}
+                    onChange={(e) => onChange(e.target.checked)} // رفع باگ منطقی رویداد تغییر استاندارد react
+                    className="w-4 h-4 rounded border-stone-800 text-gold-500 focus:ring-gold-500 accent-gold-500 bg-stone-950 cursor-pointer shrink-0"
+                  />
+                )}
+              />
+              <label
+                htmlFor="allowStacking"
+                className="text-xs font-bold text-stone-300 cursor-pointer select-none"
+              >
+                امکان همپوشانی (Stacking) با تخفیف‌های مستقیم فروشگاه فعال باشد؟
+              </label>
+            </div>
+          )}
+
+          <div className="border-t border-stone-800 pt-4 mt-6 flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+              className="text-stone-400 hover:text-stone-200 cursor-pointer text-xs"
+            >
+              انصراف
+            </Button>
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-black px-5 py-2.5 rounded-xl flex items-center gap-1.5 cursor-pointer text-xs"
+            >
+              {isPending ? "در حال ثبت..." : "تعریف نهایی کوپن تخفیف"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
+----------------------------------------------------------------
+
+================================================================
+PATH: ./src/components/admin/coupons/CouponStats.tsx
+================================================================
+
+import React from "react";
+import { Coupon } from "@/lib/mock-db";
+
+interface CouponStatsProps {
+  coupons: Coupon[];
+}
+
+export default function CouponStats({ coupons }: CouponStatsProps) {
+  const totalCoupons = coupons.length;
+  const activeCouponsCount = coupons.filter((c) => c.isActive).length;
+  const directCouponsCount = coupons.filter(
+    (c) => c.type === "product_direct",
+  ).length;
+  const codeCouponsCount = coupons.filter((c) => c.type === "user_code").length;
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="bg-stone-900/30 border border-stone-800 p-5 rounded-2xl flex items-center justify-between text-right">
+        <div className="space-y-1">
+          <span className="text-[10px] font-bold text-stone-400 block">
+            کل تخفیف‌ها
+          </span>
+          <span className="text-xl font-black text-stone-100 font-sans">
+            {totalCoupons}
+          </span>
+        </div>
+        <span className="text-2xl">🎫</span>
+      </div>
+      <div className="bg-stone-900/30 border border-stone-800 p-5 rounded-2xl flex items-center justify-between text-right">
+        <div className="space-y-1">
+          <span className="text-[10px] font-bold text-stone-400 block">
+            کوپن‌های فعال
+          </span>
+          <span className="text-xl font-black text-emerald-400 font-sans">
+            {activeCouponsCount}
+          </span>
+        </div>
+        <span className="text-2xl">⚡</span>
+      </div>
+      <div className="bg-stone-900/30 border border-stone-800 p-5 rounded-2xl flex items-center justify-between text-right">
+        <div className="space-y-1">
+          <span className="text-[10px] font-bold text-stone-400 block">
+            کدهای هدیه دستی
+          </span>
+          <span className="text-xl font-black text-gold-400 font-sans">
+            {codeCouponsCount}
+          </span>
+        </div>
+        <span className="text-2xl">🔑</span>
+      </div>
+      <div className="bg-stone-900/30 border border-stone-800 p-5 rounded-2xl flex items-center justify-between text-right">
+        <div className="space-y-1">
+          <span className="text-[10px] font-bold text-stone-400 block">
+            تخفیف‌های خط‌خورده
+          </span>
+          <span className="text-xl font-black text-stone-100 font-sans">
+            {directCouponsCount}
+          </span>
+        </div>
+        <span className="text-2xl">🔥</span>
+      </div>
+    </div>
+  );
+}
+
+
+----------------------------------------------------------------
+
+================================================================
+PATH: ./src/components/admin/coupons/AdminCouponsClientList.tsx
+================================================================
+
+"use client";
+
+import React, { useState, useTransition } from "react";
+import { toast } from "sonner";
+import { Ticket, Plus } from "lucide-react";
+import { Coupon } from "@/lib/mock-db";
+import {
+  createCouponAction,
+  deleteCouponAction,
+  toggleCouponStatusAction,
+} from "@/app/actions/coupon";
+import { Button } from "@/components/ui/button";
+import { parseJalaliString } from "@/lib/jalali-converter";
+import CouponStats from "./CouponStats";
+import CouponCard from "./CouponCard";
+import CouponCreateDialog from "./CouponCreateDialog";
+
+interface AdminCouponsClientListProps {
+  initialCoupons: Coupon[];
+}
+
+export default function AdminCouponsClientList({
+  initialCoupons,
+}: AdminCouponsClientListProps) {
+  const [coupons, setCoupons] = useState<Coupon[]>(initialCoupons);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const handleToggleStatus = (id: string) => {
+    startTransition(async () => {
+      const result = await toggleCouponStatusAction(id);
+      if (result.success) {
+        setCoupons((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, isActive: !c.isActive } : c)),
+        );
+        toast.success(result.message || "وضعیت فعال‌بودن کوپن تغییر یافت.");
+      } else {
+        toast.error(result.error || "خطا در بروزرسانی وضعیت کوپن.");
+      }
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    if (!confirm("آیا از حذف دائمی این کوپن اطمینان دارید؟")) return;
+    startTransition(async () => {
+      const result = await deleteCouponAction(id);
+      if (result.success) {
+        setCoupons((prev) => prev.filter((c) => c.id !== id));
+        toast.success(result.message || "کوپن با موفقیت حذف شد.");
+      } else {
+        toast.error(result.error || "خطا در حذف کوپن.");
+      }
+    });
+  };
+
+  const onSubmit = async (data: any) => {
+    startTransition(async () => {
+      let miladiValidFrom: string | undefined = undefined;
+      let miladiValidTo: string | undefined = undefined;
+
+      if (data.validFrom && data.validFrom.trim() !== "") {
+        const parsed = parseJalaliString(data.validFrom);
+        if (parsed) {
+          miladiValidFrom = `${parsed.gy}-${String(parsed.gm).padStart(2, "0")}-${String(parsed.gd).padStart(2, "0")}`;
+        }
+      }
+
+      if (data.validTo && data.validTo.trim() !== "") {
+        const parsed = parseJalaliString(data.validTo);
+        if (parsed) {
+          miladiValidTo = `${parsed.gy}-${String(parsed.gm).padStart(2, "0")}-${String(parsed.gd).padStart(2, "0")}`;
+        }
+      }
+
+      const payload = {
+        ...data,
+        productId: data.productId || undefined,
+        minWeightGrams: data.minWeightGrams || undefined,
+        validFrom: miladiValidFrom,
+        validTo: miladiValidTo,
+        maxDiscountAmount: data.maxDiscountAmount || undefined,
+        isActive: true,
+      };
+
+      const result = await createCouponAction(payload);
+      if (result.success && result.data) {
+        setCoupons((prev) => [...prev, result.data as Coupon]);
+        toast.success(result.message || "کوپن جدید با موفقیت ثبت شد.");
+        setIsOpen(false);
+      } else {
+        toast.error(result.error || "خطا در ذخیره‌سازی کوپن جدید.");
+      }
+    });
+  };
+
+  return (
+    <div className="space-y-8">
+      <CouponStats coupons={coupons} />
+
+      <div className="flex justify-between items-center">
+        <h2 className="text-md font-black text-stone-200 flex items-center gap-2">
+          <Ticket className="w-5 h-5 text-gold-500" />
+          کدهای تخفیف جاری در سیستم
+        </h2>
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-black px-4 py-2 text-xs rounded-xl cursor-pointer flex items-center gap-1.5"
+        >
+          <Plus className="w-4 h-4" />
+          تعریف کوپن تخفیف جدید
+        </Button>
+      </div>
+
+      {coupons.length === 0 ? (
+        <div className="text-center py-16 border border-dashed border-stone-850 bg-stone-900/10 rounded-2xl">
+          <p className="text-xs text-stone-500">تاکنون کوپنی تعریف نشده است.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {coupons.map((coupon) => (
+            <CouponCard
+              key={coupon.id}
+              coupon={coupon}
+              onToggleStatus={handleToggleStatus}
+              onDelete={handleDelete}
+            />
+          ))}
+        </div>
+      )}
+
+      <CouponCreateDialog
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
+        onSubmit={onSubmit}
+        isPending={isPending}
+      />
+    </div>
+  );
+}
+
+
+----------------------------------------------------------------
+
+================================================================
+PATH: ./src/components/admin/coupons/CouponCard.tsx
+================================================================
+
+import React from "react";
+import { Coupon } from "@/lib/mock-db";
+import { Badge } from "@/components/ui/badge";
+import {
+  Trash,
+  ToggleLeft,
+  ToggleRight,
+  Calendar,
+  Scale,
+  DollarSign,
+} from "lucide-react";
+import { formatGregorianToJalaliString } from "@/lib/jalali-converter";
+
+interface CouponCardProps {
+  coupon: Coupon;
+  onToggleStatus: (id: string) => void;
+  onDelete: (id: string) => void;
+}
+
+export default function CouponCard({
+  coupon,
+  onToggleStatus,
+  onDelete,
+}: CouponCardProps) {
+  const isExpired = coupon.validTo && new Date(coupon.validTo) < new Date();
+
+  return (
+    <div
+      className={`relative bg-stone-900/40 border border-stone-800 rounded-3xl overflow-hidden flex flex-col justify-between transition-all duration-300 ${
+        coupon.isActive && !isExpired
+          ? "hover:border-gold-500/40"
+          : "opacity-60"
+      }`}
+    >
+      <div className="absolute top-1/2 -left-3.5 w-7 h-7 bg-stone-950 border border-stone-800 rounded-full z-10 -translate-y-1/2" />
+      <div className="absolute top-1/2 -right-3.5 w-7 h-7 bg-stone-950 border border-stone-800 rounded-full z-10 -translate-y-1/2" />
+
+      <div className="p-5 space-y-3 pb-4">
+        <div className="flex items-center justify-between">
+          <Badge
+            className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${
+              coupon.type === "product_direct"
+                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                : coupon.type === "conditional"
+                  ? "bg-sky-500/10 text-sky-400 border-sky-500/20"
+                  : "bg-gold-500/10 text-gold-400 border-gold-500/20"
+            }`}
+          >
+            {coupon.type === "product_direct" && "تخفیف مستقیم کالا"}
+            {coupon.type === "conditional" && "تخفیف شرطی سیستمی"}
+            {coupon.type === "user_code" && "کوپن دستی خریدار"}
+          </Badge>
+
+          <div className="flex items-center gap-1.5">
+            {isExpired ? (
+              <Badge className="bg-red-500/10 text-red-400 border-red-500/20 text-[9px]">
+                منقضی شده
+              </Badge>
+            ) : coupon.isActive ? (
+              <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px]">
+                فعال
+              </Badge>
+            ) : (
+              <Badge className="bg-stone-500/10 text-stone-400 border-stone-500/20 text-[9px]">
+                غیرفعال
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        <div className="text-right">
+          <span className="text-lg font-black tracking-widest text-gold-500 font-sans">
+            {coupon.code}
+          </span>
+        </div>
+
+        <div className="text-right font-black text-2xl text-stone-100 font-sans">
+          {coupon.discountType === "percentage" ? (
+            <span>{coupon.discountValue}٪ تخفیف</span>
+          ) : (
+            <span>{coupon.discountValue.toLocaleString()} تومان</span>
+          )}
+        </div>
+      </div>
+
+      <div className="border-t border-dashed border-stone-800 mx-4" />
+
+      <div className="p-5 pt-4 space-y-4">
+        <div className="space-y-1.5 text-xs text-stone-400">
+          {coupon.minWeightGrams && coupon.minWeightGrams > 0 ? (
+            <p className="flex items-center gap-1">
+              <Scale className="w-3.5 h-3.5 text-stone-600" />
+              <span>
+                حداقل وزن خرید:{" "}
+                <b>{(coupon.minWeightGrams / 1000).toLocaleString()} کیلوگرم</b>
+              </span>
+            </p>
+          ) : null}
+
+          {coupon.maxDiscountAmount && coupon.maxDiscountAmount > 0 ? (
+            <p className="flex items-center gap-1">
+              <DollarSign className="w-3.5 h-3.5 text-stone-600" />
+              <span>
+                سقف تخفیف:{" "}
+                <b>{coupon.maxDiscountAmount.toLocaleString()} تومان</b>
+              </span>
+            </p>
+          ) : null}
+
+          {coupon.validTo ? (
+            <p className="flex items-center gap-1 font-sans text-[11px]">
+              <Calendar className="w-3.5 h-3.5 text-stone-600" />
+              <span>
+                معتبر تا: {formatGregorianToJalaliString(coupon.validTo)}
+              </span>
+            </p>
+          ) : (
+            <p className="flex items-center gap-1 text-[11px]">
+              <Calendar className="w-3.5 h-3.5 text-stone-600" />
+              <span>بدون محدودیت زمانی</span>
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between border-t border-stone-850 pt-3">
+          <button
+            onClick={() => onToggleStatus(coupon.id)}
+            className="text-stone-400 hover:text-stone-200 transition-colors flex items-center gap-1.5 cursor-pointer text-xs font-bold"
+          >
+            {coupon.isActive ? (
+              <>
+                <ToggleRight className="w-5 h-5 text-emerald-500" />
+                <span>فعال</span>
+              </>
+            ) : (
+              <>
+                <ToggleLeft className="w-5 h-5 text-stone-600" />
+                <span>غیرفعال</span>
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={() => onDelete(coupon.id)}
+            className="p-1.5 text-stone-500 hover:text-red-400 hover:bg-red-500/5 rounded-lg border border-stone-850 hover:border-red-500/20 transition-all cursor-pointer"
+          >
+            <Trash className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -2778,7 +3592,7 @@ PATH: ./src/components/checkout/ShippingStep.tsx
 "use client";
 
 import React from "react";
-import { MapPin, Check, Truck, Loader2 } from "lucide-react";
+import { MapPin, Check, Truck, Loader2, Ticket } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "../ui/button";
 import { CheckoutFormValues } from "./schema";
@@ -2789,6 +3603,13 @@ interface ShippingStepProps {
   finalPrice: number;
   isLoggedIn?: boolean;
   isSubmitting?: boolean;
+  couponCode: string;
+  setCouponCode: (code: string) => void;
+  appliedCoupon: { code: string; discountAmount: number } | null;
+  couponError: string | null;
+  isApplyingCoupon: boolean;
+  handleApplyCoupon: () => void;
+  handleRemoveCoupon: () => void;
 }
 
 export default function ShippingStep({
@@ -2797,6 +3618,13 @@ export default function ShippingStep({
   finalPrice,
   isLoggedIn,
   isSubmitting,
+  couponCode,
+  setCouponCode,
+  appliedCoupon,
+  couponError,
+  isApplyingCoupon,
+  handleApplyCoupon,
+  handleRemoveCoupon,
 }: ShippingStepProps) {
   const {
     register,
@@ -2837,6 +3665,55 @@ export default function ShippingStep({
         </div>
       </div>
 
+      {/* بخش کد تخفیف اختصاصی کاربر */}
+      <div className="space-y-2 text-right border-t border-stone-800/60 pt-4">
+        <label className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
+          <Ticket className="w-3.5 h-3.5 text-gold-500" />
+          کد تخفیف دارید؟
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={couponCode}
+            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+            placeholder="مثال: RAZ2026"
+            disabled={!!appliedCoupon || isApplyingCoupon}
+            className="flex-1 bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 rounded-xl px-3.5 py-2.5 text-sm text-stone-100 outline-none text-left font-sans font-bold tracking-wider"
+            dir="ltr"
+          />
+          {appliedCoupon ? (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleRemoveCoupon}
+              className="rounded-xl px-4 text-xs font-bold shrink-0 cursor-pointer"
+            >
+              حذف کوپن
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={handleApplyCoupon}
+              disabled={isApplyingCoupon || !couponCode.trim()}
+              className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-bold rounded-xl px-5 text-xs shrink-0 cursor-pointer"
+            >
+              {isApplyingCoupon ? "بررسی..." : "اعمال کد"}
+            </Button>
+          )}
+        </div>
+        {couponError && (
+          <p className="text-[10px] text-destructive font-bold mt-1">
+            {couponError}
+          </p>
+        )}
+        {appliedCoupon && (
+          <p className="text-[10px] text-emerald-400 font-bold mt-1 flex items-center gap-1 animate-in fade-in duration-200">
+            ✓ تخفیف به مبلغ {appliedCoupon.discountAmount.toLocaleString()}{" "}
+            تومان اعمال شد.
+          </p>
+        )}
+      </div>
+
       <div className="bg-stone-950/40 border border-stone-850 p-3 rounded-xl flex items-start gap-2.5 text-right">
         <Truck className="w-4 h-4 text-stone-500 shrink-0 mt-0.5" />
         <p className="text-[11px] text-stone-400 leading-relaxed">
@@ -2850,7 +3727,7 @@ export default function ShippingStep({
           <span className="text-[10px] text-stone-500 block font-bold">
             مبلغ قابل پرداخت:
           </span>
-          <span className="text-sm font-black text-gold-500">
+          <span className="text-sm font-black text-gold-500 font-sans">
             {finalPrice.toLocaleString()} تومان
           </span>
         </div>
@@ -2868,7 +3745,7 @@ export default function ShippingStep({
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-bold px-5 py-2.5 rounded-xl cursor-pointer"
+            className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-bold px-5 py-2.5 rounded-xl cursor-pointer text-xs"
           >
             {isSubmitting ? (
               <span className="flex items-center gap-1.5">
@@ -3007,6 +3884,7 @@ PATH: ./src/components/checkout/schema.ts
 ================================================================
 
 import { z } from "zod";
+import { toEnglishDigits } from "@/lib/utils";
 
 export const checkoutSchema = z.object({
   firstName: z
@@ -3019,12 +3897,15 @@ export const checkoutSchema = z.object({
     .min(1, "لطفاً نام خانوادگی خود را وارد کنید")
     .min(2, "نام خانوادگی باید حداقل ۲ حرف باشد")
     .max(50, "نام خانوادگی بیش از حد طولانی است"),
-  phone: z
-    .string()
-    .regex(
-      /^09[0-9]{9}$/,
-      "لطفاً یک شماره موبایل معتبر (مانند ۰۹۱۲۳۴۵۶۷۸۹) وارد کنید",
-    ),
+  phone: z.preprocess(
+    (val) => (typeof val === "string" ? toEnglishDigits(val) : val),
+    z
+      .string()
+      .regex(
+        /^09[0-9]{9}$/,
+        "لطفاً یک شماره موبایل معتبر (مانند ۰۹۱۲۳۴۵۶۷۸۹) وارد کنید",
+      ),
+  ),
   shippingAddress: z
     .string()
     .min(1, "لطفاً آدرس تحویل را وارد کنید")
@@ -3461,10 +4342,6 @@ export default function OtpStep({
 ================================================================
 PATH: ./src/components/profile/ProfileLoginClient.tsx
 ================================================================
-
-// ================================================================
-// PATH: ./src/components/profile/ProfileLoginClient.tsx
-// ================================================================
 
 "use client";
 
@@ -3971,28 +4848,46 @@ PATH: ./src/components/product/PriceSummary.tsx
 "use client";
 
 import React from "react";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface PriceSummaryProps {
+  basePrice: number;
   finalPrice: number;
   isOutOfStock: boolean;
   onCheckout: () => void;
 }
 
 export default function PriceSummary({
+  basePrice,
   finalPrice,
   isOutOfStock,
   onCheckout,
 }: PriceSummaryProps) {
+  const hasDiscount = finalPrice < basePrice;
+  const discountPercent = hasDiscount
+    ? Math.round(((basePrice - finalPrice) / basePrice) * 100)
+    : 0;
+
   return (
     <div className="p-6 border border-stone-800 bg-stone-900/20 rounded-3xl space-y-4">
       <div className="flex items-center justify-between">
         <span className="text-sm font-bold text-stone-400">
           مبلغ قابل پرداخت نهایی:
         </span>
-        <div className="text-left">
-          <div className="text-2xl lg:text-3xl font-black text-gold-500">
+        <div className="text-left flex flex-col items-end gap-1">
+          {hasDiscount && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-stone-500 line-through font-sans">
+                {basePrice.toLocaleString()} تومان
+              </span>
+              <span className="text-[10px] bg-red-500/10 border border-red-500/20 text-red-400 px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5">
+                <Percent className="w-2.5 h-2.5" />
+                {discountPercent}٪ تخفیف
+              </span>
+            </div>
+          )}
+          <div className="text-2xl lg:text-3xl font-black text-gold-500 font-sans">
             {finalPrice.toLocaleString()}{" "}
             <span className="text-sm font-bold text-stone-400">تومان</span>
           </div>
@@ -4468,6 +5363,210 @@ export default function ProductVisuals({ productName }: ProductVisualsProps) {
 ----------------------------------------------------------------
 
 ================================================================
+PATH: ./src/lib/jalali-converter.ts
+================================================================
+
+export function toJalaali(
+  gy: number,
+  gm: number,
+  gd: number,
+): { jy: number; jm: number; jd: number } {
+  return d2j(g2d(gy, gm, gd));
+}
+
+export function toGregorian(
+  jy: number,
+  jm: number,
+  jd: number,
+): { gy: number; gm: number; gd: number } {
+  return d2g(j2d(jy, jm, jd));
+}
+
+export function isValidJalaaliDate(
+  jy: number,
+  jm: number,
+  jd: number,
+): boolean {
+  return (
+    jy >= -61 &&
+    jy <= 3177 &&
+    jm >= 1 &&
+    jm <= 12 &&
+    jd >= 1 &&
+    jd <= jalaaliMonthLength(jy, jm)
+  );
+}
+
+export function isLeapJalaaliYear(jy: number): boolean {
+  return jalCalLeap(jy) === 0;
+}
+
+export function jalaaliMonthLength(jy: number, jm: number): number {
+  if (jm <= 6) return 31;
+  if (jm <= 11) return 30;
+  if (isLeapJalaaliYear(jy)) return 30;
+  return 29;
+}
+
+function jalCalLeap(jy: number): number {
+  return jalCal(jy).leap;
+}
+
+function jalCal(jy: number): { leap: number; gy: number; march: number } {
+  const breaks = [
+    -61, 9, 38, 199, 426, 686, 756, 818, 1111, 1181, 1210, 1635, 2060, 2097,
+    2192, 2262, 2324, 2394, 2456, 3178,
+  ];
+  const bl = breaks.length;
+  const gy = jy + 621;
+  let leapJ = -14;
+  let jp = breaks[0];
+  let jm = 0;
+  let jump = 0;
+
+  if (jy < jp || jy >= breaks[bl - 1]) {
+    throw new Error("Invalid Jalaali year " + jy);
+  }
+
+  for (let i = 1; i < bl; i += 1) {
+    const jb = breaks[i];
+    const n = jb - jp;
+    if (jy < jb) {
+      jm = i - 1;
+      jump = Math.floor(n / 33) * 4 + Math.floor((n % 33) / 4);
+      break;
+    }
+    leapJ += Math.floor(n / 33) * 8 + Math.floor(((n % 33) + 3) / 4);
+    jp = jb;
+  }
+
+  const n = jy - jp;
+  leapJ += Math.floor(n / 33) * 4 + Math.floor(((n % 33) + 3) / 4);
+  if (jump > 0 && (jump - n) % 33 === 0) {
+    leapJ += Math.floor((jump - n) / 33) - 1;
+  }
+
+  const leapG =
+    Math.floor(gy / 4) - Math.floor(((Math.floor(gy / 100) + 1) * 3) / 4) - 150;
+  const march = 20 + leapJ - leapG;
+
+  if ((jump - n) % 33 === 0) {
+    return { leap: 0, gy, march };
+  }
+  const nextLeap = (jump - n) % 33;
+  if (nextLeap < 0) {
+    return { leap: ((n - jump) % 33) % 4 === 0 ? 0 : 1, gy, march };
+  }
+  return { leap: nextLeap % 4 === 0 ? 0 : 1, gy, march };
+}
+
+function j2d(jy: number, jm: number, jd: number): number {
+  const r = jalCal(jy);
+  return (
+    g2d(r.gy, 3, r.march) +
+    (jm - 1) * 31 -
+    Math.floor(jm / 7) * (jm - 7) +
+    jd -
+    1
+  );
+}
+
+function d2j(jdn: number): { jy: number; jm: number; jd: number } {
+  const gy = d2g(jdn).gy;
+  let jy = gy - 621;
+  const r = jalCal(jy);
+  const jdn1f = g2d(gy, 3, r.march);
+  let k = jdn - jdn1f;
+  if (k >= 0) {
+    if (k <= 185) {
+      const jm = 1 + Math.floor(k / 31);
+      const jd = (k % 31) + 1;
+      return { jy, jm, jd };
+    }
+    k -= 186;
+  } else {
+    jy -= 1;
+    k += 179;
+    if (r.leap === 1) k += 1;
+  }
+  const jm = 7 + Math.floor(k / 30);
+  const jd = (k % 30) + 1;
+  return { jy, jm, jd };
+}
+
+function g2d(gy: number, gm: number, gd: number): number {
+  const d =
+    Math.floor(((gy + Math.floor((gm - 8) / 6) + 100100) * 1461) / 4) +
+    Math.floor((153 * ((gm + 9) % 12) + 2) / 5) +
+    gd -
+    34840408;
+  return (
+    d -
+    (Math.floor((gy + Math.floor((gm - 8) / 6) + 100100) / 100) * 3) / 4 +
+    38
+  );
+}
+
+function d2g(d: number): { gy: number; gm: number; gd: number } {
+  let j = 4 * d + 139361631;
+  j +=
+    Math.floor((Math.floor((4 * d + 183187720) / 146097) * 3) / 4) * 4 - 3908;
+  const i = Math.floor((j % 1461) / 4) * 5 + 308;
+  const gd = Math.floor((i % 153) / 5) + 1;
+  const gm = ((Math.floor(i / 153) + 2) % 12) + 1;
+  const gy = Math.floor(j / 1461) - 100100 + Math.floor((7 - gm) / 6);
+  return { gy, gm, gd };
+}
+
+export function parseJalaliString(
+  str: string,
+): { gy: number; gm: number; gd: number } | null {
+  const match = str.trim().match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if (!match) return null;
+  const jy = parseInt(match[1], 10);
+  const jm = parseInt(match[2], 10);
+  const jd = parseInt(match[3], 10);
+  if (!isValidJalaaliDate(jy, jm, jd)) return null;
+  return toGregorian(jy, jm, jd);
+}
+
+export function formatJalaliString(jy: number, jm: number, jd: number): string {
+  const mm = String(jm).padStart(2, "0");
+  const dd = String(jd).padStart(2, "0");
+  return `${jy}/${mm}/${dd}`; // استفاده از کاراکتر اسلش اصلاح شد
+}
+
+export function getTodayJalaliString(): string {
+  const today = new Date();
+  const res = toJalaali(
+    today.getFullYear(),
+    today.getMonth() + 1,
+    today.getDate(),
+  );
+  return formatJalaliString(res.jy, res.jm, res.jd);
+}
+
+export function formatGregorianToJalaliString(gregorianStr: string): string {
+  const d = new Date(gregorianStr);
+  if (isNaN(d.getTime())) return gregorianStr;
+  const res = toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate());
+  return formatJalaliString(res.jy, res.jm, res.jd);
+}
+
+export function getTehranTodayString(): string {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tehran",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  return formatter.format(new Date());
+}
+
+
+----------------------------------------------------------------
+
+================================================================
 PATH: ./src/lib/mock-db.ts
 ================================================================
 
@@ -4525,6 +5624,41 @@ export interface User {
   createdAt: string;
   address?: string;
 }
+
+export interface Coupon {
+  id: string;
+  code: string;
+  type: "product_direct" | "conditional" | "user_code";
+  discountType: "percentage" | "fixed";
+  discountValue: number;
+  productId?: string;
+  minWeightGrams?: number;
+  validFrom?: string;
+  validTo?: string;
+  maxDiscountAmount?: number;
+  isActive: boolean;
+  deletedAt?: string | null;
+  allowStacking?: boolean;
+}
+
+export interface CouponUsage {
+  id: string;
+  couponId: string;
+  phone: string;
+  usedAt: string;
+}
+
+class dbTransactionMutex {
+  private activePromises: Promise<any> = Promise.resolve();
+
+  async runExclusive<T>(callback: () => Promise<T> | T): Promise<T> {
+    const nextPromise = this.activePromises.then(() => callback());
+    this.activePromises = nextPromise.catch(() => {});
+    return nextPromise;
+  }
+}
+
+export const dbTransaction = new dbTransactionMutex();
 
 export const MOCK_PRODUCTS: Product[] = [
   {
@@ -4629,6 +5763,39 @@ export const MOCK_USERS: User[] = [
     address: "شیراز، بلوار ارم، کوچه بنفشه، ساختمان طلوع، طبقه همکف",
   },
 ];
+
+export const MOCK_COUPONS: Coupon[] = [
+  {
+    id: "cp_direct_spring",
+    code: "SPRING10",
+    type: "product_direct",
+    discountType: "percentage",
+    discountValue: 10,
+    productId: "prod_coffee_bulk_01",
+    isActive: true,
+  },
+  {
+    id: "cp_cond_bulk",
+    code: "BULK5KG",
+    type: "conditional",
+    discountType: "percentage",
+    discountValue: 15,
+    minWeightGrams: 5000,
+    productId: "prod_coffee_bulk_01",
+    isActive: true,
+  },
+  {
+    id: "cp_user_code_raz",
+    code: "RAZ2026",
+    type: "user_code",
+    discountType: "fixed",
+    discountValue: 50000,
+    isActive: true,
+    allowStacking: false,
+  },
+];
+
+export const MOCK_COUPON_USAGES: CouponUsage[] = [];
 
 export function getProductWithPricing(id: string): ProductWithPricing | null {
   const product = MOCK_PRODUCTS.find((p) => p.id === id);
@@ -4865,6 +6032,85 @@ export function getUserByPhone(phone: string): User | null {
   return MOCK_USERS.find((u) => u.phone === phone) || null;
 }
 
+export function getCoupons(): Coupon[] {
+  return MOCK_COUPONS.filter((c) => !c.deletedAt);
+}
+
+export function getCouponByCode(code: string): Coupon | null {
+  return (
+    MOCK_COUPONS.find(
+      (c) => !c.deletedAt && c.code.toUpperCase() === code.toUpperCase(),
+    ) || null
+  );
+}
+
+export function getCouponUsages(): CouponUsage[] {
+  return MOCK_COUPON_USAGES;
+}
+
+export function createCoupon(data: Omit<Coupon, "id">): Coupon {
+  const newCoupon: Coupon = {
+    id: `cp_${Date.now()}`,
+    ...data,
+  };
+  MOCK_COUPONS.push(newCoupon);
+  return newCoupon;
+}
+
+export function deleteCoupon(id: string): boolean {
+  const coupon = MOCK_COUPONS.find((c) => c.id === id);
+  if (coupon) {
+    coupon.deletedAt = new Date().toISOString();
+    coupon.isActive = false;
+    return true;
+  }
+  return false;
+}
+
+export function toggleCouponStatus(id: string): boolean {
+  const coupon = MOCK_COUPONS.find((c) => c.id === id && !c.deletedAt);
+  if (coupon) {
+    coupon.isActive = !coupon.isActive;
+    return true;
+  }
+  return false;
+}
+
+export function recordCouponUsage(
+  couponId: string,
+  phone: string,
+): CouponUsage {
+  const normalizedPhone = phone.trim();
+
+  const alreadyUsed = MOCK_COUPON_USAGES.some(
+    (u) => u.couponId === couponId && u.phone === normalizedPhone,
+  );
+
+  if (alreadyUsed) {
+    const error = new Error(
+      "PrismaUniqueConstraintViolation: Unique constraint failed on the fields: (`couponId`, `phone`)",
+    );
+    (error as any).code = "P2002";
+    throw error;
+  }
+
+  const usage: CouponUsage = {
+    id: `usage_${Date.now()}`,
+    couponId,
+    phone: normalizedPhone,
+    usedAt: new Date().toISOString(),
+  };
+
+  MOCK_COUPON_USAGES.push(usage);
+  return usage;
+}
+
+export function hasUserUsedCoupon(couponId: string, phone: string): boolean {
+  return MOCK_COUPON_USAGES.some(
+    (u) => u.couponId === couponId && u.phone === phone,
+  );
+}
+
 
 ----------------------------------------------------------------
 
@@ -4875,9 +6121,14 @@ PATH: ./src/lib/utils.ts
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-// تابع استاندارد ترکیب کلاس‌های Tailwind برای کامپوننت‌های شادسی‌ان
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function toEnglishDigits(str: string): string {
+  return str
+    .replace(/[۰-۹]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 1776))
+    .replace(/[٠-٩]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 1632));
 }
 
 
@@ -4886,6 +6137,8 @@ export function cn(...inputs: ClassValue[]) {
 ================================================================
 PATH: ./src/lib/coffee-calculations.ts
 ================================================================
+
+import { getTehranTodayString } from "./jalali-converter";
 
 export interface BlendProfile {
   robusta: number;
@@ -4898,6 +6151,14 @@ export interface BlendProfile {
 
 export interface PriceMetrics {
   originalPrice: number;
+  finalPrice: number;
+}
+
+export interface AdvancedPriceMetrics {
+  basePrice: number;
+  directDiscountAmount: number;
+  conditionalDiscountAmount: number;
+  userCouponDiscountAmount: number;
   finalPrice: number;
 }
 
@@ -4992,6 +6253,219 @@ export function calculateRemainingStock(
   return Math.floor(stock / weight);
 }
 
+export function calculateAdvancedPriceMetrics(params: {
+  productId: string;
+  pricing: { pricePerKgArabica: number; pricePerKgRobusta: number } | null;
+  blendProfile: BlendProfile;
+  weightGrams: number;
+  quantity: number;
+  activeCoupons: any[];
+  appliedUserCouponCode?: string | null;
+  userPhone?: string | null;
+  couponUsages?: any[];
+}): AdvancedPriceMetrics {
+  const activePricing = params.pricing || {
+    pricePerKgArabica: 2200000,
+    pricePerKgRobusta: 1800000,
+  };
+
+  const arabicaRatio = params.blendProfile.arabica / 100;
+  const robustaRatio = params.blendProfile.robusta / 100;
+
+  const pricePerKg =
+    activePricing.pricePerKgArabica * arabicaRatio +
+    activePricing.pricePerKgRobusta * robustaRatio;
+
+  const pricePerGram = pricePerKg / 1000;
+  const basePrice = Math.round(
+    pricePerGram * params.weightGrams * params.quantity,
+  );
+
+  const tehranTodayStr = getTehranTodayString();
+
+  // تبدیل تاریخ به زمان محلی تهران برای همگام‌سازی زمان و جلوگیری از تفاوت منطقه زمانی سرورهای ابری
+  const normalizeDateToTimestamp = (dateStr: string): number => {
+    const normalized = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
+    const [year, month, day] = normalized.split(/[-/]/).map(Number);
+    return new Date(year, month - 1, day).getTime();
+  };
+
+  const [ty, tm, td] = tehranTodayStr.split("-").map(Number);
+  const todayTimestamp = new Date(ty, tm - 1, td).getTime();
+
+  const isCouponDateValid = (coupon: any): boolean => {
+    if (coupon.validFrom) {
+      const fromTimestamp = normalizeDateToTimestamp(coupon.validFrom);
+      if (todayTimestamp < fromTimestamp) return false;
+    }
+    if (coupon.validTo) {
+      const toTimestamp = normalizeDateToTimestamp(coupon.validTo);
+      if (todayTimestamp > toTimestamp) return false;
+    }
+    return true;
+  };
+
+  const getStandaloneDiscount = (
+    coupon: any,
+    originalPrice: number,
+  ): number => {
+    if (coupon.discountType === "percentage") {
+      const val = Math.round((originalPrice * coupon.discountValue) / 100);
+      return coupon.maxDiscountAmount
+        ? Math.min(val, coupon.maxDiscountAmount)
+        : val;
+    } else {
+      return coupon.discountValue;
+    }
+  };
+
+  // ۱. ارزیابی و انتخاب بهترین کوپن تخفیف مستقیم فعال
+  const directCoupons = params.activeCoupons.filter(
+    (c) =>
+      c.isActive &&
+      !c.deletedAt &&
+      c.type === "product_direct" &&
+      (!c.productId || c.productId === params.productId) &&
+      isCouponDateValid(c),
+  );
+
+  let bestDirect: any = null;
+  let directDiscountAmount = 0;
+  if (directCoupons.length > 0) {
+    directCoupons.forEach((c) => {
+      const disc = getStandaloneDiscount(c, basePrice);
+      if (disc > directDiscountAmount) {
+        directDiscountAmount = disc;
+        bestDirect = c;
+      }
+    });
+  }
+
+  // ۲. ارزیابی و انتخاب بهترین کوپن تخفیف شرطی فعال (مثلاً حجم خرید)
+  const conditionalCoupons = params.activeCoupons.filter((c) => {
+    if (!c.isActive || c.deletedAt || c.type !== "conditional") return false;
+    if (c.productId && c.productId !== params.productId) return false;
+    if (c.minWeightGrams && params.weightGrams < c.minWeightGrams) return false;
+    return isCouponDateValid(c);
+  });
+
+  let bestConditional: any = null;
+  let conditionalDiscountAmount = 0;
+  if (conditionalCoupons.length > 0) {
+    conditionalCoupons.forEach((c) => {
+      const disc = getStandaloneDiscount(c, basePrice);
+      if (disc > conditionalDiscountAmount) {
+        conditionalDiscountAmount = disc;
+        bestConditional = c;
+      }
+    });
+  }
+
+  // ۳. ارزیابی کوپن کاربر دستی در صورت وجود و مجاز بودن
+  let eligibleUserCoupon: any = null;
+  let userCouponDiscountAmount = 0;
+  if (params.appliedUserCouponCode) {
+    const code = params.appliedUserCouponCode.trim().toUpperCase();
+    const userCoupon = params.activeCoupons.find(
+      (c) =>
+        c.isActive &&
+        !c.deletedAt &&
+        c.type === "user_code" &&
+        c.code.toUpperCase() === code &&
+        (!c.productId || c.productId === params.productId) &&
+        isCouponDateValid(c),
+    );
+
+    if (userCoupon) {
+      let isUsageValid = true;
+      if (params.userPhone && params.couponUsages) {
+        const normalizedPhone = params.userPhone.trim();
+        const alreadyUsed = params.couponUsages.some(
+          (u) => u.couponId === userCoupon.id && u.phone === normalizedPhone,
+        );
+        if (alreadyUsed) isUsageValid = false;
+      }
+
+      if (isUsageValid) {
+        eligibleUserCoupon = userCoupon;
+        userCouponDiscountAmount = getStandaloneDiscount(userCoupon, basePrice);
+      }
+    }
+  }
+
+  // ۴. مدیریت همپوشانی افزودنی (Additive) و یا انتخاب بهترین کوپن (Best-value Selector)
+  let finalDiscount = 0;
+  let finalDirect = 0;
+  let finalConditional = 0;
+  let finalUser = 0;
+
+  if (eligibleUserCoupon && eligibleUserCoupon.allowStacking) {
+    // کوپن همپوشانی دارد: کوپن کاربر + بهترین تخفیف سیستمی موجود به صورت افزایشی (نه مرکب ضربدر هم)
+    const bestAutoDiscount = Math.max(
+      directDiscountAmount,
+      conditionalDiscountAmount,
+    );
+    finalDiscount = userCouponDiscountAmount + bestAutoDiscount;
+
+    finalUser = userCouponDiscountAmount;
+    if (bestAutoDiscount > 0) {
+      if (directDiscountAmount >= conditionalDiscountAmount) {
+        finalDirect = directDiscountAmount;
+      } else {
+        finalConditional = conditionalDiscountAmount;
+      }
+    }
+  } else {
+    // کوپن همپوشانی ندارد (پیش‌فرض): انتخاب بیشترین تخفیف مستقل تک کوپنی جهت حفظ سود خریدار
+    finalDiscount = Math.max(
+      directDiscountAmount,
+      conditionalDiscountAmount,
+      userCouponDiscountAmount,
+    );
+
+    if (
+      finalDiscount === userCouponDiscountAmount &&
+      userCouponDiscountAmount > 0
+    ) {
+      finalUser = userCouponDiscountAmount;
+    } else if (
+      finalDiscount === directDiscountAmount &&
+      directDiscountAmount > 0
+    ) {
+      finalDirect = directDiscountAmount;
+    } else if (
+      finalDiscount === conditionalDiscountAmount &&
+      conditionalDiscountAmount > 0
+    ) {
+      finalConditional = conditionalDiscountAmount;
+    }
+  }
+
+  // ممانعت از منفی شدن فاکتور
+  finalDiscount = Math.min(finalDiscount, basePrice);
+  const finalPrice = basePrice - finalDiscount;
+
+  // همسان‌سازی مقادیر سهمی تخفیف در صورت پر شدن سقف فاکتور
+  if (finalDiscount === basePrice) {
+    const totalAllocated = finalDirect + finalConditional + finalUser;
+    if (totalAllocated > 0) {
+      finalDirect = Math.round((finalDirect / totalAllocated) * basePrice);
+      finalConditional = Math.round(
+        (finalConditional / totalAllocated) * basePrice,
+      );
+      finalUser = basePrice - finalDirect - finalConditional;
+    }
+  }
+
+  return {
+    basePrice,
+    directDiscountAmount: finalDirect,
+    conditionalDiscountAmount: finalConditional,
+    userCouponDiscountAmount: finalUser,
+    finalPrice,
+  };
+}
+
 
 ----------------------------------------------------------------
 
@@ -5045,10 +6519,12 @@ PATH: ./src/app/page.tsx
 import CoffeeProductPage from "@/components/CoffeeProductPage";
 import { getProductAction } from "@/app/actions/product";
 import { getCommentsAction } from "@/app/actions/comment";
+import { getCouponsAction } from "@/app/actions/coupon";
 
 export default async function Page() {
   const productResult = await getProductAction("prod_coffee_bulk_01");
   const commentsResult = await getCommentsAction("prod_coffee_bulk_01");
+  const couponsResult = await getCouponsAction();
 
   if (!productResult.success || !productResult.data) {
     return (
@@ -5063,6 +6539,7 @@ export default async function Page() {
       <CoffeeProductPage
         initialProduct={productResult.data}
         initialComments={commentsResult.success ? commentsResult.data : []}
+        activeCoupons={couponsResult.success ? couponsResult.data : []}
       />
     </main>
   );
@@ -5870,6 +7347,38 @@ export default function ChangePasswordPage() {
 ----------------------------------------------------------------
 
 ================================================================
+PATH: ./src/app/admin/coupons/page.tsx
+================================================================
+
+import React from "react";
+import { getCouponsAction } from "@/app/actions/coupon";
+import AdminCouponsClientList from "@/components/admin/coupons/AdminCouponsClientList";
+
+export default async function AdminCouponsPage() {
+  const couponsResult = await getCouponsAction();
+  const coupons = couponsResult.success ? couponsResult.data || [] : [];
+
+  return (
+    <div className="space-y-8 text-right" dir="rtl">
+      <div>
+        <h1 className="text-2xl font-black text-stone-100">
+          مدیریت هوشمند کوپن‌ها و تخفیف‌ها
+        </h1>
+        <p className="text-xs text-stone-400 mt-1">
+          تعریف انواع تخفیف‌های مستقیم، شرطی (وزن و زمان) و کدهای هدیه دستی
+          کاربران
+        </p>
+      </div>
+
+      <AdminCouponsClientList initialCoupons={coupons} />
+    </div>
+  );
+}
+
+
+----------------------------------------------------------------
+
+================================================================
 PATH: ./src/app/admin/comments/page.tsx
 ================================================================
 
@@ -6327,11 +7836,12 @@ import {
 } from "@/lib/mock-db";
 import {
   getBlendProfile,
-  calculatePriceMetrics,
+  calculateAdvancedPriceMetrics,
 } from "@/lib/coffee-calculations";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { ActionResponse } from "./comment";
+import { toEnglishDigits } from "@/lib/utils";
 
 export async function getOrdersAction(): Promise<ActionResponse<Order[]>> {
   try {
@@ -6373,6 +7883,7 @@ export async function submitOrderAction(payload: {
   customerPhone: string;
   customerAddress: string;
   otp: string;
+  appliedCouponCode?: string | null;
 }): Promise<ActionResponse<Order>> {
   try {
     const {
@@ -6385,6 +7896,7 @@ export async function submitOrderAction(payload: {
       customerPhone,
       customerAddress,
       otp,
+      appliedCouponCode,
     } = payload;
 
     if (
@@ -6412,58 +7924,398 @@ export async function submitOrderAction(payload: {
       };
     }
 
-    const product = getProductWithPricing(productId);
-    if (!product) {
+    // احراز هویت امن شماره تلفن سرور
+    const { getCurrentUserAction } = await import("@/app/actions/auth");
+    const currentUserRes = await getCurrentUserAction();
+    const securePhone =
+      currentUserRes.success && currentUserRes.user
+        ? currentUserRes.user.phone
+        : toEnglishDigits(customerPhone.trim());
+
+    const { dbTransaction } = await import("@/lib/mock-db");
+
+    // موکول کردن دابل اسپندینگ واقعی به تراکنش دیتابیس آینده و شبیه‌سازی دقیق و امن در دیتابیس تستی کنونی
+    return await dbTransaction.runExclusive(async () => {
+      const product = getProductWithPricing(productId);
+      if (!product) {
+        return {
+          success: false,
+          error: "محصول مورد نظر یافت نشد.",
+        };
+      }
+
+      const blendProfile = getBlendProfile(blend);
+      const { MOCK_COUPONS, MOCK_COUPON_USAGES, recordCouponUsage } =
+        await import("@/lib/mock-db");
+
+      // اعتبارسنجی کوپن در لایه تراکنش سرور
+      if (appliedCouponCode) {
+        const activeCoupon = MOCK_COUPONS.find(
+          (c) =>
+            c.isActive &&
+            !c.deletedAt &&
+            c.type === "user_code" &&
+            c.code.toUpperCase() === appliedCouponCode.trim().toUpperCase(),
+        );
+
+        if (activeCoupon) {
+          const isDoubleSpendingSimulated = MOCK_COUPON_USAGES.some(
+            (u) => u.couponId === activeCoupon.id && u.phone === securePhone,
+          );
+          if (isDoubleSpendingSimulated) {
+            return {
+              success: false,
+              error:
+                "تراکنش مسدود شد: این کد تخفیف قبلاً توسط شما استفاده شده است.",
+            };
+          }
+        }
+      }
+
+      const pricingBreakdown = calculateAdvancedPriceMetrics({
+        productId,
+        pricing: product.pricing,
+        blendProfile,
+        weightGrams: Number(weightGrams),
+        quantity: Number(quantity),
+        activeCoupons: MOCK_COUPONS,
+        appliedUserCouponCode: appliedCouponCode,
+        userPhone: securePhone,
+        couponUsages: MOCK_COUPON_USAGES,
+      });
+
+      const secureFinalPrice = pricingBreakdown.finalPrice;
+
+      // ثبت نهایی استفاده از کوپن به همراه قفل انحصاری
+      if (appliedCouponCode) {
+        const appliedCoupon = MOCK_COUPONS.find(
+          (c) =>
+            c.isActive &&
+            !c.deletedAt &&
+            c.type === "user_code" &&
+            c.code.toUpperCase() === appliedCouponCode.trim().toUpperCase(),
+        );
+        if (appliedCoupon) {
+          recordCouponUsage(appliedCoupon.id, securePhone);
+        }
+      }
+
+      const newOrder = createOrder({
+        productId,
+        weightGrams: Number(weightGrams),
+        quantity: Number(quantity),
+        grindType: `ترکیب: ${blend} | آسیاب: ${grind}`,
+        finalPrice: secureFinalPrice,
+        customerName,
+        customerPhone: securePhone,
+        customerAddress,
+      });
+
+      getOrCreateUser(securePhone, customerName);
+
+      const cookieStore = await cookies();
+      cookieStore.set("user_phone", securePhone, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 60 * 60 * 24 * 30,
+        path: "/",
+      });
+
+      revalidatePath("/");
+      revalidatePath("/profile");
+
       return {
-        success: false,
-        error: "محصول مورد نظر یافت نشد.",
+        success: true,
+        data: newOrder,
       };
-    }
-
-    const blendProfile = getBlendProfile(blend);
-    const priceMetrics = calculatePriceMetrics(
-      product.pricing,
-      blendProfile,
-      Number(weightGrams),
-      Number(quantity),
-    );
-
-    const secureFinalPrice = priceMetrics.finalPrice;
-
-    const newOrder = createOrder({
-      productId,
-      weightGrams: Number(weightGrams),
-      quantity: Number(quantity),
-      grindType: `ترکیب: ${blend} | آسیاب: ${grind}`,
-      finalPrice: secureFinalPrice,
-      customerName,
-      customerPhone,
-      customerAddress,
     });
-
-    getOrCreateUser(customerPhone, customerName);
-
-    const cookieStore = await cookies();
-    cookieStore.set("user_phone", customerPhone, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 60 * 60 * 24 * 30,
-      path: "/",
-    });
-
-    revalidatePath("/");
-    revalidatePath("/profile");
-
-    return {
-      success: true,
-      data: newOrder,
-    };
   } catch (error) {
     return {
       success: false,
-      error: "خطایی در فرآیند محاسبات و ثبت نهایی سفارش رخ داد.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "خطایی در فرآیند محاسبات و ثبت نهایی سفارش رخ داد.",
     };
+  }
+}
+
+
+----------------------------------------------------------------
+
+================================================================
+PATH: ./src/app/actions/coupon.ts
+================================================================
+
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { ActionResponse } from "./comment";
+import {
+  getBlendProfile,
+  calculateAdvancedPriceMetrics,
+} from "@/lib/coffee-calculations";
+import { toEnglishDigits } from "@/lib/utils";
+import { getTehranTodayString } from "@/lib/jalali-converter";
+
+const createCouponSchema = z.object({
+  code: z.string().optional(),
+  type: z.enum(["product_direct", "conditional", "user_code"]),
+  discountType: z.enum(["percentage", "fixed"]),
+  discountValue: z.number().min(1, "مقدار تخفیف نامعتبر است"),
+  productId: z.string().optional(),
+  minWeightGrams: z.number().optional(),
+  validFrom: z.string().optional(),
+  validTo: z.string().optional(),
+  maxDiscountAmount: z.number().optional(),
+  isActive: z.boolean().default(true),
+  allowStacking: z.boolean().optional().default(false),
+});
+
+export async function validateCouponAction(payload: {
+  code: string;
+  phone?: string | null;
+  productId: string;
+  weightGrams: number;
+  quantity: number;
+  blend: string;
+}): Promise<
+  ActionResponse<{
+    couponId: string;
+    code: string;
+    discountType: "percentage" | "fixed";
+    discountValue: number;
+    discountAmount: number;
+    finalPrice: number;
+  }>
+> {
+  try {
+    const { code, phone, productId, weightGrams, quantity, blend } = payload;
+
+    if (!code) {
+      return { success: false, error: "کد تخفیف نمی‌تواند خالی باشد." };
+    }
+
+    const cleanCode = code.trim().toUpperCase();
+    const cleanPhone = phone ? toEnglishDigits(phone.trim()) : null;
+
+    // گام امنیتی: تایید شماره موبایل از سشن واقعی سرور جهت انسداد دستکاری شبکه کلاینت
+    const { getCurrentUserAction } = await import("@/app/actions/auth");
+    const currentUserRes = await getCurrentUserAction();
+    const securePhone =
+      currentUserRes.success && currentUserRes.user
+        ? currentUserRes.user.phone
+        : cleanPhone;
+
+    const { getCouponByCode, getCouponUsages, getProductWithPricing } =
+      await import("@/lib/mock-db");
+
+    const coupon = getCouponByCode(cleanCode);
+    if (!coupon || !coupon.isActive || coupon.deletedAt) {
+      return { success: false, error: "کد تخفیف وارد شده معتبر نیست." };
+    }
+
+    if (coupon.type !== "user_code") {
+      return {
+        success: false,
+        error: "این کد به عنوان تخفیف سیستمی و خودکار اعمال می‌گردد.",
+      };
+    }
+
+    if (coupon.productId && coupon.productId !== productId) {
+      return {
+        success: false,
+        error: "این کد تخفیف برای محصول انتخابی شما تعریف نشده است.",
+      };
+    }
+
+    // مقایسه زمان‌بندی تاریخ بر مبنای لوکال تایم تهران بدون وابستگی به تایم‌زون فیزیکی سرور خارجی
+    const tehranTodayStr = getTehranTodayString();
+    const normalizeDateToTimestamp = (dateStr: string): number => {
+      const normalized = dateStr.includes("T")
+        ? dateStr.split("T")[0]
+        : dateStr;
+      const [year, month, day] = normalized.split(/[-/]/).map(Number);
+      return new Date(year, month - 1, day).getTime();
+    };
+    const [ty, tm, td] = tehranTodayStr.split("-").map(Number);
+    const todayTimestamp = new Date(ty, tm - 1, td).getTime();
+
+    if (coupon.validFrom) {
+      const fromTimestamp = normalizeDateToTimestamp(coupon.validFrom);
+      if (todayTimestamp < fromTimestamp) {
+        return {
+          success: false,
+          error: "زمان فعال‌سازی این کد تخفیف هنوز فرا نرسیده است.",
+        };
+      }
+    }
+    if (coupon.validTo) {
+      const toTimestamp = normalizeDateToTimestamp(coupon.validTo);
+      if (todayTimestamp > toTimestamp) {
+        return {
+          success: false,
+          error: "اعتبار این کد تخفیف به پایان رسیده است.",
+        };
+      }
+    }
+
+    if (securePhone) {
+      const usages = getCouponUsages();
+      const alreadyUsed = usages.some(
+        (u) => u.couponId === coupon.id && u.phone === securePhone,
+      );
+      if (alreadyUsed) {
+        return {
+          success: false,
+          error: "شما قبلاً از این کد تخفیف استفاده کرده‌اید.",
+        };
+      }
+    }
+
+    const product = getProductWithPricing(productId);
+    if (!product) {
+      return { success: false, error: "محصول مورد نظر یافت نشد." };
+    }
+
+    const blendProfile = getBlendProfile(blend);
+    const { MOCK_COUPONS, MOCK_COUPON_USAGES } = await import("@/lib/mock-db");
+
+    const pricingBreakdown = calculateAdvancedPriceMetrics({
+      productId,
+      pricing: product.pricing,
+      blendProfile,
+      weightGrams,
+      quantity,
+      activeCoupons: MOCK_COUPONS,
+      appliedUserCouponCode: cleanCode,
+      userPhone: securePhone,
+      couponUsages: MOCK_COUPON_USAGES,
+    });
+
+    if (pricingBreakdown.userCouponDiscountAmount <= 0) {
+      return {
+        success: false,
+        error:
+          "امکان اعمال این کد روی سبد خرید شما وجود ندارد. (شاید تخفیف مستقیم یا شرطی بهتری در سبد وجود دارد)",
+      };
+    }
+
+    return {
+      success: true,
+      message: "کد تخفیف با موفقیت اعمال گردید.",
+      data: {
+        couponId: coupon.id,
+        code: coupon.code,
+        discountType: coupon.discountType,
+        discountValue: coupon.discountValue,
+        discountAmount: pricingBreakdown.userCouponDiscountAmount,
+        finalPrice: pricingBreakdown.finalPrice,
+      },
+    };
+  } catch (error) {
+    return { success: false, error: "خطا در پردازش و اعتبارسنجی کد تخفیف." };
+  }
+}
+
+export async function getCouponsAction() {
+  try {
+    const { getCoupons } = await import("@/lib/mock-db");
+    return { success: true, data: getCoupons() };
+  } catch (error) {
+    return { success: false, error: "خطا در دریافت لیست تخفیف‌ها." };
+  }
+}
+
+export async function createCouponAction(
+  formData: z.infer<typeof createCouponSchema>,
+) {
+  try {
+    const validated = createCouponSchema.safeParse(formData);
+    if (!validated.success) {
+      return {
+        success: false,
+        error:
+          validated.error.errors[0]?.message || "اطلاعات ارسالی معتبر نیست.",
+      };
+    }
+
+    let finalCode = validated.data.code?.trim().toUpperCase();
+    if (!finalCode) {
+      if (validated.data.type === "product_direct") {
+        finalCode = `DIR-${validated.data.discountValue}${validated.data.discountType === "percentage" ? "PCT" : "TM"}-${Math.floor(100 + Math.random() * 900)}`;
+      } else if (validated.data.type === "conditional") {
+        finalCode = `COND-${validated.data.minWeightGrams ? validated.data.minWeightGrams / 1000 + "KG" : "VAL"}-${Math.floor(100 + Math.random() * 900)}`;
+      } else {
+        return {
+          success: false,
+          error: "وارد کردن کد تخفیف برای تخفیف‌های دستی کاربر الزامی است.",
+        };
+      }
+    }
+
+    const { createCoupon } = await import("@/lib/mock-db");
+    const coupon = createCoupon({
+      ...validated.data,
+      code: finalCode,
+    });
+
+    revalidatePath("/");
+    revalidatePath("/admin/coupons");
+
+    return {
+      success: true,
+      data: coupon,
+      message: "کد تخفیف با موفقیت در سیستم تعریف شد.",
+    };
+  } catch (error) {
+    return { success: false, error: "خطا در ثبت کد تخفیف جدید." };
+  }
+}
+
+export async function deleteCouponAction(id: string) {
+  try {
+    const { deleteCoupon } = await import("@/lib/mock-db");
+    const isDeleted = deleteCoupon(id);
+
+    if (!isDeleted) {
+      return { success: false, error: "کد تخفیف مورد نظر یافت نشد." };
+    }
+
+    revalidatePath("/");
+    revalidatePath("/admin/coupons");
+
+    return {
+      success: true,
+      data: true,
+      message: "کد تخفیف با موفقیت حذف گردید.",
+    };
+  } catch (error) {
+    return { success: false, error: "خطا در حذف کد تخفیف." };
+  }
+}
+
+export async function toggleCouponStatusAction(id: string) {
+  try {
+    const { toggleCouponStatus } = await import("@/lib/mock-db");
+    const isToggled = toggleCouponStatus(id);
+
+    if (!isToggled) {
+      return { success: false, error: "کد تخفیف یافت نشد." };
+    }
+
+    revalidatePath("/");
+    revalidatePath("/admin/coupons");
+
+    return {
+      success: true,
+      data: true,
+      message: "وضعیت فعال‌بودن کد تخفیف تغییر یافت.",
+    };
+  } catch (error) {
+    return { success: false, error: "خطا در تغییر وضعیت کد تخفیف." };
   }
 }
 
@@ -6827,6 +8679,8 @@ import {
   checkPhoneRegisteredAction,
   loginUserWithOtpAction,
 } from "@/app/actions/auth";
+import { validateCouponAction } from "@/app/actions/coupon";
+import { toEnglishDigits } from "@/lib/utils";
 
 export type Step = "user_info" | "shipping" | "otp" | "success";
 
@@ -6844,6 +8698,17 @@ export function useCheckoutForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fakeTrackingCode, setFakeTrackingCode] = useState("");
+
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountAmount: number;
+  } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [checkoutFinalPrice, setCheckoutFinalPrice] = useState(0);
+
+  const [lastValidatedPhone, setLastValidatedPhone] = useState("");
 
   const productId = checkoutData?.productId || "";
   const selectedWeight = checkoutData?.selectedWeight || 0;
@@ -6864,7 +8729,21 @@ export function useCheckoutForm() {
     mode: "onTouched",
   });
 
-  const { trigger, getValues, reset, setValue } = methods;
+  const { trigger, getValues, reset, setValue, watch } = methods;
+
+  const watchedPhone = watch("phone");
+
+  // بازنویسی هوشمند: کوپن صرفاً زمانی حذف می‌شود که شماره تلفن ورودی جدید، یک شماره تلفن کامل و معتبرِ مغایر باشد
+  useEffect(() => {
+    if (appliedCoupon) {
+      const cleanWatchedPhone = toEnglishDigits(watchedPhone?.trim() || "");
+      const isValidPhoneFormat = /^09[0-9]{9}$/.test(cleanWatchedPhone);
+
+      if (isValidPhoneFormat && cleanWatchedPhone !== lastValidatedPhone) {
+        handleRemoveCoupon();
+      }
+    }
+  }, [watchedPhone, appliedCoupon, lastValidatedPhone]);
 
   useEffect(() => {
     if (isOpen) {
@@ -6886,12 +8765,65 @@ export function useCheckoutForm() {
     }
   }, [isOpen, setValue]);
 
+  useEffect(() => {
+    if (isOpen && checkoutData) {
+      setCheckoutFinalPrice(checkoutData.finalPrice);
+      setAppliedCoupon(null);
+      setCouponError(null);
+      setCouponCode("");
+      setLastValidatedPhone("");
+    }
+  }, [isOpen, checkoutData]);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setIsApplyingCoupon(true);
+    setCouponError(null);
+
+    const rawPhone = getValues("phone") || "";
+    const cleanPhone = toEnglishDigits(rawPhone.trim());
+
+    const res = await validateCouponAction({
+      code: couponCode,
+      phone: cleanPhone || null,
+      productId,
+      weightGrams: selectedWeight,
+      quantity,
+      blend: selectedBlend,
+    });
+
+    if (res.success && res.data) {
+      setAppliedCoupon({
+        code: res.data.code,
+        discountAmount: res.data.discountAmount,
+      });
+      setCheckoutFinalPrice(res.data.finalPrice);
+      setLastValidatedPhone(cleanPhone);
+    } else {
+      setCouponError(res.error || "خطا در ارزیابی کد تخفیف.");
+    }
+    setIsApplyingCoupon(false);
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError(null);
+    setCheckoutFinalPrice(finalPrice);
+    setLastValidatedPhone("");
+  };
+
   const handleReset = () => {
     setStep("user_info");
     setIsLoginMode(false);
     setOtpPurpose("checkout");
     setIsLoggedInUser(false);
     setErrorMessage(null);
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError(null);
+    setCheckoutFinalPrice(0);
+    setLastValidatedPhone("");
     reset();
   };
 
@@ -6908,7 +8840,7 @@ export function useCheckoutForm() {
       const isPhoneValid = await trigger(["phone"]);
       if (!isPhoneValid) return;
 
-      const phoneVal = getValues("phone");
+      const phoneVal = toEnglishDigits(getValues("phone").trim());
       startTransition(async () => {
         const checkRes = await checkPhoneRegisteredAction({ phone: phoneVal });
         if (checkRes.success && checkRes.registered && checkRes.user) {
@@ -6943,6 +8875,7 @@ export function useCheckoutForm() {
     if (isLoggedInUser) {
       setIsSubmitting(true);
       const values = getValues();
+      const cleanPhone = toEnglishDigits(values.phone.trim());
       try {
         const result = await submitOrderAction({
           productId,
@@ -6951,9 +8884,10 @@ export function useCheckoutForm() {
           blend: selectedBlend,
           grind: selectedGrind,
           customerName: `${values.firstName} ${values.lastName}`,
-          customerPhone: values.phone,
+          customerPhone: cleanPhone,
           customerAddress: values.shippingAddress,
           otp: "1234",
+          appliedCouponCode: appliedCoupon?.code || null,
         });
 
         if (!result.success || !result.data) {
@@ -6983,11 +8917,12 @@ export function useCheckoutForm() {
     setErrorMessage(null);
 
     const values = getValues();
+    const cleanPhone = toEnglishDigits(values.phone.trim());
 
     try {
       if (otpPurpose === "login") {
         const loginRes = await loginUserWithOtpAction({
-          phone: values.phone,
+          phone: cleanPhone,
           otp: values.otp || "",
         });
 
@@ -7007,9 +8942,10 @@ export function useCheckoutForm() {
           blend: selectedBlend,
           grind: selectedGrind,
           customerName: `${values.firstName} ${values.lastName}`,
-          customerPhone: values.phone,
+          customerPhone: cleanPhone,
           customerAddress: values.shippingAddress,
           otp: values.otp || "",
+          appliedCouponCode: appliedCoupon?.code || null,
         });
 
         if (!result.success || !result.data) {
@@ -7049,6 +8985,14 @@ export function useCheckoutForm() {
     handleUserInfoNext,
     handleShippingNext,
     handleOtpVerifyAndSubmit,
+    couponCode,
+    setCouponCode,
+    appliedCoupon,
+    couponError,
+    isApplyingCoupon,
+    checkoutFinalPrice,
+    handleApplyCoupon,
+    handleRemoveCoupon,
   };
 }
 
@@ -7267,9 +9211,10 @@ import { useMemo } from "react";
 import { useCoffeeSelection } from "./useCoffeeSelection";
 import {
   getBlendProfile,
-  calculatePriceMetrics,
+  calculateAdvancedPriceMetrics,
   calculateRemainingStock,
 } from "@/lib/coffee-calculations";
+import { Coupon } from "@/lib/mock-db";
 
 export interface ProductPricing {
   pricePerKgArabica: number;
@@ -7284,7 +9229,10 @@ export interface CoffeeProduct {
   pricing: ProductPricing | null;
 }
 
-export function useCoffeeProduct(initialProduct: CoffeeProduct) {
+export function useCoffeeProduct(
+  initialProduct: CoffeeProduct,
+  activeCoupons: Coupon[],
+) {
   const selection = useCoffeeSelection();
 
   const blendProfile = useMemo(() => {
@@ -7302,17 +9250,21 @@ export function useCoffeeProduct(initialProduct: CoffeeProduct) {
   ]);
 
   const priceMetrics = useMemo(() => {
-    return calculatePriceMetrics(
-      initialProduct.pricing,
+    return calculateAdvancedPriceMetrics({
+      productId: initialProduct.id, // تامین شناسه کالا جهت ارزیابی کوپن‌ها
+      pricing: initialProduct.pricing,
       blendProfile,
-      computedWeight,
-      selection.quantity,
-    );
+      weightGrams: computedWeight,
+      quantity: selection.quantity,
+      activeCoupons,
+    });
   }, [
+    initialProduct.id,
     initialProduct.pricing,
     blendProfile,
     computedWeight,
     selection.quantity,
+    activeCoupons,
   ]);
 
   const remainingStockCount = useMemo(() => {

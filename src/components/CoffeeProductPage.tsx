@@ -11,15 +11,18 @@ import PriceSummary from "./product/PriceSummary";
 import CheckoutDialog from "./CheckoutDialog";
 import ProductTabsSection, { UIComment } from "./ProductTabsSection";
 import { useCheckout } from "@/context/CheckoutContext";
+import { Coupon } from "@/lib/mock-db";
 
 interface CoffeeProductPageProps {
   initialProduct: CoffeeProduct;
   initialComments: UIComment[];
+  activeCoupons: Coupon[];
 }
 
 export default function CoffeeProductPage({
   initialProduct,
   initialComments,
+  activeCoupons,
 }: CoffeeProductPageProps) {
   const {
     selectedWeight,
@@ -39,7 +42,7 @@ export default function CoffeeProductPage({
     priceMetrics,
     remainingStockCount,
     isOutOfStock,
-  } = useCoffeeProduct(initialProduct);
+  } = useCoffeeProduct(initialProduct, activeCoupons);
 
   const { openCheckout } = useCheckout();
 
@@ -88,6 +91,7 @@ export default function CoffeeProductPage({
           />
 
           <PriceSummary
+            basePrice={priceMetrics.basePrice}
             finalPrice={priceMetrics.finalPrice}
             isOutOfStock={isOutOfStock}
             onCheckout={() =>

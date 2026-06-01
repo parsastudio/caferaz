@@ -30,6 +30,11 @@ const menuItems = [
     emoji: "🏷️",
   },
   {
+    path: "/admin/coupons",
+    label: "مدیریت کوپن‌ها",
+    emoji: "🎫",
+  },
+  {
     path: "/admin/change-password",
     label: "تغییر رمز عبور",
     emoji: "🔑",

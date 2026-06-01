@@ -1,7 +1,3 @@
-// ================================================================
-// PATH: ./src/components/profile/ProfileLoginClient.tsx
-// ================================================================
-
 "use client";
 
 import React, { useState, useTransition } from "react";

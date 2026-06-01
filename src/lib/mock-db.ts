@@ -53,6 +53,41 @@ export interface User {
   address?: string;
 }
 
+export interface Coupon {
+  id: string;
+  code: string;
+  type: "product_direct" | "conditional" | "user_code";
+  discountType: "percentage" | "fixed";
+  discountValue: number;
+  productId?: string;
+  minWeightGrams?: number;
+  validFrom?: string;
+  validTo?: string;
+  maxDiscountAmount?: number;
+  isActive: boolean;
+  deletedAt?: string | null;
+  allowStacking?: boolean;
+}
+
+export interface CouponUsage {
+  id: string;
+  couponId: string;
+  phone: string;
+  usedAt: string;
+}
+
+class dbTransactionMutex {
+  private activePromises: Promise<any> = Promise.resolve();
+
+  async runExclusive<T>(callback: () => Promise<T> | T): Promise<T> {
+    const nextPromise = this.activePromises.then(() => callback());
+    this.activePromises = nextPromise.catch(() => {});
+    return nextPromise;
+  }
+}
+
+export const dbTransaction = new dbTransactionMutex();
+
 export const MOCK_PRODUCTS: Product[] = [
   {
     id: "prod_coffee_bulk_01",
@@ -156,6 +191,39 @@ export const MOCK_USERS: User[] = [
     address: "شیراز، بلوار ارم، کوچه بنفشه، ساختمان طلوع، طبقه همکف",
   },
 ];
+
+export const MOCK_COUPONS: Coupon[] = [
+  {
+    id: "cp_direct_spring",
+    code: "SPRING10",
+    type: "product_direct",
+    discountType: "percentage",
+    discountValue: 10,
+    productId: "prod_coffee_bulk_01",
+    isActive: true,
+  },
+  {
+    id: "cp_cond_bulk",
+    code: "BULK5KG",
+    type: "conditional",
+    discountType: "percentage",
+    discountValue: 15,
+    minWeightGrams: 5000,
+    productId: "prod_coffee_bulk_01",
+    isActive: true,
+  },
+  {
+    id: "cp_user_code_raz",
+    code: "RAZ2026",
+    type: "user_code",
+    discountType: "fixed",
+    discountValue: 50000,
+    isActive: true,
+    allowStacking: false,
+  },
+];
+
+export const MOCK_COUPON_USAGES: CouponUsage[] = [];
 
 export function getProductWithPricing(id: string): ProductWithPricing | null {
   const product = MOCK_PRODUCTS.find((p) => p.id === id);
@@ -390,4 +458,83 @@ export function getOrdersByPhone(phone: string): Order[] {
 
 export function getUserByPhone(phone: string): User | null {
   return MOCK_USERS.find((u) => u.phone === phone) || null;
+}
+
+export function getCoupons(): Coupon[] {
+  return MOCK_COUPONS.filter((c) => !c.deletedAt);
+}
+
+export function getCouponByCode(code: string): Coupon | null {
+  return (
+    MOCK_COUPONS.find(
+      (c) => !c.deletedAt && c.code.toUpperCase() === code.toUpperCase(),
+    ) || null
+  );
+}
+
+export function getCouponUsages(): CouponUsage[] {
+  return MOCK_COUPON_USAGES;
+}
+
+export function createCoupon(data: Omit<Coupon, "id">): Coupon {
+  const newCoupon: Coupon = {
+    id: `cp_${Date.now()}`,
+    ...data,
+  };
+  MOCK_COUPONS.push(newCoupon);
+  return newCoupon;
+}
+
+export function deleteCoupon(id: string): boolean {
+  const coupon = MOCK_COUPONS.find((c) => c.id === id);
+  if (coupon) {
+    coupon.deletedAt = new Date().toISOString();
+    coupon.isActive = false;
+    return true;
+  }
+  return false;
+}
+
+export function toggleCouponStatus(id: string): boolean {
+  const coupon = MOCK_COUPONS.find((c) => c.id === id && !c.deletedAt);
+  if (coupon) {
+    coupon.isActive = !coupon.isActive;
+    return true;
+  }
+  return false;
+}
+
+export function recordCouponUsage(
+  couponId: string,
+  phone: string,
+): CouponUsage {
+  const normalizedPhone = phone.trim();
+
+  const alreadyUsed = MOCK_COUPON_USAGES.some(
+    (u) => u.couponId === couponId && u.phone === normalizedPhone,
+  );
+
+  if (alreadyUsed) {
+    const error = new Error(
+      "PrismaUniqueConstraintViolation: Unique constraint failed on the fields: (`couponId`, `phone`)",
+    );
+    (error as any).code = "P2002";
+    throw error;
+  }
+
+  const usage: CouponUsage = {
+    id: `usage_${Date.now()}`,
+    couponId,
+    phone: normalizedPhone,
+    usedAt: new Date().toISOString(),
+  };
+
+  MOCK_COUPON_USAGES.push(usage);
+  return usage;
+}
+
+export function hasUserUsedCoupon(couponId: string, phone: string): boolean {
+  return MOCK_COUPON_USAGES.some(
+    (u) => u.couponId === couponId && u.phone === phone,
+  );
 }

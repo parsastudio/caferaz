@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MapPin, Check, Truck, Loader2 } from "lucide-react";
+import { MapPin, Check, Truck, Loader2, Ticket } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "../ui/button";
 import { CheckoutFormValues } from "./schema";
@@ -12,6 +12,13 @@ interface ShippingStepProps {
   finalPrice: number;
   isLoggedIn?: boolean;
   isSubmitting?: boolean;
+  couponCode: string;
+  setCouponCode: (code: string) => void;
+  appliedCoupon: { code: string; discountAmount: number } | null;
+  couponError: string | null;
+  isApplyingCoupon: boolean;
+  handleApplyCoupon: () => void;
+  handleRemoveCoupon: () => void;
 }
 
 export default function ShippingStep({
@@ -20,6 +27,13 @@ export default function ShippingStep({
   finalPrice,
   isLoggedIn,
   isSubmitting,
+  couponCode,
+  setCouponCode,
+  appliedCoupon,
+  couponError,
+  isApplyingCoupon,
+  handleApplyCoupon,
+  handleRemoveCoupon,
 }: ShippingStepProps) {
   const {
     register,
@@ -60,6 +74,55 @@ export default function ShippingStep({
         </div>
       </div>
 
+      {/* بخش کد تخفیف اختصاصی کاربر */}
+      <div className="space-y-2 text-right border-t border-stone-800/60 pt-4">
+        <label className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
+          <Ticket className="w-3.5 h-3.5 text-gold-500" />
+          کد تخفیف دارید؟
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={couponCode}
+            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+            placeholder="مثال: RAZ2026"
+            disabled={!!appliedCoupon || isApplyingCoupon}
+            className="flex-1 bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 rounded-xl px-3.5 py-2.5 text-sm text-stone-100 outline-none text-left font-sans font-bold tracking-wider"
+            dir="ltr"
+          />
+          {appliedCoupon ? (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleRemoveCoupon}
+              className="rounded-xl px-4 text-xs font-bold shrink-0 cursor-pointer"
+            >
+              حذف کوپن
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={handleApplyCoupon}
+              disabled={isApplyingCoupon || !couponCode.trim()}
+              className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-bold rounded-xl px-5 text-xs shrink-0 cursor-pointer"
+            >
+              {isApplyingCoupon ? "بررسی..." : "اعمال کد"}
+            </Button>
+          )}
+        </div>
+        {couponError && (
+          <p className="text-[10px] text-destructive font-bold mt-1">
+            {couponError}
+          </p>
+        )}
+        {appliedCoupon && (
+          <p className="text-[10px] text-emerald-400 font-bold mt-1 flex items-center gap-1 animate-in fade-in duration-200">
+            ✓ تخفیف به مبلغ {appliedCoupon.discountAmount.toLocaleString()}{" "}
+            تومان اعمال شد.
+          </p>
+        )}
+      </div>
+
       <div className="bg-stone-950/40 border border-stone-850 p-3 rounded-xl flex items-start gap-2.5 text-right">
         <Truck className="w-4 h-4 text-stone-500 shrink-0 mt-0.5" />
         <p className="text-[11px] text-stone-400 leading-relaxed">
@@ -73,7 +136,7 @@ export default function ShippingStep({
           <span className="text-[10px] text-stone-500 block font-bold">
             مبلغ قابل پرداخت:
           </span>
-          <span className="text-sm font-black text-gold-500">
+          <span className="text-sm font-black text-gold-500 font-sans">
             {finalPrice.toLocaleString()} تومان
           </span>
         </div>
@@ -91,7 +154,7 @@ export default function ShippingStep({
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-bold px-5 py-2.5 rounded-xl cursor-pointer"
+            className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-bold px-5 py-2.5 rounded-xl cursor-pointer text-xs"
           >
             {isSubmitting ? (
               <span className="flex items-center gap-1.5">

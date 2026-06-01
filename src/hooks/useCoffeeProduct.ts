@@ -2,9 +2,10 @@ import { useMemo } from "react";
 import { useCoffeeSelection } from "./useCoffeeSelection";
 import {
   getBlendProfile,
-  calculatePriceMetrics,
+  calculateAdvancedPriceMetrics,
   calculateRemainingStock,
 } from "@/lib/coffee-calculations";
+import { Coupon } from "@/lib/mock-db";
 
 export interface ProductPricing {
   pricePerKgArabica: number;
@@ -19,7 +20,10 @@ export interface CoffeeProduct {
   pricing: ProductPricing | null;
 }
 
-export function useCoffeeProduct(initialProduct: CoffeeProduct) {
+export function useCoffeeProduct(
+  initialProduct: CoffeeProduct,
+  activeCoupons: Coupon[],
+) {
   const selection = useCoffeeSelection();
 
   const blendProfile = useMemo(() => {
@@ -37,17 +41,21 @@ export function useCoffeeProduct(initialProduct: CoffeeProduct) {
   ]);
 
   const priceMetrics = useMemo(() => {
-    return calculatePriceMetrics(
-      initialProduct.pricing,
+    return calculateAdvancedPriceMetrics({
+      productId: initialProduct.id, // تامین شناسه کالا جهت ارزیابی کوپن‌ها
+      pricing: initialProduct.pricing,
       blendProfile,
-      computedWeight,
-      selection.quantity,
-    );
+      weightGrams: computedWeight,
+      quantity: selection.quantity,
+      activeCoupons,
+    });
   }, [
+    initialProduct.id,
     initialProduct.pricing,
     blendProfile,
     computedWeight,
     selection.quantity,
+    activeCoupons,
   ]);
 
   const remainingStockCount = useMemo(() => {
