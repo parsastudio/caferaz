@@ -20,6 +20,7 @@ export interface Comment {
   rating: number | null;
   comment_text: string;
   created_at: string;
+  status?: "pending" | "approved" | "rejected";
   replies?: Comment[];
 }
 
@@ -81,6 +82,7 @@ export const MOCK_COMMENTS: Comment[] = [
     comment_text:
       "کیفیت رست و یکدستی دانه‌ها عالی بود. برای کافه سفارش دادم و مشتری‌ها واقعاً از غلظت قهوه و طعم یاد شکلاتی راضی هستند.",
     created_at: "2026-05-20T14:30:00.000Z",
+    status: "approved",
     replies: [
       {
         id: "comm_1_reply",
@@ -90,6 +92,7 @@ export const MOCK_COMMENTS: Comment[] = [
         comment_text:
           "سلام جناب کریمی عزیز، خوشحالیم که کیفیت رست قهوه رضایت مشتریان ارزشمند شما را به همراه داشته است.",
         created_at: "2026-05-21T09:15:00.000Z",
+        status: "approved",
       },
     ],
   },
@@ -102,6 +105,7 @@ export const MOCK_COMMENTS: Comment[] = [
     comment_text:
       "عطر قهوه فوق‌العاده است. برای موکاپات روگازی آسیاب گرفتم و واقعاً طعم غلیظ و مناسبی داره. بسته‌بندی هم کاملاً پلمپ و مرتب بود.",
     created_at: "2026-05-18T11:20:00.000Z",
+    status: "approved",
   },
 ];
 
@@ -130,7 +134,7 @@ export const MOCK_ORDERS: Order[] = [
     finalPrice: 2200000,
     customerName: "سارا فلاحی",
     customerPhone: "09354445566",
-    customerAddress: "شیراز، بلوار ارم، کوچه بنفشه، ساختمان طلوع، طبقه همکف",
+    customerAddress: "شیراز، بلوار ارم، کوچه بنفشه، ساختمان طلوع, طبقه همکف",
     createdAt: "2026-05-29T18:40:00.000Z",
     status: "pending",
   },
@@ -169,8 +173,22 @@ export function getProductWithPricing(id: string): ProductWithPricing | null {
   };
 }
 
-export function getCommentsByProductId(productId: string): Comment[] {
-  return MOCK_COMMENTS.filter((c) => c.productId === productId);
+export function getCommentsByProductId(
+  productId: string,
+  includeUnapproved = false,
+): Comment[] {
+  const list = MOCK_COMMENTS.filter((c) => c.productId === productId);
+
+  const filterApproved = (commentsList: Comment[]): Comment[] => {
+    return commentsList
+      .filter((c) => includeUnapproved || c.status === "approved" || !c.status)
+      .map((c) => ({
+        ...c,
+        replies: c.replies ? filterApproved(c.replies) : [],
+      }));
+  };
+
+  return filterApproved(list);
 }
 
 export function addComment(
@@ -181,10 +199,12 @@ export function addComment(
     rating: number | null;
     comment_text: string;
     parentId: string | null;
+    status?: "pending" | "approved" | "rejected";
   },
 ): Comment {
   const newId = `comm_${Date.now()}`;
   const createdAt = new Date().toISOString();
+  const defaultStatus = data.status || "pending";
 
   if (data.parentId) {
     const reply: Comment = {
@@ -195,14 +215,24 @@ export function addComment(
       comment_text: data.comment_text,
       created_at: createdAt,
       replies: [],
+      status: defaultStatus,
     };
-    const parentComment = MOCK_COMMENTS.find((c) => c.id === data.parentId);
-    if (parentComment) {
-      if (!parentComment.replies) {
-        parentComment.replies = [];
+
+    const findAndPush = (list: Comment[]): boolean => {
+      for (const c of list) {
+        if (c.id === data.parentId) {
+          if (!c.replies) c.replies = [];
+          c.replies.push(reply);
+          return true;
+        }
+        if (c.replies && findAndPush(c.replies)) {
+          return true;
+        }
       }
-      parentComment.replies.push(reply);
-    }
+      return false;
+    };
+
+    findAndPush(MOCK_COMMENTS);
     return reply;
   } else {
     const comment: Comment = {
@@ -214,6 +244,7 @@ export function addComment(
       comment_text: data.comment_text,
       created_at: createdAt,
       replies: [],
+      status: defaultStatus,
     };
     MOCK_COMMENTS.unshift(comment);
     return comment;
@@ -226,16 +257,54 @@ export function deleteComment(commentId: string): boolean {
     MOCK_COMMENTS.splice(index, 1);
     return true;
   }
-  for (const parent of MOCK_COMMENTS) {
-    if (parent.replies) {
-      const replyIndex = parent.replies.findIndex((r) => r.id === commentId);
-      if (replyIndex !== -1) {
-        parent.replies.splice(replyIndex, 1);
+  const findAndRemove = (list: Comment[]): boolean => {
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].id === commentId) {
+        list.splice(i, 1);
+        return true;
+      }
+      if (list[i].replies && findAndRemove(list[i].replies)) {
         return true;
       }
     }
-  }
-  return false;
+    return false;
+  };
+  return findAndRemove(MOCK_COMMENTS);
+}
+
+export function updateCommentStatus(
+  commentId: string,
+  status: "pending" | "approved" | "rejected",
+): boolean {
+  const findAndModify = (list: Comment[]): boolean => {
+    for (const c of list) {
+      if (c.id === commentId) {
+        c.status = status;
+        return true;
+      }
+      if (c.replies && findAndModify(c.replies)) {
+        return true;
+      }
+    }
+    return false;
+  };
+  return findAndModify(MOCK_COMMENTS);
+}
+
+export function updateCommentText(commentId: string, text: string): boolean {
+  const findAndModify = (list: Comment[]): boolean => {
+    for (const c of list) {
+      if (c.id === commentId) {
+        c.comment_text = text;
+        return true;
+      }
+      if (c.replies && findAndModify(c.replies)) {
+        return true;
+      }
+    }
+    return false;
+  };
+  return findAndModify(MOCK_COMMENTS);
 }
 
 export function updateProductDetails(
@@ -244,11 +313,13 @@ export function updateProductDetails(
   description: string,
   pricePerKgArabica: number,
   pricePerKgRobusta: number,
+  stockGrams: number,
 ): boolean {
   const product = MOCK_PRODUCTS.find((p) => p.id === productId);
   if (product) {
     product.name = name;
     product.description = description;
+    product.stock_grams = stockGrams;
   }
 
   const pricing = MOCK_PRICING_RULES.find((pr) => pr.productId === productId);

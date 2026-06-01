@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useOptimistic, useTransition } from "react";
 import { MessageSquare, Star, Plus, Clock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { Button } from "./ui/button";
@@ -15,6 +15,7 @@ export interface UIComment {
   created_at: string;
   is_pending?: boolean;
   replies?: UIComment[];
+  parent_id_temp?: string | null;
 }
 
 interface ProductTabsSectionProps {
@@ -28,14 +29,33 @@ export default function ProductTabsSection({
   description,
   initialComments,
 }: ProductTabsSectionProps) {
-  const [comments, setComments] = useState<UIComment[]>(initialComments);
   const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
   const [replyParentId, setReplyParentId] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const [optimisticComments, addOptimisticComment] = useOptimistic(
+    initialComments,
+    (state, newComment: UIComment) => {
+      if (newComment.parent_id_temp) {
+        return state.map((c) => {
+          if (c.id === newComment.parent_id_temp) {
+            return {
+              ...c,
+              replies: [...(c.replies || []), newComment],
+            };
+          }
+          return c;
+        });
+      }
+      return [newComment, ...state];
+    },
+  );
 
   const handleCommentSubmitted = (newComment: {
     first_name: string;
     comment_text: string;
     rating: number | null;
+    parentId: string | null;
   }) => {
     const newLocalComment: UIComment = {
       id: `local_new_${Date.now()}`,
@@ -46,23 +66,10 @@ export default function ProductTabsSection({
       created_at: new Date().toISOString(),
       is_pending: true,
       replies: [],
+      parent_id_temp: newComment.parentId,
     };
 
-    if (replyParentId) {
-      setComments((prev) =>
-        prev.map((c) => {
-          if (c.id === replyParentId) {
-            return {
-              ...c,
-              replies: [...(c.replies || []), newLocalComment],
-            };
-          }
-          return c;
-        }),
-      );
-    } else {
-      setComments((prev) => [newLocalComment, ...prev]);
-    }
+    addOptimisticComment(newLocalComment);
   };
 
   const openNewCommentDialog = () => {
@@ -90,7 +97,7 @@ export default function ProductTabsSection({
             className="flex-1 flex items-center justify-center gap-2 cursor-pointer py-2.5"
           >
             <MessageSquare className="w-4 h-4" />
-            نظرات مشتریان ({comments?.length || 0})
+            نظرات مشتریان ({optimisticComments?.length || 0})
           </TabsTrigger>
           <TabsTrigger
             value="description"
@@ -121,12 +128,12 @@ export default function ProductTabsSection({
             </Button>
           </div>
 
-          {comments && comments.length > 0 ? (
+          {optimisticComments && optimisticComments.length > 0 ? (
             <div
               className="divide-y divide-stone-800/80 bg-stone-900/20 p-6 rounded-2xl border border-stone-900/60 text-right"
               dir="rtl"
             >
-              {comments.map((comment: UIComment) => (
+              {optimisticComments.map((comment: UIComment) => (
                 <CommentNode
                   key={comment.id}
                   comment={comment}
@@ -158,6 +165,7 @@ export default function ProductTabsSection({
         productId={productId}
         replyParentId={replyParentId}
         onCommentSubmitted={handleCommentSubmitted}
+        startTransition={startTransition}
       />
     </div>
   );

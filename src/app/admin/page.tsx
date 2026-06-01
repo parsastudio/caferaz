@@ -1,14 +1,17 @@
 import React from "react";
 import { getOrdersAction } from "@/app/actions/order";
-import { getCommentsAction } from "@/app/actions/comment";
+import { getAdminCommentsAction } from "@/app/actions/comment";
 import { getProductAction } from "@/app/actions/product";
 
 export default async function AdminDashboardPage() {
   const ordersResult = await getOrdersAction();
-  const commentsResult = await getCommentsAction("prod_coffee_bulk_01");
+  const commentsResult = await getAdminCommentsAction("prod_coffee_bulk_01");
   const productResult = await getProductAction("prod_coffee_bulk_01");
 
-  const totalOrders = ordersResult.success ? ordersResult.data?.length || 0 : 0;
+  const orders = ordersResult.success ? ordersResult.data || [] : [];
+  const totalOrders = orders.length;
+  const pendingOrders = orders.filter((o) => o.status === "pending").length;
+
   const totalComments = commentsResult.success
     ? commentsResult.data?.length || 0
     : 0;
@@ -25,30 +28,46 @@ export default async function AdminDashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-stone-900/40 border border-stone-800 rounded-2xl p-6 flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs font-bold text-stone-400 block">
               کل درآمدهای فروش
             </span>
-            <span className="text-xl font-black text-gold-500 block">
+            <span className="text-lg font-black text-gold-500 block">
               {totalRevenue.toLocaleString()}{" "}
               <span className="text-xs">تومان</span>
             </span>
           </div>
-          <span className="text-4xl">💰</span>
+          <span className="text-3xl">💰</span>
         </div>
 
         <div className="bg-stone-900/40 border border-stone-800 rounded-2xl p-6 flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs font-bold text-stone-400 block">
-              تعداد سفارشات جاری
+              کل سفارش‌های ثبت‌شده
             </span>
-            <span className="text-xl font-black text-stone-100 block">
+            <span className="text-lg font-black text-stone-100 block">
               {totalOrders} سفارش
             </span>
           </div>
-          <span className="text-4xl">📦</span>
+          <span className="text-3xl">📦</span>
+        </div>
+
+        <div className="bg-stone-900/40 border border-gold-500/20 bg-gold-500/5 rounded-2xl p-6 flex items-center justify-between relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-1.5 h-full bg-gold-500" />
+          <div className="space-y-1">
+            <span className="text-xs font-bold text-gold-400 block">
+              سفارش‌های تحویل‌نشده (جاری)
+            </span>
+            <span className="text-lg font-black text-gold-500 block flex items-center gap-1.5">
+              {pendingOrders} سفارش جدید
+              {pendingOrders > 0 && (
+                <span className="w-2 h-2 rounded-full bg-gold-500 animate-pulse" />
+              )}
+            </span>
+          </div>
+          <span className="text-3xl animate-bounce">🔥</span>
         </div>
 
         <div className="bg-stone-900/40 border border-stone-800 rounded-2xl p-6 flex items-center justify-between">
@@ -56,11 +75,11 @@ export default async function AdminDashboardPage() {
             <span className="text-xs font-bold text-stone-400 block">
               نظرات کاربران
             </span>
-            <span className="text-xl font-black text-stone-100 block">
+            <span className="text-lg font-black text-stone-100 block">
               {totalComments} دیدگاه
             </span>
           </div>
-          <span className="text-4xl">💬</span>
+          <span className="text-3xl">💬</span>
         </div>
       </div>
 

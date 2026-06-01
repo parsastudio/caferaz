@@ -34,6 +34,7 @@ export async function updateProductDetailsAction(payload: {
   description: string;
   pricePerKgArabica: number;
   pricePerKgRobusta: number;
+  stockGrams: number;
 }): Promise<ActionResponse<boolean>> {
   try {
     const {
@@ -42,6 +43,7 @@ export async function updateProductDetailsAction(payload: {
       description,
       pricePerKgArabica,
       pricePerKgRobusta,
+      stockGrams,
     } = payload;
 
     if (
@@ -49,12 +51,13 @@ export async function updateProductDetailsAction(payload: {
       !name.trim() ||
       !description.trim() ||
       pricePerKgArabica <= 0 ||
-      pricePerKgRobusta <= 0
+      pricePerKgRobusta <= 0 ||
+      stockGrams < 0
     ) {
       return {
         success: false,
         error:
-          "تمامی فیلدهای مربوط به کالا و قیمت‌گذاری باید به درستی تکمیل گردند.",
+          "تمامی فیلدهای مربوط به کالا، قیمت‌گذاری و موجودی باید به درستی تکمیل گردند.",
       };
     }
 
@@ -64,6 +67,7 @@ export async function updateProductDetailsAction(payload: {
       description,
       pricePerKgArabica,
       pricePerKgRobusta,
+      stockGrams,
     );
     if (!updated) {
       return {
@@ -78,7 +82,8 @@ export async function updateProductDetailsAction(payload: {
     return {
       success: true,
       data: true,
-      message: "اطلاعات محصول و نرخ‌های پایه با موفقیت به روزرسانی شدند.",
+      message:
+        "اطلاعات محصول، نرخ‌های پایه و موجودی انبار با موفقیت به روزرسانی شدند.",
     };
   } catch (error) {
     return { success: false, error: "خطا در ذخیره جزئیات جدید محصول رخ داد." };

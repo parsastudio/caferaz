@@ -25,6 +25,10 @@ export default function AdminPricingForm({
     initialProduct.pricing?.pricePerKgRobusta || 1800000,
   );
 
+  const [stockKg, setStockKg] = useState<number>(
+    (initialProduct.stock_grams || 150000) / 1000,
+  );
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const formatNumberWithCommas = (value: number) => {
@@ -47,7 +51,8 @@ export default function AdminPricingForm({
       !name.trim() ||
       !description.trim() ||
       arabicaRaw <= 0 ||
-      robustaRaw <= 0
+      robustaRaw <= 0 ||
+      stockKg < 0
     ) {
       toast.error("لطفاً تمامی فیلدها را با مقادیر معتبر تکمیل کنید.");
       return;
@@ -61,10 +66,13 @@ export default function AdminPricingForm({
         description,
         pricePerKgArabica: arabicaRaw,
         pricePerKgRobusta: robustaRaw,
+        stockGrams: stockKg * 1000,
       });
 
       if (result.success) {
-        toast.success("تنظیمات و قیمت‌ها با موفقیت به‌روزرسانی شدند.");
+        toast.success(
+          "تنظیمات، نرخ‌ها و موجودی انبار با موفقیت به‌روزرسانی شدند.",
+        );
       } else {
         toast.error(result.error || "خطا در ثبت تغییرات.");
       }
@@ -102,7 +110,7 @@ export default function AdminPricingForm({
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-2">
             <label className="text-xs font-bold text-stone-300 block">
               قیمت هر کیلوگرم عربیکا (تومان):
@@ -148,6 +156,29 @@ export default function AdminPricingForm({
                 معادل:{" "}
                 <span className="text-stone-300">
                   {robustaRaw.toLocaleString("fa-IR")} تومان
+                </span>
+              </span>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-stone-300 block">
+              موجودی فیزیکی کل انبار (کیلوگرم):
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={formatNumberWithCommas(stockKg)}
+              onChange={(e) => handleNumberChange(e.target.value, setStockKg)}
+              className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 rounded-xl px-4 py-3 text-sm text-gold-400 outline-none transition-all font-bold text-left"
+              dir="ltr"
+            />
+            {stockKg >= 0 && (
+              <span className="text-[10px] text-stone-500 font-bold flex items-center gap-1 mt-1 pr-1">
+                <Sparkles className="w-3 h-3 text-gold-500" />
+                معادل:{" "}
+                <span className="text-stone-300">
+                  {(stockKg * 1000).toLocaleString("fa-IR")} گرم قهوه فله
                 </span>
               </span>
             )}
