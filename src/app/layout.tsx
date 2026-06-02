@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { CheckoutProvider } from "@/context/CheckoutContext";
 import Footer from "@/components/layout/Footer";
+import GlobalStatusBar from "@/components/layout/GlobalStatusBar";
 import { getOption } from "@/lib/mock-db";
 
 const vazirMatn = localFont({
@@ -33,6 +34,7 @@ export default function RootLayout({
         dir="rtl"
       >
         <CheckoutProvider>
+          <GlobalStatusBar />
           <div className="flex-grow">{children}</div>
           <Footer config={footerData} />
         </CheckoutProvider>

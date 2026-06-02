@@ -1,7 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-import { Star, Trash, Reply, X, Check, EyeOff, Eye, Edit3 } from "lucide-react";
+import {
+  Star,
+  Trash,
+  Reply,
+  X,
+  Check,
+  EyeOff,
+  Eye,
+  Edit3,
+  ShieldAlert,
+} from "lucide-react";
 import { Comment } from "@/lib/mock-db";
 import { Badge } from "@/components/ui/badge";
 
@@ -14,7 +24,10 @@ interface CommentRowProps {
   setEditTargetId: (id: string | null) => void;
   isSubmitting: boolean;
   handleDelete: (id: string) => void;
-  handleStatusChange: (id: string, status: "approved" | "rejected") => void;
+  handleStatusChange: (
+    id: string,
+    status: "approved" | "rejected" | "spam",
+  ) => void;
   handleEditSubmit: (id: string, text: string) => Promise<boolean>;
   handleReplySubmit: (
     parentId: string,
@@ -70,6 +83,11 @@ export default function CommentRow({
                   رد شده
                 </Badge>
               )}
+              {status === "spam" && (
+                <Badge className="bg-red-500/10 text-red-400 border-red-500/20 text-[9px] px-2 py-0.2 rounded-full font-bold">
+                  اسپم
+                </Badge>
+              )}
             </span>
             <span className="text-[10px] text-stone-500 mt-0.5">
               {new Date(comment.created_at).toLocaleDateString("fa-IR")}
@@ -90,6 +108,7 @@ export default function CommentRow({
               className={`p-2 text-emerald-400 hover:bg-emerald-500/5 rounded-xl border border-stone-800 hover:border-emerald-500/20 transition-all cursor-pointer ${
                 isReplyNode ? "p-1 rounded" : ""
               }`}
+              title="تایید انتشار"
             >
               {isReplyNode ? (
                 <Check className="w-2.5 h-2.5" />
@@ -104,12 +123,26 @@ export default function CommentRow({
               className={`p-2 text-amber-500 hover:bg-amber-500/5 rounded-xl border border-stone-800 hover:border-amber-500/20 transition-all cursor-pointer ${
                 isReplyNode ? "p-1 rounded" : ""
               }`}
+              title="رد انتشار"
             >
               {isReplyNode ? (
-                <X className="w-2.5 h-2.5" />
+                <EyeOff className="w-2.5 h-2.5" />
               ) : (
                 <EyeOff className="w-4 h-4" />
               )}
+            </button>
+          )}
+          {status !== "spam" && (
+            <button
+              onClick={() => handleStatusChange(comment.id, "spam")}
+              className={`p-2 text-red-400 hover:bg-red-500/5 rounded-xl border border-stone-800 hover:border-red-500/20 transition-all cursor-pointer ${
+                isReplyNode ? "p-1 rounded" : ""
+              }`}
+              title="علامت‌گذاری به عنوان اسپم"
+            >
+              <ShieldAlert
+                className={isReplyNode ? "w-2.5 h-2.5" : "w-4 h-4"}
+              />
             </button>
           )}
           <button
@@ -119,12 +152,9 @@ export default function CommentRow({
             className={`p-2 text-blue-400 hover:bg-blue-500/5 rounded-xl border border-stone-800 hover:border-blue-500/20 transition-all cursor-pointer ${
               isReplyNode ? "p-1 rounded" : ""
             }`}
+            title="ویرایش"
           >
-            {isReplyNode ? (
-              <Edit3 className="w-2.5 h-2.5" />
-            ) : (
-              <Edit3 className="w-4 h-4" />
-            )}
+            <Edit3 className={isReplyNode ? "w-2.5 h-2.5" : "w-4 h-4"} />
           </button>
           {!isReplyNode && (
             <button
@@ -140,12 +170,9 @@ export default function CommentRow({
             className={`p-2 text-stone-400 hover:text-red-400 hover:bg-red-500/5 rounded-xl border border-stone-800 hover:border-red-500/20 transition-all cursor-pointer ${
               isReplyNode ? "p-1 rounded" : ""
             }`}
+            title="حذف دائمی"
           >
-            {isReplyNode ? (
-              <Trash className="w-2.5 h-2.5" />
-            ) : (
-              <Trash className="w-4 h-4" />
-            )}
+            <Trash className={isReplyNode ? "w-2.5 h-2.5" : "w-4 h-4"} />
           </button>
         </div>
       </div>

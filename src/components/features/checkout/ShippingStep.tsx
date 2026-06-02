@@ -74,7 +74,6 @@ export default function ShippingStep({
         </div>
       </div>
 
-      {/* بخش کد تخفیف اختصاصی کاربر */}
       <div className="space-y-2 text-right border-t border-stone-800/60 pt-4">
         <label className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
           <Ticket className="w-3.5 h-3.5 text-gold-500" />
@@ -126,8 +125,8 @@ export default function ShippingStep({
       <div className="bg-stone-950/40 border border-stone-850 p-3 rounded-xl flex items-start gap-2.5 text-right">
         <Truck className="w-4 h-4 text-stone-500 shrink-0 mt-0.5" />
         <p className="text-[11px] text-stone-400 leading-relaxed">
-          بسته‌های فله کافه راز بلافاصله پس از رست هفتگی و پلمپ با پیک مخصوص
-          ارسال شده و وجه آن را درب منزل یا محل کار پرداخت خواهید نمود.
+          بدون نیاز به کارت بانکی: هزینه را پس از تحویل و بررسی ظاهر پلمپ بسته
+          پرداخت کنید.
         </p>
       </div>
 

@@ -5,6 +5,7 @@ import { Smartphone, Loader2 } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "../../ui/button";
 import { CheckoutFormValues } from "./schema";
+import { toEnglishDigits } from "@/lib/utils";
 
 interface OtpStepProps {
   phone: string;
@@ -45,7 +46,7 @@ export default function OtpStep({
   }, [timer]);
 
   const handleOtpChange = (value: string, index: number) => {
-    const cleanValue = value.replace(/[^0-9]/g, "");
+    const cleanValue = toEnglishDigits(value).replace(/[^0-9]/g, "");
 
     const newOtp = [...otpDigits];
     newOtp[index] = cleanValue
@@ -84,8 +85,7 @@ export default function OtpStep({
 
   const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pastedData = e.clipboardData
-      .getData("text")
+    const pastedData = toEnglishDigits(e.clipboardData.getData("text"))
       .replace(/[^0-9]/g, "")
       .substring(0, 4);
     if (pastedData.length === 4) {

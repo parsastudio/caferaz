@@ -8,6 +8,7 @@ import {
   deleteCommentAction,
   approveCommentAction,
   rejectCommentAction,
+  spamCommentAction,
   editCommentAction,
 } from "@/actions/comment";
 
@@ -17,7 +18,7 @@ export function useAdminComments(initialComments: Comment[]) {
   const [editTargetId, setEditTargetId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusFilter, setStatusFilter] = useState<
-    "all" | "pending" | "approved" | "rejected"
+    "all" | "pending" | "approved" | "rejected" | "spam"
   >("all");
 
   const pendingCount = comments.filter(
@@ -56,13 +57,17 @@ export function useAdminComments(initialComments: Comment[]) {
 
   const handleStatusChange = async (
     commentId: string,
-    newStatus: "approved" | "rejected",
+    newStatus: "approved" | "rejected" | "spam",
   ) => {
     try {
-      const result =
-        newStatus === "approved"
-          ? await approveCommentAction(commentId)
-          : await rejectCommentAction(commentId);
+      let result;
+      if (newStatus === "approved") {
+        result = await approveCommentAction(commentId);
+      } else if (newStatus === "rejected") {
+        result = await rejectCommentAction(commentId);
+      } else {
+        result = await spamCommentAction(commentId);
+      }
 
       if (result.success) {
         toast.success(result.message || "وضعیت دیدگاه تغییر یافت.");

@@ -7,6 +7,7 @@ import {
   getProductWithPricing,
   getOrCreateUser,
   updateOrderStatus,
+  deleteOrder,
   Order,
 } from "@/lib/mock-db";
 import {
@@ -62,7 +63,7 @@ export async function getOrdersAction(): Promise<ActionResponse<Order[]>> {
 
 export async function updateOrderStatusAction(
   orderId: string,
-  status: "pending" | "completed",
+  status: "unreviewed" | "pending" | "completed" | "cancelled",
 ): Promise<ActionResponse<boolean>> {
   try {
     const updated = updateOrderStatus(orderId, status);
@@ -78,6 +79,26 @@ export async function updateOrderStatusAction(
     };
   } catch (error) {
     return { success: false, error: "خطا در به روزرسانی وضعیت سفارش." };
+  }
+}
+
+export async function deleteOrderAction(
+  orderId: string,
+): Promise<ActionResponse<boolean>> {
+  try {
+    const deleted = deleteOrder(orderId);
+    if (!deleted) {
+      return { success: false, error: "سفارش مورد نظر یافت نشد." };
+    }
+    revalidatePath("/admin/orders");
+    revalidatePath("/profile");
+    return {
+      success: true,
+      data: true,
+      message: "سفارش مورد نظر با موفقیت از سیستم حذف گردید.",
+    };
+  } catch (error) {
+    return { success: false, error: "خطا در حذف سفارش از دیتابیس." };
   }
 }
 

@@ -3,14 +3,15 @@
 import React from "react";
 
 interface CommentFilterTabsProps {
-  statusFilter: "all" | "pending" | "approved" | "rejected";
+  statusFilter: "all" | "pending" | "approved" | "rejected" | "spam";
   setStatusFilter: (
-    filter: "all" | "pending" | "approved" | "rejected",
+    filter: "all" | "pending" | "approved" | "rejected" | "spam",
   ) => void;
   totalCount: number;
   pendingCount: number;
   approvedCount: number;
   rejectedCount: number;
+  spamCount: number;
 }
 
 export default function CommentFilterTabs({
@@ -20,9 +21,10 @@ export default function CommentFilterTabs({
   pendingCount,
   approvedCount,
   rejectedCount,
+  spamCount,
 }: CommentFilterTabsProps) {
   return (
-    <div className="flex flex-wrap items-center gap-2 bg-stone-900/40 p-1 rounded-2xl border border-stone-850 max-w-2xl select-none">
+    <div className="flex flex-wrap items-center gap-2 bg-stone-900/40 p-1 rounded-2xl border border-stone-850 max-w-3xl select-none">
       <button
         onClick={() => setStatusFilter("all")}
         className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -65,6 +67,16 @@ export default function CommentFilterTabs({
         }`}
       >
         رد شده ({rejectedCount})
+      </button>
+      <button
+        onClick={() => setStatusFilter("spam")}
+        className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          statusFilter === "spam"
+            ? "bg-gold-500 text-stone-950 font-black shadow"
+            : "text-stone-400 hover:text-stone-200"
+        }`}
+      >
+        اسپم ({spamCount})
       </button>
     </div>
   );

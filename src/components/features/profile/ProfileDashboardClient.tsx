@@ -86,51 +86,57 @@ export default function ProfileDashboardClient({
         </button>
       </div>
 
-      {latestOrder && latestOrder.status === "pending" && (
-        <Card className="border-gold-500/20 bg-stone-900/20 relative overflow-hidden rounded-3xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-gold-500/5 to-transparent pointer-events-none" />
+      {latestOrder &&
+        (latestOrder.status === "pending" ||
+          latestOrder.status === "unreviewed") && (
+          <Card className="border-gold-500/20 bg-stone-900/20 relative overflow-hidden rounded-3xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-gold-500/5 to-transparent pointer-events-none" />
 
-          <CardHeader className="pb-4">
-            <CardTitle className="text-base font-black text-stone-100 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-gold-500 animate-pulse" />
-              وضعیت سفارش جاری:{" "}
-              <span className="font-sans text-gold-500">{latestOrder.id}</span>
-            </CardTitle>
-            <CardDescription className="text-xs text-stone-400">
-              فرآیند آماده‌سازی بر اساس ترکیب دانه‌ قهوه انتخابی شما
-            </CardDescription>
-          </CardHeader>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base font-black text-stone-100 flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-gold-500 animate-pulse" />
+                وضعیت سفارش جاری:{" "}
+                <span className="font-sans text-gold-500">
+                  {latestOrder.id}
+                </span>
+              </CardTitle>
+              <CardDescription className="text-xs text-stone-400">
+                فرآیند آماده‌سازی بر اساس ترکیب دانه‌ قهوه انتخابی شما
+              </CardDescription>
+            </CardHeader>
 
-          <CardContent className="space-y-4 relative z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-stone-950/60 border border-stone-850 p-5 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-5 text-right"
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-gold-500/10 text-gold-400 flex items-center justify-center shrink-0">
-                  <Coffee className="w-5 h-5 animate-bounce" />
+            <CardContent className="space-y-4 relative z-10">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-stone-950/60 border border-stone-850 p-5 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-5 text-right"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-gold-500/10 text-gold-400 flex items-center justify-center shrink-0">
+                    <Coffee className="w-5 h-5 animate-bounce" />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-xs font-black text-gold-400 block">
+                      {latestOrder.status === "unreviewed"
+                        ? "سفارش شما ثبت شده و در انتظار تایید مدیریت است"
+                        : "سفارش شما در حال آماده‌سازی است"}
+                    </span>
+                    <p className="text-[11px] text-stone-300 leading-relaxed max-w-2xl">
+                      سفارش شما در صف آماده‌سازی کارگاه کافه راز قرار دارد و به
+                      زودی جهت هماهنگی ارسال با شما تماس خواهیم گرفت. از شکیبایی
+                      شما سپاسگزاریم.
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <span className="text-xs font-black text-gold-400 block">
-                    سفارش شما در حال آماده‌سازی است
-                  </span>
-                  <p className="text-[11px] text-stone-300 leading-relaxed max-w-2xl">
-                    سفارش شما در صف آماده‌سازی کارگاه کافه راز قرار دارد و به
-                    زودی جهت هماهنگی ارسال با شما تماس خواهیم گرفت. از شکیبایی
-                    شما سپاسگزاریم.
-                  </p>
-                </div>
-              </div>
 
-              <div className="bg-gold-500/10 border border-gold-500/20 px-4 py-2.5 rounded-xl flex items-center gap-2 text-gold-400 text-xs font-black self-end md:self-auto shrink-0">
-                <PhoneCall className="w-4 h-4 animate-pulse" />
-                تماس هماهنگی به زودی
-              </div>
-            </motion.div>
-          </CardContent>
-        </Card>
-      )}
+                <div className="bg-gold-500/10 border border-gold-500/20 px-4 py-2.5 rounded-xl flex items-center gap-2 text-gold-400 text-xs font-black self-end md:self-auto shrink-0">
+                  <PhoneCall className="w-4 h-4 animate-pulse" />
+                  تماس هماهنگی به زودی
+                </div>
+              </motion.div>
+            </CardContent>
+          </Card>
+        )}
 
       <div className="space-y-4">
         <div className="flex items-center gap-2">
@@ -158,13 +164,24 @@ export default function ProfileDashboardClient({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {order.status === "completed" ? (
+                    {order.status === "completed" && (
                       <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
                         تکمیل و تسویه شده
                       </Badge>
-                    ) : (
+                    )}
+                    {order.status === "pending" && (
                       <Badge className="bg-gold-500/10 text-gold-500 border-gold-500/20 text-[10px] font-bold px-2.5 py-0.5 rounded-full animate-pulse">
                         در حال آماده‌سازی
+                      </Badge>
+                    )}
+                    {order.status === "unreviewed" && (
+                      <Badge className="bg-red-500/10 text-red-400 border-red-500/20 text-[10px] font-bold px-2.5 py-0.5 rounded-full animate-pulse">
+                        در انتظار بررسی
+                      </Badge>
+                    )}
+                    {order.status === "cancelled" && (
+                      <Badge className="bg-stone-500/10 text-stone-400 border-stone-500/20 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                        لغو شده
                       </Badge>
                     )}
                   </div>

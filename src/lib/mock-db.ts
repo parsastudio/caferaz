@@ -20,7 +20,7 @@ export interface Comment {
   rating: number | null;
   comment_text: string;
   created_at: string;
-  status?: "pending" | "approved" | "rejected";
+  status?: "pending" | "approved" | "rejected" | "spam";
   replies?: Comment[];
 }
 
@@ -35,7 +35,7 @@ export interface Order {
   customerPhone: string;
   customerAddress: string;
   createdAt: string;
-  status: "pending" | "completed";
+  status: "unreviewed" | "pending" | "completed" | "cancelled";
 }
 
 export interface ProductWithPricing extends Product {
@@ -176,7 +176,7 @@ export const MOCK_ORDERS: Order[] = [
     customerPhone: "09354445566",
     customerAddress: "شیراز، بلوار ارم، کوچه بنفشه، ساختمان طلوع, طبقه همکف",
     createdAt: "2026-05-29T18:40:00.000Z",
-    status: "pending",
+    status: "unreviewed",
   },
 ];
 
@@ -437,7 +437,7 @@ export function addComment(
     rating: number | null;
     comment_text: string;
     parentId: string | null;
-    status?: "pending" | "approved" | "rejected";
+    status?: "pending" | "approved" | "rejected" | "spam";
   },
 ): Comment {
   const newId = `comm_${Date.now()}`;
@@ -513,7 +513,7 @@ export function deleteComment(commentId: string): boolean {
 
 export function updateCommentStatus(
   commentId: string,
-  status: "pending" | "approved" | "rejected",
+  status: "pending" | "approved" | "rejected" | "spam",
 ): boolean {
   const findAndModify = (list: Comment[]): boolean => {
     for (const c of list) {
@@ -577,7 +577,7 @@ export function createOrder(
     id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
     ...data,
     createdAt: new Date().toISOString(),
-    status: "pending",
+    status: "unreviewed",
   };
   MOCK_ORDERS.unshift(newOrder);
   return newOrder;
@@ -589,11 +589,20 @@ export function getOrders(): Order[] {
 
 export function updateOrderStatus(
   orderId: string,
-  status: "pending" | "completed",
+  status: "unreviewed" | "pending" | "completed" | "cancelled",
 ): boolean {
   const order = MOCK_ORDERS.find((o) => o.id === orderId);
   if (order) {
     order.status = status;
+    return true;
+  }
+  return false;
+}
+
+export function deleteOrder(orderId: string): boolean {
+  const index = MOCK_ORDERS.findIndex((o) => o.id === orderId);
+  if (index !== -1) {
+    MOCK_ORDERS.splice(index, 1);
     return true;
   }
   return false;

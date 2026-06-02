@@ -5,6 +5,7 @@ import { User, Phone, KeyRound } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "../../ui/button";
 import { CheckoutFormValues } from "./schema";
+import { toEnglishDigits } from "@/lib/utils";
 
 interface UserInfoStepProps {
   onSubmit: (e: React.FormEvent) => void;
@@ -28,6 +29,8 @@ export default function UserInfoStep({
     formState: { errors },
   } = useFormContext<CheckoutFormValues>();
 
+  const phoneRegister = register("phone");
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       {isLoginMode ? (
@@ -47,7 +50,11 @@ export default function UserInfoStep({
             </label>
             <input
               type="tel"
-              {...register("phone")}
+              {...phoneRegister}
+              onChange={(e) => {
+                e.target.value = toEnglishDigits(e.target.value);
+                phoneRegister.onChange(e);
+              }}
               className={`w-full bg-stone-950 border focus:ring-1 rounded-xl px-3 py-2.5 text-sm text-stone-100 outline-none transition-all text-left tracking-wider ${
                 errors.phone
                   ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
@@ -117,7 +124,11 @@ export default function UserInfoStep({
             </label>
             <input
               type="tel"
-              {...register("phone")}
+              {...phoneRegister}
+              onChange={(e) => {
+                e.target.value = toEnglishDigits(e.target.value);
+                phoneRegister.onChange(e);
+              }}
               className={`w-full bg-stone-950 border focus:ring-1 rounded-xl px-3 py-2.5 text-sm text-stone-100 outline-none transition-all text-left tracking-wider ${
                 errors.phone
                   ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"

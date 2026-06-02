@@ -33,6 +33,7 @@ export default function AdminCommentsClientList({
   const totalCount = comments.length;
   const approvedCount = comments.filter((c) => c.status === "approved").length;
   const rejectedCount = comments.filter((c) => c.status === "rejected").length;
+  const spamCount = comments.filter((c) => c.status === "spam").length;
 
   return (
     <div className="space-y-6">
@@ -43,6 +44,7 @@ export default function AdminCommentsClientList({
         pendingCount={pendingCount}
         approvedCount={approvedCount}
         rejectedCount={rejectedCount}
+        spamCount={spamCount}
       />
 
       <div className="space-y-4">

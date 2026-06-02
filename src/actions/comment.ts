@@ -143,6 +143,32 @@ export async function rejectCommentAction(
   }
 }
 
+export async function spamCommentAction(
+  commentId: string,
+): Promise<ActionResponse<boolean>> {
+  try {
+    if (!commentId) {
+      return { success: false, error: "شناسه دیدگاه الزامی است." };
+    }
+
+    const isUpdated = updateCommentStatus(commentId, "spam");
+    if (!isUpdated) {
+      return { success: false, error: "دیدگاه مورد نظر یافت نشد." };
+    }
+
+    revalidatePath("/");
+    revalidatePath("/admin/comments");
+
+    return {
+      success: true,
+      data: true,
+      message: "دیدگاه مورد نظر با موفقیت در لیست اسپم قرار گرفت.",
+    };
+  } catch (error) {
+    return { success: false, error: "خطا در ثبت وضعیت اسپم دیدگاه." };
+  }
+}
+
 export async function editCommentAction(
   commentId: string,
   commentText: string,

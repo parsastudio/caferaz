@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition, Suspense } from "react";
+import React, { useState, useTransition, Suspense, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   sendUserOtpAction,
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { toEnglishDigits } from "@/lib/utils";
 
 function LoginForm() {
   const router = useRouter();
@@ -30,6 +31,9 @@ function LoginForm() {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [otp, setOtp] = useState("");
+
+  const [otpDigits, setOtpDigits] = useState<string[]>(["", "", "", ""]);
+  const otpInputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -74,9 +78,64 @@ function LoginForm() {
     });
   };
 
+  const handleOtpChange = (value: string, index: number) => {
+    const cleanValue = toEnglishDigits(value).replace(/[^0-9]/g, "");
+    const newOtp = [...otpDigits];
+    newOtp[index] = cleanValue
+      ? cleanValue.substring(cleanValue.length - 1)
+      : "";
+    setOtpDigits(newOtp);
+
+    const fullOtpString = newOtp.join("");
+    setOtp(fullOtpString);
+
+    if (cleanValue && index < 3) {
+      otpInputsRef.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number,
+  ) => {
+    if (e.key === "Backspace") {
+      const newOtp = [...otpDigits];
+      if (otpDigits[index] === "") {
+        if (index > 0) {
+          newOtp[index - 1] = "";
+          setOtpDigits(newOtp);
+          setOtp(newOtp.join(""));
+          otpInputsRef.current[index - 1]?.focus();
+        }
+      } else {
+        newOtp[index] = "";
+        setOtpDigits(newOtp);
+        setOtp(newOtp.join(""));
+      }
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedData = toEnglishDigits(e.clipboardData.getData("text"))
+      .replace(/[^0-9]/g, "")
+      .substring(0, 4);
+    if (pastedData.length === 4) {
+      const digits = pastedData.split("");
+      setOtpDigits(digits);
+      setOtp(pastedData);
+      otpInputsRef.current[3]?.focus();
+    }
+  };
+
   const handleOtpVerify = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (otp.length !== 4) {
+      setError("لطفاً کد تایید ۴ رقمی را به طور کامل وارد کنید.");
+      return;
+    }
 
     startTransition(async () => {
       try {
@@ -151,12 +210,12 @@ function LoginForm() {
           <div className="space-y-1.5 text-right">
             <label className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
               <Smartphone className="w-3.5 h-3.5 text-stone-500" />
-              شماره تلفن همراه
+              شماره تلفن همراه <span className="text-red-500">*</span>
             </label>
             <input
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(toEnglishDigits(e.target.value))}
               placeholder="09123456789"
               className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-left font-sans"
               dir="ltr"
@@ -170,7 +229,7 @@ function LoginForm() {
               <div className="space-y-1.5 text-right animate-in fade-in duration-200">
                 <label className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
                   <User className="w-3.5 h-3.5 text-stone-500" />
-                  نام و نام خانوادگی
+                  نام و نام خانوادگی <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -186,7 +245,7 @@ function LoginForm() {
               <div className="space-y-1.5 text-right animate-in fade-in duration-200">
                 <label className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-stone-500" />
-                  آدرس تحویل دیفالت
+                  آدرس تحویل دیفالت <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   rows={2}
@@ -249,18 +308,36 @@ function LoginForm() {
           <div className="space-y-1.5 text-right">
             <label className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
               <MessageSquare className="w-3.5 h-3.5 text-stone-500" />
-              کد تایید پیامکی
+              کد تایید پیامکی <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              maxLength={4}
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              placeholder="••••"
-              className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-4 py-3 text-sm text-center text-gold-400 tracking-widest outline-none font-sans"
-              required
-              disabled={isPending}
-            />
+
+            <div
+              className="flex justify-center gap-3 py-2 animate-in fade-in duration-200 font-sans"
+              dir="ltr"
+            >
+              {otpDigits.map((digit, index) => (
+                <input
+                  key={index}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={1}
+                  value={digit}
+                  ref={(el) => {
+                    otpInputsRef.current[index] = el;
+                  }}
+                  onChange={(e) => handleOtpChange(e.target.value, index)}
+                  onKeyDown={(e) => handleOtpKeyDown(e, index)}
+                  onPaste={handleOtpPaste}
+                  disabled={isPending}
+                  className={`w-12 h-14 text-center text-xl font-black bg-stone-950 border-2 rounded-xl outline-none text-gold-400 transition-all shadow-inner ${
+                    error
+                      ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
+                      : "border-stone-800/80 focus:border-gold-500 focus:ring-gold-500"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
 
           {error && (
@@ -275,6 +352,8 @@ function LoginForm() {
               variant="ghost"
               onClick={() => {
                 setError(null);
+                setOtpDigits(["", "", "", ""]);
+                setOtp("");
                 setStep("phone_or_details");
               }}
               className="text-stone-400 hover:text-stone-200 cursor-pointer text-xs"
@@ -312,7 +391,7 @@ export default function UserLoginPage() {
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-gold-500/5 rounded-full blur-3xl" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gold-500/5 rounded-full blur-3xl" />
 
-      <div className="w-full max-w-sm bg-stone-900/40 border border-stone-800/80 rounded-3xl p-8 backdrop-blur-md relative z-10 space-y-6">
+      <div className="w-full max-w-md md:max-w-lg bg-stone-900/40 border border-stone-800/80 rounded-3xl p-8 backdrop-blur-md relative z-10 space-y-6">
         <div className="text-center space-y-3">
           <div className="w-16 h-16 rounded-2xl bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center text-3xl mx-auto">
             ☕
