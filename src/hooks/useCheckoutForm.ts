@@ -325,7 +325,6 @@ export function useCheckoutForm() {
     fakeTrackingCode,
     selectedWeight,
     quantity,
-    finalPrice,
     methods,
     handleClose,
     handleUserInfoNext,

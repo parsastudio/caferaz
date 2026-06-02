@@ -56,18 +56,20 @@ export default function CommentRow({
     <div
       className={`${
         isReplyNode
-          ? "space-y-2"
-          : "bg-stone-900/30 border border-stone-800 rounded-2xl p-5 space-y-4 text-right"
+          ? "space-y-2 mt-2"
+          : "bg-stone-900/30 border border-stone-800 rounded-2xl p-4 sm:p-5 space-y-4 text-right"
       }`}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-stone-850 flex items-center justify-center text-xs font-black text-gold-500">
+          <div className="w-10 h-10 rounded-full bg-stone-850 flex items-center justify-center text-xs font-black text-gold-500 shrink-0">
             {comment.first_name?.[0] || "ک"}
           </div>
           <div className="flex flex-col">
-            <span className="text-xs font-bold text-stone-200 flex items-center gap-1.5">
-              {comment.first_name} {comment.last_name || ""}
+            <span className="text-xs font-bold text-stone-200 flex flex-wrap items-center gap-1.5">
+              <span>
+                {comment.first_name} {comment.last_name || ""}
+              </span>
               {status === "approved" && (
                 <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px] px-2 py-0.2 rounded-full font-bold">
                   منتشر شده
@@ -101,17 +103,15 @@ export default function CommentRow({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 justify-start sm:justify-end w-full sm:w-auto">
           {status !== "approved" && (
             <button
               onClick={() => handleStatusChange(comment.id, "approved")}
-              className={`p-2 text-emerald-400 hover:bg-emerald-500/5 rounded-xl border border-stone-800 hover:border-emerald-500/20 transition-all cursor-pointer ${
-                isReplyNode ? "p-1 rounded" : ""
-              }`}
+              className={`p-1.5 sm:p-2 text-emerald-400 hover:bg-emerald-500/5 rounded-xl border border-stone-800 hover:border-emerald-500/20 transition-all cursor-pointer`}
               title="تایید انتشار"
             >
               {isReplyNode ? (
-                <Check className="w-2.5 h-2.5" />
+                <Check className="w-3.5 h-3.5" />
               ) : (
                 <Eye className="w-4 h-4" />
               )}
@@ -120,46 +120,34 @@ export default function CommentRow({
           {status !== "rejected" && (
             <button
               onClick={() => handleStatusChange(comment.id, "rejected")}
-              className={`p-2 text-amber-500 hover:bg-amber-500/5 rounded-xl border border-stone-800 hover:border-amber-500/20 transition-all cursor-pointer ${
-                isReplyNode ? "p-1 rounded" : ""
-              }`}
+              className={`p-1.5 sm:p-2 text-amber-500 hover:bg-amber-500/5 rounded-xl border border-stone-800 hover:border-amber-500/20 transition-all cursor-pointer`}
               title="رد انتشار"
             >
-              {isReplyNode ? (
-                <EyeOff className="w-2.5 h-2.5" />
-              ) : (
-                <EyeOff className="w-4 h-4" />
-              )}
+              <EyeOff className="w-3.5 h-3.5" />
             </button>
           )}
           {status !== "spam" && (
             <button
               onClick={() => handleStatusChange(comment.id, "spam")}
-              className={`p-2 text-red-400 hover:bg-red-500/5 rounded-xl border border-stone-800 hover:border-red-500/20 transition-all cursor-pointer ${
-                isReplyNode ? "p-1 rounded" : ""
-              }`}
+              className={`p-1.5 sm:p-2 text-red-400 hover:bg-red-500/5 rounded-xl border border-stone-800 hover:border-red-500/20 transition-all cursor-pointer`}
               title="علامت‌گذاری به عنوان اسپم"
             >
-              <ShieldAlert
-                className={isReplyNode ? "w-2.5 h-2.5" : "w-4 h-4"}
-              />
+              <ShieldAlert className="w-3.5 h-3.5" />
             </button>
           )}
           <button
             onClick={() => {
               setEditTargetId(comment.id);
             }}
-            className={`p-2 text-blue-400 hover:bg-blue-500/5 rounded-xl border border-stone-800 hover:border-blue-500/20 transition-all cursor-pointer ${
-              isReplyNode ? "p-1 rounded" : ""
-            }`}
+            className={`p-1.5 sm:p-2 text-blue-400 hover:bg-blue-500/5 rounded-xl border border-stone-800 hover:border-blue-500/20 transition-all cursor-pointer`}
             title="ویرایش"
           >
-            <Edit3 className={isReplyNode ? "w-2.5 h-2.5" : "w-4 h-4"} />
+            <Edit3 className="w-3.5 h-3.5" />
           </button>
           {!isReplyNode && (
             <button
               onClick={() => setReplyTargetId(comment.id)}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs text-gold-500 hover:bg-gold-500/5 rounded-xl border border-stone-800 hover:border-gold-500/20 transition-all cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-gold-500 hover:bg-gold-500/5 rounded-xl border border-stone-800 hover:border-gold-500/20 transition-all cursor-pointer h-7 sm:h-8"
             >
               <Reply className="w-3.5 h-3.5" />
               <span>پاسخ</span>
@@ -167,12 +155,10 @@ export default function CommentRow({
           )}
           <button
             onClick={() => handleDelete(comment.id)}
-            className={`p-2 text-stone-400 hover:text-red-400 hover:bg-red-500/5 rounded-xl border border-stone-800 hover:border-red-500/20 transition-all cursor-pointer ${
-              isReplyNode ? "p-1 rounded" : ""
-            }`}
+            className={`p-1.5 sm:p-2 text-stone-400 hover:text-red-400 hover:bg-red-500/5 rounded-xl border border-stone-800 hover:border-red-500/20 transition-all cursor-pointer`}
             title="حذف دائمی"
           >
-            <Trash className={isReplyNode ? "w-2.5 h-2.5" : "w-4 h-4"} />
+            <Trash className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -185,7 +171,9 @@ export default function CommentRow({
         />
       ) : (
         <p
-          className={`text-xs text-stone-300 leading-relaxed ${isReplyNode ? "" : "pr-12"}`}
+          className={`text-xs text-stone-300 leading-relaxed ${
+            isReplyNode ? "" : "pr-0 sm:pr-12"
+          }`}
         >
           {comment.comment_text}
         </p>
@@ -207,7 +195,7 @@ export default function CommentRow({
       )}
 
       {comment.replies && comment.replies.length > 0 && (
-        <div className="mr-12 pr-4 border-r border-stone-800 space-y-4 pt-3">
+        <div className="mr-4 sm:mr-12 pr-2.5 sm:pr-4 border-r border-stone-800 space-y-4 pt-3">
           {comment.replies.map((reply) => (
             <CommentRow
               key={reply.id}
@@ -248,7 +236,7 @@ function CommentEditForm({
   };
 
   return (
-    <div className="mr-12 bg-stone-950/40 p-4 rounded-xl border border-stone-800 space-y-3">
+    <div className="mr-0 sm:mr-12 bg-stone-950/40 p-4 rounded-xl border border-stone-800 space-y-3">
       <span className="text-[10px] font-bold text-stone-400 block">
         ویرایش متن دیدگاه:
       </span>
@@ -304,7 +292,7 @@ function CommentReplyForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="mr-12 bg-stone-950/40 p-4 rounded-xl border border-stone-800 space-y-3"
+      className="mr-0 sm:mr-12 bg-stone-950/40 p-4 rounded-xl border border-stone-800 space-y-3"
     >
       <div className="flex items-center justify-between border-b border-stone-800 pb-2">
         <span className="text-[10px] font-bold text-stone-400">

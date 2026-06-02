@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
@@ -51,6 +51,17 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsCollapsed(true);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const handleLogout = () => {
     startTransition(async () => {
       await logoutAdminAction();
@@ -65,7 +76,7 @@ export default function AdminSidebar() {
     >
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute top-8 -left-3.5 w-7 h-7 rounded-full bg-gold-500 hover:bg-gold-600 text-stone-950 flex items-center justify-center border border-stone-900 shadow-md cursor-pointer transition-colors z-50"
+        className="hidden md:flex absolute top-8 -left-3.5 w-7 h-7 rounded-full bg-gold-500 hover:bg-gold-600 text-stone-950 items-center justify-center border border-stone-900 shadow-md cursor-pointer transition-colors z-50"
       >
         {isCollapsed ? (
           <ChevronLeft className="w-4 h-4" />

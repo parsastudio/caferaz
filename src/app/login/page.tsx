@@ -245,7 +245,7 @@ function LoginForm() {
               <div className="space-y-1.5 text-right animate-in fade-in duration-200">
                 <label className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-stone-500" />
-                  آدرس تحویل دیفالت <span className="text-red-500">*</span>
+                  آدرس تحویل <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   rows={2}

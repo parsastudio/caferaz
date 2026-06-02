@@ -87,14 +87,10 @@ export default function WeightSelector({
             <input
               type="text"
               inputMode="numeric"
-              value={
-                customWeightVal === 0
-                  ? ""
-                  : customWeightVal.toLocaleString("en-US")
-              }
+              value={customWeightVal === 0 ? "" : customWeightVal.toString()}
               onChange={(e) => {
                 const cleanVal = e.target.value.replace(/[^0-9]/g, "");
-                const numericVal = parseInt(cleanVal) || 0;
+                const numericVal = parseInt(cleanVal, 10) || 0;
                 const finalVal = Math.min(numericVal, 50000);
                 setCustomWeightVal(finalVal);
               }}

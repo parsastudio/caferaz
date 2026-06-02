@@ -6,6 +6,7 @@ import { useFormContext } from "react-hook-form";
 import { Button } from "../../ui/button";
 import { CheckoutFormValues } from "./schema";
 import { toEnglishDigits } from "@/lib/utils";
+import { sendUserOtpAction } from "@/actions/auth";
 
 interface OtpStepProps {
   phone: string;
@@ -96,13 +97,21 @@ export default function OtpStep({
     }
   };
 
-  const handleResendCode = () => {
-    const cleared = ["", "", "", ""];
-    setOtpDigits(cleared);
-    setValue("otp", "", { shouldValidate: true });
-    setTimer(120);
-    setIsResendDisabled(true);
-    otpInputsRef.current[0]?.focus();
+  const handleResendCode = async () => {
+    try {
+      // ارسال درخواست واقعی پیامک به دیتابیس بدون درگیر کردن کدهای هوک خارجی
+      const res = await sendUserOtpAction({ phone });
+      if (res.success) {
+        const cleared = ["", "", "", ""];
+        setOtpDigits(cleared);
+        setValue("otp", "", { shouldValidate: true });
+        setTimer(120);
+        setIsResendDisabled(true);
+        otpInputsRef.current[0]?.focus();
+      }
+    } catch (err) {
+      console.error("خطا در ارسال مجدد کد تایید", err);
+    }
   };
 
   const formatTime = (seconds: number) => {

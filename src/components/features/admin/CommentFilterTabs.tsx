@@ -24,7 +24,7 @@ export default function CommentFilterTabs({
   spamCount,
 }: CommentFilterTabsProps) {
   return (
-    <div className="flex flex-wrap items-center gap-2 bg-stone-900/40 p-1 rounded-2xl border border-stone-850 max-w-3xl select-none">
+    <div className="flex items-center gap-2 bg-stone-900/40 p-1 rounded-2xl border border-stone-850 max-w-full overflow-x-auto whitespace-nowrap select-none scrollbar-none">
       <button
         onClick={() => setStatusFilter("all")}
         className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
