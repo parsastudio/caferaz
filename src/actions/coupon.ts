@@ -39,6 +39,8 @@ export async function validateCouponAction(payload: {
     discountValue: number;
     discountAmount: number;
     finalPrice: number;
+    directDiscountAmount: number;
+    conditionalDiscountAmount: number;
   }>
 > {
   try {
@@ -161,6 +163,8 @@ export async function validateCouponAction(payload: {
         discountValue: coupon.discountValue,
         discountAmount: pricingBreakdown.userCouponDiscountAmount,
         finalPrice: pricingBreakdown.finalPrice,
+        directDiscountAmount: pricingBreakdown.directDiscountAmount,
+        conditionalDiscountAmount: pricingBreakdown.conditionalDiscountAmount,
       },
     };
   } catch (error) {

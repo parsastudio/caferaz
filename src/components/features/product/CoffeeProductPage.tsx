@@ -107,6 +107,10 @@ export default function CoffeeProductPage({
                 selectedGrind,
                 quantity,
                 finalPrice: priceMetrics.finalPrice,
+                basePrice: priceMetrics.basePrice,
+                directDiscountAmount: priceMetrics.directDiscountAmount,
+                conditionalDiscountAmount:
+                  priceMetrics.conditionalDiscountAmount,
               })
             }
           />

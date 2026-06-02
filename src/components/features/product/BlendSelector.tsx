@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Percent, Zap, Coffee, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
 import { CoffeeBlend } from "@/lib/constants";
 
 interface BlendProfile {
@@ -100,23 +101,35 @@ export default function BlendSelector({
         درصد ترکیب دانه‌ها (بلند):
       </label>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {finalBlends.map((blend) => (
-          <button
-            key={blend.value}
-            type="button"
-            onClick={() => setSelectedBlend(blend.value)}
-            className={`p-4 rounded-2xl border text-right transition-all duration-150 flex flex-col justify-between gap-1.5 cursor-pointer ${
-              selectedBlend === blend.value
-                ? "border-gold-500 bg-gold-500/5 text-gold-400 shadow-lg"
-                : "border-stone-800/80 bg-stone-900/30 hover:border-stone-700 text-stone-300"
-            }`}
-          >
-            <span className="text-xs font-bold block">{blend.value}</span>
-            <span className="text-[11px] text-stone-500 leading-normal">
-              {blend.desc}
-            </span>
-          </button>
-        ))}
+        {finalBlends.map((blend) => {
+          const isSelected = selectedBlend === blend.value;
+          return (
+            <button
+              key={blend.value}
+              type="button"
+              onClick={() => setSelectedBlend(blend.value)}
+              className={`p-4 rounded-2xl border text-right transition-all duration-300 flex flex-col justify-between gap-1.5 cursor-pointer relative overflow-hidden ${
+                isSelected
+                  ? "border-gold-500 bg-gold-500/5 text-gold-400 shadow-lg"
+                  : "border-stone-800/80 bg-stone-900/30 hover:border-stone-700 text-stone-300"
+              }`}
+            >
+              <span className="text-xs font-bold block z-10">
+                {blend.value}
+              </span>
+              <span className="text-[11px] text-stone-500 leading-normal z-10">
+                {blend.desc}
+              </span>
+              {isSelected && (
+                <motion.div
+                  layoutId="selected-blend-bg"
+                  className="absolute inset-0 bg-gold-500/5 pointer-events-none"
+                  transition={{ type: "spring", stiffness: 100, damping: 15 }}
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       <div className="p-4 sm:p-5 bg-stone-900/25 border border-stone-800/60 rounded-2xl space-y-4">
@@ -125,9 +138,14 @@ export default function BlendSelector({
             <Percent className="w-4 h-4 text-gold-500 shrink-0" />
             شناسنامه طعمی و ویژگی‌های ترکیب
           </span>
-          <span className="text-[11px] font-bold text-gold-400 bg-gold-500/10 px-2.5 py-1.5 rounded-full w-fit max-w-full leading-normal">
+          <motion.span
+            key={blendProfile.label}
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-[11px] font-bold text-gold-400 bg-gold-500/10 px-2.5 py-1.5 rounded-full w-fit max-w-full leading-normal"
+          >
             {blendProfile.label}
-          </span>
+          </motion.span>
         </div>
 
         <div className="space-y-4">
@@ -136,32 +154,32 @@ export default function BlendSelector({
             dir="rtl"
           >
             {blendProfile.robusta > 0 && (
-              <div
-                style={{
-                  width: `${blendProfile.robusta}%`,
-                }}
-                className={`h-full bg-gradient-to-l from-stone-800 to-stone-700 transition-all duration-500 ease-out flex items-center justify-center relative text-center min-w-[50px] ${
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${blendProfile.robusta}%` }}
+                transition={{ type: "spring", stiffness: 80, damping: 15 }}
+                className={`h-full bg-gradient-to-l from-stone-800 to-stone-700 flex items-center justify-center relative text-center min-w-[50px] ${
                   blendProfile.arabica === 0 ? "rounded-full" : "rounded-r-full"
                 }`}
               >
                 <span className="text-[9px] font-black text-stone-300 px-1 truncate select-none">
                   {blendProfile.robusta}٪ روبوستا
                 </span>
-              </div>
+              </motion.div>
             )}
             {blendProfile.arabica > 0 && (
-              <div
-                style={{
-                  width: `${blendProfile.arabica}%`,
-                }}
-                className={`h-full bg-gradient-to-r from-gold-500 to-gold-400 transition-all duration-500 ease-out flex items-center justify-center relative text-center min-w-[50px] ${
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${blendProfile.arabica}%` }}
+                transition={{ type: "spring", stiffness: 80, damping: 15 }}
+                className={`h-full bg-gradient-to-r from-gold-500 to-gold-400 flex items-center justify-center relative text-center min-w-[50px] ${
                   blendProfile.robusta === 0 ? "rounded-full" : "rounded-l-full"
                 }`}
               >
                 <span className="text-[9px] font-black text-stone-950 px-1 truncate select-none">
                   {blendProfile.arabica}٪ عربیکا
                 </span>
-              </div>
+              </motion.div>
             )}
           </div>
 
@@ -177,9 +195,11 @@ export default function BlendSelector({
                 </span>
               </span>
               <div className="h-2 w-full bg-stone-950 rounded-full overflow-hidden">
-                <div
-                  style={{ width: `${blendProfile.caffeine}%` }}
-                  className="h-full bg-gold-500 transition-all duration-500 ease-out"
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${blendProfile.caffeine}%` }}
+                  transition={{ type: "spring", stiffness: 80, damping: 15 }}
+                  className="h-full bg-gold-500"
                 />
               </div>
             </div>
@@ -195,9 +215,11 @@ export default function BlendSelector({
                 </span>
               </span>
               <div className="h-2 w-full bg-stone-950 rounded-full overflow-hidden">
-                <div
-                  style={{ width: `${blendProfile.body}%` }}
-                  className="h-full bg-stone-50 transition-all duration-500 ease-out"
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${blendProfile.body}%` }}
+                  transition={{ type: "spring", stiffness: 80, damping: 15 }}
+                  className="h-full bg-stone-50"
                 />
               </div>
             </div>
@@ -213,9 +235,11 @@ export default function BlendSelector({
                 </span>
               </span>
               <div className="h-2 w-full bg-stone-950 rounded-full overflow-hidden">
-                <div
-                  style={{ width: `${blendProfile.aroma}%` }}
-                  className="h-full bg-gold-400 transition-all duration-500 ease-out"
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${blendProfile.aroma}%` }}
+                  transition={{ type: "spring", stiffness: 80, damping: 15 }}
+                  className="h-full bg-gold-400"
                 />
               </div>
             </div>

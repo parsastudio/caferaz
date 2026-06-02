@@ -9,6 +9,9 @@ import { CheckoutFormValues } from "./schema";
 interface ShippingStepProps {
   onSubmit: (e: React.FormEvent) => void;
   onBack: () => void;
+  basePrice: number;
+  directDiscountAmount: number;
+  conditionalDiscountAmount: number;
   finalPrice: number;
   isLoggedIn?: boolean;
   isSubmitting?: boolean;
@@ -24,6 +27,9 @@ interface ShippingStepProps {
 export default function ShippingStep({
   onSubmit,
   onBack,
+  basePrice,
+  directDiscountAmount,
+  conditionalDiscountAmount,
   finalPrice,
   isLoggedIn,
   isSubmitting,
@@ -120,6 +126,54 @@ export default function ShippingStep({
             تومان اعمال شد.
           </p>
         )}
+      </div>
+
+      <div className="bg-stone-950/40 border border-stone-850 p-4 rounded-xl space-y-2.5 text-right">
+        <span className="text-[10px] text-stone-500 font-bold block">
+          ریز محاسبات فاکتور سفارش:
+        </span>
+        <div className="space-y-1.5 text-xs">
+          <div className="flex justify-between items-center text-stone-400">
+            <span>قیمت پایه کالا:</span>
+            <span className="font-sans font-bold">
+              {basePrice.toLocaleString()} تومان
+            </span>
+          </div>
+          {directDiscountAmount > 0 && (
+            <div className="flex justify-between items-center text-red-400">
+              <span>تخفیف مستقیم فروشگاه:</span>
+              <span className="font-sans font-bold">
+                -{directDiscountAmount.toLocaleString()} تومان
+              </span>
+            </div>
+          )}
+          {conditionalDiscountAmount > 0 && (
+            <div className="flex justify-between items-center text-red-400">
+              <span>تخفیف خرید حجمی:</span>
+              <span className="font-sans font-bold">
+                -{conditionalDiscountAmount.toLocaleString()} تومان
+              </span>
+            </div>
+          )}
+          {appliedCoupon && (
+            <div className="flex justify-between items-center text-red-400">
+              <span>کد تخفیف خریدار ({appliedCoupon.code}):</span>
+              <span className="font-sans font-bold">
+                -{appliedCoupon.discountAmount.toLocaleString()} تومان
+              </span>
+            </div>
+          )}
+          <div className="flex justify-between items-center text-emerald-400">
+            <span>هزینه ارسال:</span>
+            <span className="font-bold">رایگان</span>
+          </div>
+          <div className="border-t border-stone-800/80 pt-2 flex justify-between items-center text-gold-500 font-black text-sm">
+            <span>مبلغ نهایی قابل پرداخت:</span>
+            <span className="font-sans">
+              {finalPrice.toLocaleString()} تومان
+            </span>
+          </div>
+        </div>
       </div>
 
       <div className="bg-stone-950/40 border border-stone-850 p-3 rounded-xl flex items-start gap-2.5 text-right">

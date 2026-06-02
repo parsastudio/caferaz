@@ -45,6 +45,9 @@ export default function CheckoutDialog() {
     couponError,
     isApplyingCoupon,
     checkoutFinalPrice,
+    basePrice,
+    directDiscountAmount,
+    conditionalDiscountAmount,
     handleApplyCoupon,
     handleRemoveCoupon,
   } = useCheckoutForm();
@@ -139,6 +142,9 @@ export default function CheckoutDialog() {
                   <ShippingStep
                     onSubmit={handleShippingNext}
                     onBack={() => setStep("user_info")}
+                    basePrice={basePrice}
+                    directDiscountAmount={directDiscountAmount}
+                    conditionalDiscountAmount={conditionalDiscountAmount}
                     finalPrice={checkoutFinalPrice}
                     isLoggedIn={isLoggedInUser}
                     isSubmitting={isSubmitting}

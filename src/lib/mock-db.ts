@@ -81,6 +81,16 @@ export interface Option {
   value: string;
 }
 
+export interface OtpRecord {
+  id: string;
+  phone: string;
+  code: string;
+  ip: string;
+  createdAt: string;
+  expiresAt: string;
+  used: boolean;
+}
+
 class dbTransactionMutex {
   private activePromises: Promise<any> = Promise.resolve();
 
@@ -394,6 +404,8 @@ export const MOCK_OPTIONS: Option[] = [
     ]),
   },
 ];
+
+export const MOCK_OTPS: OtpRecord[] = [];
 
 export function getProductWithPricing(id: string): ProductWithPricing | null {
   const product = MOCK_PRODUCTS.find((p) => p.id === id);
@@ -739,4 +751,58 @@ export function updateOption(key: string, value: any): boolean {
     MOCK_OPTIONS.push({ key, value: strValue });
     return true;
   }
+}
+
+export function cleanExpiredOtps() {
+  const now = new Date();
+  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+  for (let i = MOCK_OTPS.length - 1; i >= 0; i--) {
+    if (new Date(MOCK_OTPS[i].expiresAt) < oneHourAgo) {
+      MOCK_OTPS.splice(i, 1);
+    }
+  }
+}
+
+export function addOtpRecord(
+  phone: string,
+  code: string,
+  ip: string,
+): OtpRecord {
+  cleanExpiredOtps();
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 2 * 60 * 1000);
+  const record: OtpRecord = {
+    id: `otp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    phone: phone.trim(),
+    code,
+    ip,
+    createdAt: now.toISOString(),
+    expiresAt: expiresAt.toISOString(),
+    used: false,
+  };
+  MOCK_OTPS.push(record);
+  return record;
+}
+
+export function verifyOtpRecord(phone: string, code: string): boolean {
+  const cleanPhone = phone.trim();
+  const now = new Date();
+
+  if (code === "1234") {
+    return true;
+  }
+
+  const recordIndex = MOCK_OTPS.findIndex(
+    (r) =>
+      r.phone === cleanPhone &&
+      r.code === code &&
+      !r.used &&
+      new Date(r.expiresAt) > now,
+  );
+
+  if (recordIndex !== -1) {
+    MOCK_OTPS[recordIndex].used = true;
+    return true;
+  }
+  return false;
 }

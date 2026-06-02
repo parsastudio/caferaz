@@ -1,7 +1,8 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { addOtpRecord, verifyOtpRecord, MOCK_OTPS } from "@/lib/mock-db";
 
 let adminPasswordStore = "admin123";
 
@@ -75,9 +76,64 @@ export async function sendUserOtpAction(payload: { phone: string }) {
     if (!phone) {
       return { success: false, error: "شماره همراه ارسال نشده است." };
     }
-    return { success: true, message: "کد تایید با موفقیت ارسال شد." };
+
+    const headersList = await headers();
+    let ip =
+      headersList.get("x-forwarded-for") ||
+      headersList.get("x-real-ip") ||
+      "127.0.0.1";
+    if (ip.includes(",")) {
+      ip = ip.split(",")[0].trim();
+    }
+
+    const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    const twoMinutesAgo = new Date(now.getTime() - 2 * 60 * 1000);
+
+    const ipUsageLastHour = MOCK_OTPS.filter(
+      (r) => r.ip === ip && new Date(r.createdAt) > oneHourAgo,
+    );
+    if (ipUsageLastHour.length >= 10) {
+      return {
+        success: false,
+        error:
+          "به دلیل تعدد تلاش‌های مشکوک، درخواست از آی‌پی شما به مدت یک ساعت معلق گردید.",
+      };
+    }
+
+    const phoneUsageLast2Min = MOCK_OTPS.filter(
+      (r) => r.phone === phone && new Date(r.createdAt) > twoMinutesAgo,
+    );
+    if (phoneUsageLast2Min.length >= 1) {
+      const lastSentTime = new Date(phoneUsageLast2Min[0].createdAt).getTime();
+      const elapsedSeconds = Math.floor((now.getTime() - lastSentTime) / 1000);
+      const remainingSeconds = 120 - elapsedSeconds;
+      return {
+        success: false,
+        error: `لطفاً ${remainingSeconds} ثانیه دیگر جهت دریافت مجدد کد تایید شکیبا باشید.`,
+      };
+    }
+
+    const phoneUsageLastHour = MOCK_OTPS.filter(
+      (r) => r.phone === phone && new Date(r.createdAt) > oneHourAgo,
+    );
+    if (phoneUsageLastHour.length >= 5) {
+      return {
+        success: false,
+        error:
+          "ارسال بیش از حد مجاز در ساعت (حداکثر ۵ بار). لطفاً ساعتی دیگر مجدداً تلاش نمایید.",
+      };
+    }
+
+    const generatedCode = Math.floor(1000 + Math.random() * 9000).toString();
+    addOtpRecord(phone, generatedCode, ip);
+
+    return {
+      success: true,
+      message: `کد تایید با موفقیت ارسال شد. (کد تست ارسالی: ${generatedCode})`,
+    };
   } catch {
-    return { success: false, error: "خطا در ارسال پیامک." };
+    return { success: false, error: "خطا در فرآیند ارسال کد تایید پیامکی." };
   }
 }
 
@@ -93,10 +149,11 @@ export async function loginUserAction(payload: {
       return { success: false, error: "اطلاعات ارسالی ناقص است." };
     }
 
-    if (otp !== "1234") {
+    const isOtpValid = verifyOtpRecord(phone, otp);
+    if (!isOtpValid) {
       return {
         success: false,
-        error: "کد تایید پیامک شده معتبر نیست. (کد تست: ۱۲۳۴)",
+        error: "کد تایید وارد شده نادرست یا منقضی گردیده است.",
       };
     }
 
@@ -130,8 +187,12 @@ export async function loginUserWithOtpAction(payload: {
       return { success: false, error: "اطلاعات ارسالی ناقص است." };
     }
 
-    if (otp !== "1234") {
-      return { success: false, error: "کد تایید معتبر نیست. (کد تست: ۱۲۳۴)" };
+    const isOtpValid = verifyOtpRecord(phone, otp);
+    if (!isOtpValid) {
+      return {
+        success: false,
+        error: "کد تایید وارد شده نادرست یا منقضی گردیده است.",
+      };
     }
 
     const { getOrCreateUser, getUserByPhone } = await import("@/lib/mock-db");
@@ -169,8 +230,12 @@ export async function registerUserAction(payload: {
       return { success: false, error: "پر کردن تمامی فیلدها الزامی است." };
     }
 
-    if (otp !== "1234") {
-      return { success: false, error: "کد تایید نامعتبر است. (کد تست: ۱۲۳۴)" };
+    const isOtpValid = verifyOtpRecord(phone, otp);
+    if (!isOtpValid) {
+      return {
+        success: false,
+        error: "کد تایید وارد شده نادرست یا منقضی گردیده است.",
+      };
     }
 
     const { getOrCreateUser } = await import("@/lib/mock-db");

@@ -9,6 +9,9 @@ export interface CheckoutData {
   selectedGrind: string;
   quantity: number;
   finalPrice: number;
+  basePrice: number;
+  directDiscountAmount: number;
+  conditionalDiscountAmount: number;
 }
 
 interface CheckoutContextType {

@@ -8,6 +8,7 @@ import {
   getOrCreateUser,
   updateOrderStatus,
   deleteOrder,
+  verifyOtpRecord,
   Order,
 } from "@/lib/mock-db";
 import {
@@ -137,20 +138,20 @@ export async function submitOrderAction(payload: {
       appliedCouponCode,
     } = validated.data;
 
-    if (otp !== "1234") {
-      return {
-        success: false,
-        error:
-          "کد تایید پیامکی معتبر نیست. لطفاً مجدداً تلاش کنید. (کد تست: ۱۲۳۴)",
-      };
-    }
-
     const { getCurrentUserAction } = await import("@/actions/auth");
     const currentUserRes = await getCurrentUserAction();
     const securePhone =
       currentUserRes.success && currentUserRes.user
         ? currentUserRes.user.phone
         : customerPhone;
+
+    const isOtpValid = verifyOtpRecord(securePhone, otp);
+    if (!isOtpValid) {
+      return {
+        success: false,
+        error: "کد تایید وارد شده اشتباه یا زمان اعتبار آن به پایان رسیده است.",
+      };
+    }
 
     const { dbTransaction } = await import("@/lib/mock-db");
 

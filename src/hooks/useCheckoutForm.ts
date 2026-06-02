@@ -42,6 +42,8 @@ export function useCheckoutForm() {
   const [couponError, setCouponError] = useState<string | null>(null);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [checkoutFinalPrice, setCheckoutFinalPrice] = useState(0);
+  const [directDiscountAmount, setDirectDiscountAmount] = useState(0);
+  const [conditionalDiscountAmount, setConditionalDiscountAmount] = useState(0);
 
   const [lastValidatedPhone, setLastValidatedPhone] = useState("");
 
@@ -104,6 +106,8 @@ export function useCheckoutForm() {
   useEffect(() => {
     if (isOpen && checkoutData) {
       setCheckoutFinalPrice(checkoutData.finalPrice);
+      setDirectDiscountAmount(checkoutData.directDiscountAmount);
+      setConditionalDiscountAmount(checkoutData.conditionalDiscountAmount);
       setAppliedCoupon(null);
       setCouponError(null);
       setCouponCode("");
@@ -134,6 +138,8 @@ export function useCheckoutForm() {
         discountAmount: res.data.discountAmount,
       });
       setCheckoutFinalPrice(res.data.finalPrice);
+      setDirectDiscountAmount(res.data.directDiscountAmount);
+      setConditionalDiscountAmount(res.data.conditionalDiscountAmount);
       setLastValidatedPhone(cleanPhone);
     } else {
       setCouponError(res.error);
@@ -146,6 +152,8 @@ export function useCheckoutForm() {
     setCouponCode("");
     setCouponError(null);
     setCheckoutFinalPrice(finalPrice);
+    setDirectDiscountAmount(checkoutData?.directDiscountAmount || 0);
+    setConditionalDiscountAmount(checkoutData?.conditionalDiscountAmount || 0);
     setLastValidatedPhone("");
   };
 
@@ -159,6 +167,8 @@ export function useCheckoutForm() {
     setCouponCode("");
     setCouponError(null);
     setCheckoutFinalPrice(0);
+    setDirectDiscountAmount(0);
+    setConditionalDiscountAmount(0);
     setLastValidatedPhone("");
     reset();
   };
@@ -327,6 +337,9 @@ export function useCheckoutForm() {
     couponError,
     isApplyingCoupon,
     checkoutFinalPrice,
+    basePrice: checkoutData?.basePrice || 0,
+    directDiscountAmount,
+    conditionalDiscountAmount,
     handleApplyCoupon,
     handleRemoveCoupon,
   };
