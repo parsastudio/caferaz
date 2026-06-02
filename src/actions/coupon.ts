@@ -9,6 +9,7 @@ import {
 } from "@/lib/coffee-calculations";
 import { toEnglishDigits } from "@/lib/utils";
 import { getTehranTodayString } from "@/lib/jalali-converter";
+import { checkAdminAuth } from "@/actions/auth";
 
 const createCouponSchema = z.object({
   code: z.string().optional(),
@@ -185,6 +186,11 @@ export async function createCouponAction(
   formData: z.infer<typeof createCouponSchema>,
 ) {
   try {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز." };
+    }
+
     const validated = createCouponSchema.safeParse(formData);
     if (!validated.success) {
       return {
@@ -229,6 +235,11 @@ export async function createCouponAction(
 
 export async function deleteCouponAction(id: string) {
   try {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز." };
+    }
+
     const { deleteCoupon } = await import("@/lib/mock-db");
     const isDeleted = deleteCoupon(id);
 
@@ -251,6 +262,11 @@ export async function deleteCouponAction(id: string) {
 
 export async function toggleCouponStatusAction(id: string) {
   try {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز." };
+    }
+
     const { toggleCouponStatus } = await import("@/lib/mock-db");
     const isToggled = toggleCouponStatus(id);
 

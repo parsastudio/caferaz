@@ -7,6 +7,7 @@ import {
 } from "@/lib/mock-db";
 import { ActionResponse } from "./comment";
 import { revalidatePath } from "next/cache";
+import { checkAdminAuth } from "@/actions/auth";
 
 export async function getProductAction(
   productId: string,
@@ -35,6 +36,11 @@ export async function updateProductDetailsAction(payload: {
   stockGrams: number;
 }): Promise<ActionResponse<boolean>> {
   try {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز." };
+    }
+
     const { productId, pricePerKgArabica, pricePerKgRobusta, stockGrams } =
       payload;
 
@@ -94,6 +100,11 @@ export async function updateProductBasicInfoAction(payload: {
   description: string;
 }): Promise<ActionResponse<boolean>> {
   try {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز." };
+    }
+
     const { productId, name, description } = payload;
 
     if (!productId || !name.trim() || !description.trim()) {

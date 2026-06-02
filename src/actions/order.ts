@@ -19,6 +19,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { ActionResponse } from "./comment";
 import { toEnglishDigits } from "@/lib/utils";
+import { checkAdminAuth } from "@/actions/auth";
 
 const serverOrderSchema = z.object({
   productId: z.string().min(1, "شناسه کالا نامعتبر است."),
@@ -55,6 +56,11 @@ const serverOrderSchema = z.object({
 
 export async function getOrdersAction(): Promise<ActionResponse<Order[]>> {
   try {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز." };
+    }
+
     const orders = getOrders();
     return { success: true, data: orders };
   } catch (error) {
@@ -67,6 +73,11 @@ export async function updateOrderStatusAction(
   status: "unreviewed" | "pending" | "completed" | "cancelled",
 ): Promise<ActionResponse<boolean>> {
   try {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز." };
+    }
+
     const updated = updateOrderStatus(orderId, status);
     if (!updated) {
       return { success: false, error: "سفارش مورد نظر یافت نشد." };
@@ -87,6 +98,11 @@ export async function deleteOrderAction(
   orderId: string,
 ): Promise<ActionResponse<boolean>> {
   try {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز." };
+    }
+
     const deleted = deleteOrder(orderId);
     if (!deleted) {
       return { success: false, error: "سفارش مورد نظر یافت نشد." };

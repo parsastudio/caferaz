@@ -9,6 +9,7 @@ import {
   Comment,
 } from "@/lib/mock-db";
 import { revalidatePath } from "next/cache";
+import { checkAdminAuth } from "@/actions/auth";
 
 export type ActionResponse<T> =
   | { success: true; data: T; message?: string }
@@ -33,6 +34,11 @@ export async function getAdminCommentsAction(
   productId: string,
 ): Promise<ActionResponse<Comment[]>> {
   try {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز." };
+    }
+
     if (!productId) {
       return { success: false, error: "شناسه محصول معتبر نیست." };
     }
@@ -65,10 +71,8 @@ export async function submitCommentAction(payload: {
       };
     }
 
-    const status =
-      firstName.includes("پشتیبان") || firstName.includes("مدیر")
-        ? "approved"
-        : "pending";
+    const isAdmin = await checkAdminAuth();
+    const status = isAdmin ? "approved" : "pending";
 
     const newComment = addComment(productId, {
       first_name: firstName,
@@ -83,7 +87,9 @@ export async function submitCommentAction(payload: {
 
     return {
       success: true,
-      message: "دیدگاه شما ثبت گردید و پس از بازبینی تایید خواهد شد.",
+      message: isAdmin
+        ? "دیدگاه پشتیبان با موفقیت تایید و منتشر گردید."
+        : "دیدگاه شما ثبت گردید و پس از بازبینی تایید خواهد شد.",
       data: newComment,
     };
   } catch (error) {
@@ -95,6 +101,11 @@ export async function approveCommentAction(
   commentId: string,
 ): Promise<ActionResponse<boolean>> {
   try {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز." };
+    }
+
     if (!commentId) {
       return { success: false, error: "شناسه دیدگاه الزامی است." };
     }
@@ -121,6 +132,11 @@ export async function rejectCommentAction(
   commentId: string,
 ): Promise<ActionResponse<boolean>> {
   try {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز." };
+    }
+
     if (!commentId) {
       return { success: false, error: "شناسه دیدگاه الزامی است." };
     }
@@ -147,6 +163,11 @@ export async function spamCommentAction(
   commentId: string,
 ): Promise<ActionResponse<boolean>> {
   try {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز." };
+    }
+
     if (!commentId) {
       return { success: false, error: "شناسه دیدگاه الزامی است." };
     }
@@ -174,6 +195,11 @@ export async function editCommentAction(
   commentText: string,
 ): Promise<ActionResponse<boolean>> {
   try {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز." };
+    }
+
     if (!commentId || !commentText.trim()) {
       return { success: false, error: "ورودی‌های ویرایش معتبر نیستند." };
     }
@@ -200,6 +226,11 @@ export async function deleteCommentAction(
   commentId: string,
 ): Promise<ActionResponse<boolean>> {
   try {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز." };
+    }
+
     if (!commentId) {
       return { success: false, error: "شناسه دیدگاه ارسال نشده است." };
     }

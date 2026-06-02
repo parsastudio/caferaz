@@ -4,7 +4,9 @@ import "./globals.css";
 import { CheckoutProvider } from "@/context/CheckoutContext";
 import Footer from "@/components/layout/Footer";
 import GlobalStatusBar from "@/components/layout/GlobalStatusBar";
+import RouteProgressBar from "@/components/layout/RouteProgressBar";
 import { getOption } from "@/lib/mock-db";
+import { Suspense } from "react";
 
 const vazirMatn = localFont({
   src: "../../public/Vazirmatn.woff2",
@@ -34,6 +36,9 @@ export default function RootLayout({
         dir="rtl"
       >
         <CheckoutProvider>
+          <Suspense fallback={null}>
+            <RouteProgressBar />
+          </Suspense>
           <GlobalStatusBar />
           <div className="flex-grow">{children}</div>
           <Footer config={footerData} />

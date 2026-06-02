@@ -2,6 +2,7 @@
 
 import { updateOption, getOption } from "@/lib/mock-db";
 import { revalidatePath } from "next/cache";
+import { checkAdminAuth } from "@/actions/auth";
 
 export async function getSettingsAction() {
   try {
@@ -32,6 +33,11 @@ export async function updateSettingsAction(payload: {
   value: any;
 }) {
   try {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز." };
+    }
+
     const { key, value } = payload;
     const success = updateOption(key, value);
     if (!success) {

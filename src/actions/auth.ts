@@ -44,6 +44,11 @@ export async function updateAdminPasswordAction(payload: {
   try {
     const { oldPass, newPass } = payload;
 
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز است." };
+    }
+
     if (!oldPass || !newPass) {
       return { success: false, error: "پر کردن تمامی فیلدها الزامی است." };
     }
