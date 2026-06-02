@@ -115,6 +115,7 @@ export default function RouteProgressBar() {
   return (
     <div
       className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none transition-opacity duration-200 ease-out"
+      dir="ltr"
       style={{
         opacity: visible ? 1 : 0,
       }}
@@ -125,16 +126,6 @@ export default function RouteProgressBar() {
           width: `${progress}%`,
         }}
       />
-      {progress < 100 && (
-        <div
-          className="absolute h-2.5 w-2.5 rounded-full bg-gold-400 blur-[1px] transition-all duration-150 ease-out"
-          style={{
-            left: `calc(${progress}% - 5px)`,
-            top: "-3px",
-            boxShadow: "0 0 10px 2px #df9a42",
-          }}
-        />
-      )}
     </div>
   );
 }
