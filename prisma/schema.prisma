@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// تعریف Enumهای بومی در سطح پایگاه‌داده برای بهینه‌سازی فضا و امنیت داده
+enum OrderStatus {
+  unreviewed
+  pending
+  completed
+  cancelled
+}
+
+enum CommentStatus {
+  pending
+  approved
+  rejected
+  spam
+}
+
+enum CouponType {
+  product_direct
+  conditional
+  user_code
+}
+
+enum DiscountType {
+  percentage
+  fixed
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  name        String
+  description String
+  stockGrams  Int       @map("stock_grams")
+  pricing     Pricing?
+  comments    Comment[]
+  orders      Order[]
+  coupons     Coupon[]
+
+  @@map("products")
+}
+
+model Pricing {
+  id                String  @id @default(uuid())
+  productId         String  @unique @map("product_id")
+  product           Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  pricePerKgArabica  Int     @map("price_per_kg_arabica")
+  pricePerKgRobusta Int     @map("price_per_kg_robusta")
+
+  @@map("pricing")
+}
+
+model Comment {
+  id              String        @id @default(uuid())
+  productId       String?       @map("product_id")
+  product         Product?      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  firstName       String        @map("first_name")
+  lastName        String        @map("last_name")
+  rating          Int?
+  commentText     String        @map("comment_text")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  status          CommentStatus @default(pending)
+  
+  parentCommentId String?       @map("parent_comment_id")
+  parentComment   Comment?      @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies         Comment[]     @relation("CommentReplies")
+
+  @@index([productId])
+  @@index([parentCommentId])
+  @@map("comments")
+}
+
+model Order {
+  id              String      @id
+  productId       String      @map("product_id")
+  product         Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  weightGrams     Int         @map("weight_grams")
+  quantity        Int
+  grindType       String      @map("grind_type")
+  finalPrice      Int         @map("final_price")
+  customerName    String      @map("customer_name")
+  customerPhone   String      @map("customer_phone")
+  customerAddress String      @map("customer_address")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  status          OrderStatus @default(unreviewed)
+
+  @@index([productId])
+  @@index([customerPhone])
+  @@index([status])
+  @@map("orders")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  address   String?
+
+  @@map("users")
+}
+
+model Coupon {
+  id                String        @id @default(uuid())
+  code              String        @unique
+  type              CouponType
+  discountType      DiscountType  @map("discount_type")
+  discountValue     Int           @map("discount_value")
+  productId         String?       @map("product_id")
+  product           Product?      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  minWeightGrams    Int?          @map("min_weight_grams")
+  validFrom         DateTime?     @map("valid_from")
+  validTo           DateTime?     @map("valid_to")
+  maxDiscountAmount Int?          @map("max_discount_amount")
+  isActive          Boolean       @default(true) @map("is_active")
+  deletedAt         DateTime?     @map("deleted_at")
+  allowStacking     Boolean       @default(false) @map("allow_stacking")
+  usages            CouponUsage[]
+
+  @@index([productId])
+  @@map("coupons")
+}
+
+model CouponUsage {
+  id       String   @id @default(uuid())
+  couponId String   @map("coupon_id")
+  coupon   Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  phone    String
+  usedAt   DateTime @default(now()) @map("used_at")
+
+  @@unique([couponId, phone])
+  @@map("coupon_usages")
+}
+
+model Option {
+  key   String @id
+  value Json   // استفاده از فرمت فوق بهینه باینری jsonb در PostgreSQL
+
+  @@map("options")
+}
+
+model OtpRecord {
+  id        String   @id @default(uuid())
+  phone     String
+  code      String
+  ip        String
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+  used      Boolean  @default(false)
+
+  @@index([phone])
+  @@map("otp_records")
+}

@@ -14,7 +14,7 @@ export async function loginAdminAction(formData: FormData) {
     const cookieStore = await cookies();
     cookieStore.set("admin_session", "authenticated_token_xyz123", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
       sameSite: "strict",
       maxAge: 60 * 60 * 24,
       path: "/",
