@@ -11,7 +11,7 @@ import PriceSummary from "./PriceSummary";
 import CheckoutDialog from "../checkout/CheckoutDialog";
 import ProductTabsSection, { UIComment } from "./ProductTabsSection";
 import { useCheckout } from "@/context/CheckoutContext";
-import { Coupon } from "@/lib/mock-db";
+import { Coupon } from "@/types";
 import { STATIC_BLENDS, STATIC_GRINDS } from "@/lib/constants";
 
 interface CoffeeProductPageProps {

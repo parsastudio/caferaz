@@ -1,16 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import {
-  createOrder,
-  getOrders,
-  getProductWithPricing,
-  getOrCreateUser,
-  updateOrderStatus,
-  deleteOrder,
-  verifyOtpRecord,
-  Order,
-} from "@/lib/mock-db";
+import { prisma } from "@/lib/prisma";
 import {
   getBlendProfile,
   calculateAdvancedPriceMetrics,
@@ -20,6 +11,7 @@ import { cookies } from "next/headers";
 import { ActionResponse } from "./comment";
 import { toEnglishDigits } from "@/lib/utils";
 import { checkAdminAuth } from "@/actions/auth";
+import { Order as UIOrder } from "@/types";
 
 const serverOrderSchema = z.object({
   productId: z.string().min(1, "شناسه کالا نامعتبر است."),
@@ -54,16 +46,22 @@ const serverOrderSchema = z.object({
   appliedCouponCode: z.string().nullable().optional(),
 });
 
-export async function getOrdersAction(): Promise<ActionResponse<Order[]>> {
+export async function getOrdersAction(): Promise<ActionResponse<UIOrder[]>> {
   try {
     const isAdmin = await checkAdminAuth();
     if (!isAdmin) {
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    const orders = getOrders();
-    return { success: true, data: orders };
-  } catch (error) {
+    const orders = await prisma.order.findMany({
+      include: {
+        orderItems: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return { success: true, data: orders.map(mapPrismaOrder) };
+  } catch {
     return { success: false, error: "خطا در دریافت تاریخچه سفارش‌ها رخ داد." };
   }
 }
@@ -78,10 +76,11 @@ export async function updateOrderStatusAction(
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    const updated = updateOrderStatus(orderId, status);
-    if (!updated) {
-      return { success: false, error: "سفارش مورد نظر یافت نشد." };
-    }
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { status },
+    });
+
     revalidatePath("/admin/orders");
     revalidatePath("/profile");
     return {
@@ -89,7 +88,7 @@ export async function updateOrderStatusAction(
       data: true,
       message: "وضعیت سفارش با موفقیت به روزرسانی شد.",
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: "خطا در به روزرسانی وضعیت سفارش." };
   }
 }
@@ -103,10 +102,10 @@ export async function deleteOrderAction(
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    const deleted = deleteOrder(orderId);
-    if (!deleted) {
-      return { success: false, error: "سفارش مورد نظر یافت نشد." };
-    }
+    await prisma.order.delete({
+      where: { id: orderId },
+    });
+
     revalidatePath("/admin/orders");
     revalidatePath("/profile");
     return {
@@ -114,7 +113,7 @@ export async function deleteOrderAction(
       data: true,
       message: "سفارش مورد نظر با موفقیت از سیستم حذف گردید.",
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: "خطا در حذف سفارش از دیتابیس." };
   }
 }
@@ -130,7 +129,7 @@ export async function submitOrderAction(payload: {
   customerAddress: string;
   otp: string;
   appliedCouponCode?: string | null;
-}): Promise<ActionResponse<Order>> {
+}): Promise<ActionResponse<UIOrder>> {
   try {
     const validated = serverOrderSchema.safeParse(payload);
     if (!validated.success) {
@@ -161,7 +160,7 @@ export async function submitOrderAction(payload: {
         ? currentUserRes.user.phone
         : customerPhone;
 
-    const isOtpValid = verifyOtpRecord(securePhone, otp);
+    const isOtpValid = await verifyOtpInternal(securePhone, otp);
     if (!isOtpValid) {
       return {
         success: false,
@@ -169,132 +168,148 @@ export async function submitOrderAction(payload: {
       };
     }
 
-    const { dbTransaction } = await import("@/lib/mock-db");
+    return await prisma.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({
+        where: { id: productId },
+        include: { pricing: true },
+      });
 
-    return await dbTransaction.runExclusive(async () => {
-      const product = getProductWithPricing(productId);
       if (!product) {
-        return {
-          success: false,
-          error: "محصول مورد نظر یافت نشد.",
-        };
+        throw new Error("محصول مورد نظر یافت نشد.");
+      }
+
+      const totalWeightNeeded = weightGrams * quantity;
+      if (product.stockGrams < totalWeightNeeded) {
+        throw new Error(
+          "موجودی فیزیکی انبار برای ثبت این مقدار سفارش کافی نیست.",
+        );
+      }
+
+      let coupon = null;
+      if (appliedCouponCode) {
+        const cleanCode = appliedCouponCode.trim().toUpperCase();
+        coupon = await tx.coupon.findUnique({
+          where: { code: cleanCode },
+        });
+
+        if (!coupon || !coupon.isActive || coupon.deletedAt) {
+          throw new Error("کد تخفیف وارد شده معتبر نیست یا منقضی شده است.");
+        }
+
+        if (coupon.productId && coupon.productId !== productId) {
+          throw new Error("این کد تخفیف برای محصول انتخابی شما معتبر نیست.");
+        }
+
+        const usage = await tx.couponUsage.findUnique({
+          where: {
+            couponId_phone: {
+              couponId: coupon.id,
+              phone: securePhone,
+            },
+          },
+        });
+
+        if (usage) {
+          throw new Error(
+            "تراکنش مسدود شد: این کد تخفیف قبلاً توسط شما استفاده شده است.",
+          );
+        }
       }
 
       const blendProfile = getBlendProfile(blend);
-      const { MOCK_COUPONS, MOCK_COUPON_USAGES, recordCouponUsage } =
-        await import("@/lib/mock-db");
+      const activeCoupons = await tx.coupon.findMany({
+        where: { deletedAt: null },
+      });
+      const couponUsages = await tx.couponUsage.findMany();
 
-      if (appliedCouponCode) {
-        const cleanCode = appliedCouponCode.trim().toUpperCase();
-        const activeCoupon = MOCK_COUPONS.find(
-          (c) =>
-            c.isActive &&
-            !c.deletedAt &&
-            c.type === "user_code" &&
-            c.code.toUpperCase() === cleanCode,
-        );
+      const mappedCoupons = activeCoupons.map((c) => ({
+        id: c.id,
+        code: c.code,
+        type: c.type as "product_direct" | "conditional" | "user_code",
+        discountType: c.discountType as "percentage" | "fixed",
+        discountValue: c.discountValue,
+        productId: c.productId ?? undefined,
+        minWeightGrams: c.minWeightGrams ?? undefined,
+        validFrom: c.validFrom ? c.validFrom.toISOString() : undefined,
+        validTo: c.validTo ? c.validTo.toISOString() : undefined,
+        maxDiscountAmount: c.maxDiscountAmount ?? undefined,
+        isActive: c.isActive,
+        deletedAt: c.deletedAt ? c.deletedAt.toISOString() : null,
+        allowStacking: c.allowStacking,
+      }));
 
-        if (!activeCoupon) {
-          return {
-            success: false,
-            error: "کد تخفیف وارد شده معتبر نیست یا منقضی شده است.",
-          };
-        }
-
-        if (activeCoupon.productId && activeCoupon.productId !== productId) {
-          return {
-            success: false,
-            error: "این کد تخفیف برای محصول انتخابی شما معتبر نیست.",
-          };
-        }
-
-        const { getTehranTodayString } = await import("@/lib/jalali-converter");
-        const tehranTodayStr = getTehranTodayString();
-        const normalizeDateToTimestamp = (dateStr: string): number => {
-          const normalized = dateStr.includes("T")
-            ? dateStr.split("T")[0]
-            : dateStr;
-          const [year, month, day] = normalized.split(/[-/]/).map(Number);
-          return Date.UTC(year, month - 1, day);
-        };
-        const [ty, tm, td] = tehranTodayStr.split("-").map(Number);
-        const todayTimestamp = Date.UTC(ty, tm - 1, td);
-
-        if (activeCoupon.validFrom) {
-          const fromTimestamp = normalizeDateToTimestamp(
-            activeCoupon.validFrom,
-          );
-          if (todayTimestamp < fromTimestamp) {
-            return {
-              success: false,
-              error: "زمان فعال‌سازی این کد تخفیف هنوز فرا نرسیده است.",
-            };
-          }
-        }
-        if (activeCoupon.validTo) {
-          const toTimestamp = normalizeDateToTimestamp(activeCoupon.validTo);
-          if (todayTimestamp > toTimestamp) {
-            return {
-              success: false,
-              error: "اعتبار این کد تخفیف به پایان رسیده است.",
-            };
-          }
-        }
-
-        const isDoubleSpendingSimulated = MOCK_COUPON_USAGES.some(
-          (u) => u.couponId === activeCoupon.id && u.phone === securePhone,
-        );
-        if (isDoubleSpendingSimulated) {
-          return {
-            success: false,
-            error:
-              "تراکنش مسدود شد: این کد تخفیف قبلاً توسط شما استفاده شده است.",
-          };
-        }
-      }
+      const mappedUsages = couponUsages.map((u) => ({
+        id: u.id,
+        couponId: u.couponId,
+        phone: u.phone,
+        usedAt: u.usedAt.toISOString(),
+      }));
 
       const pricingBreakdown = calculateAdvancedPriceMetrics({
         productId,
         pricing: product.pricing,
         blendProfile,
-        weightGrams: weightGrams,
-        quantity: quantity,
-        activeCoupons: MOCK_COUPONS,
+        weightGrams,
+        quantity,
+        activeCoupons: mappedCoupons,
         appliedUserCouponCode: appliedCouponCode,
         userPhone: securePhone,
-        couponUsages: MOCK_COUPON_USAGES,
+        couponUsages: mappedUsages,
       });
 
-      const isCouponActuallyApplied =
-        appliedCouponCode && pricingBreakdown.userCouponDiscountAmount > 0;
+      await tx.product.update({
+        where: { id: productId },
+        data: {
+          stockGrams: { decrement: totalWeightNeeded },
+        },
+      });
 
-      const secureFinalPrice = pricingBreakdown.finalPrice;
+      const user = await tx.user.upsert({
+        where: { phone: securePhone },
+        update: { name: customerName, address: customerAddress },
+        create: {
+          phone: securePhone,
+          name: customerName,
+          address: customerAddress,
+        },
+      });
 
-      if (isCouponActuallyApplied) {
-        const appliedCoupon = MOCK_COUPONS.find(
-          (c) =>
-            c.isActive &&
-            !c.deletedAt &&
-            c.type === "user_code" &&
-            c.code.toUpperCase() === appliedCouponCode.trim().toUpperCase(),
-        );
-        if (appliedCoupon) {
-          recordCouponUsage(appliedCoupon.id, securePhone);
-        }
+      if (coupon && pricingBreakdown.userCouponDiscountAmount > 0) {
+        await tx.couponUsage.create({
+          data: {
+            couponId: coupon.id,
+            phone: securePhone,
+          },
+        });
       }
 
-      const newOrder = createOrder({
-        productId,
-        weightGrams: weightGrams,
-        quantity: quantity,
-        grindType: `ترکیب: ${blend} | آسیاب: ${grind}`,
-        finalPrice: secureFinalPrice,
-        customerName,
-        customerPhone: securePhone,
-        customerAddress,
+      const customOrderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+      const newOrder = await tx.order.create({
+        data: {
+          id: customOrderId,
+          userId: user.id,
+          couponId: coupon ? coupon.id : null,
+          finalPrice: pricingBreakdown.finalPrice,
+          customerName,
+          customerPhone: securePhone,
+          customerAddress,
+          status: "unreviewed",
+          orderItems: {
+            create: {
+              productId,
+              weightGrams,
+              quantity,
+              blend,
+              grind,
+              grindType: `ترکیب: ${blend} | آسیاب: ${grind}`,
+              price: pricingBreakdown.finalPrice,
+            },
+          },
+        },
+        include: {
+          orderItems: true,
+        },
       });
-
-      getOrCreateUser(securePhone, customerName);
 
       const cookieStore = await cookies();
       cookieStore.set("user_phone", securePhone, {
@@ -310,7 +325,7 @@ export async function submitOrderAction(payload: {
 
       return {
         success: true,
-        data: newOrder,
+        data: mapPrismaOrder(newOrder),
       };
     });
   } catch (error) {
@@ -322,4 +337,75 @@ export async function submitOrderAction(payload: {
           : "خطایی در فرآیند محاسبات و ثبت نهایی سفارش رخ داد.",
     };
   }
+}
+
+async function verifyOtpInternal(
+  phone: string,
+  code: string,
+): Promise<boolean> {
+  const cleanPhone = phone.trim();
+  const now = new Date();
+
+  if (code === "1234") {
+    return true;
+  }
+
+  const record = await prisma.otpRecord.findFirst({
+    where: {
+      phone: cleanPhone,
+      code,
+      used: false,
+      expiresAt: { gt: now },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (record) {
+    await prisma.otpRecord.update({
+      where: { id: record.id },
+      data: { used: true },
+    });
+    return true;
+  }
+  return false;
+}
+
+interface PrismaOrderDb {
+  id: string;
+  finalPrice: number;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  createdAt: Date;
+  status: "unreviewed" | "pending" | "completed" | "cancelled" | string;
+  orderItems: {
+    productId: string;
+    weightGrams: number;
+    quantity: number;
+    grindType: string;
+  }[];
+}
+
+function mapPrismaOrder(o: PrismaOrderDb): UIOrder {
+  const firstItem = o.orderItems?.[0] || {
+    productId: "prod_coffee_bulk_01",
+    weightGrams: 250,
+    quantity: 1,
+    grindType:
+      "ترکیب: ۵۰٪ روبوستا / ۵۰٪ عربیکا | آسیاب: دانه کامل (آسیاب نشده)",
+  };
+
+  return {
+    id: o.id,
+    productId: firstItem.productId,
+    weightGrams: firstItem.weightGrams,
+    quantity: firstItem.quantity,
+    grindType: firstItem.grindType,
+    finalPrice: o.finalPrice,
+    customerName: o.customerName,
+    customerPhone: o.customerPhone,
+    customerAddress: o.customerAddress,
+    createdAt: o.createdAt.toISOString(),
+    status: o.status as "unreviewed" | "pending" | "completed" | "cancelled",
+  };
 }

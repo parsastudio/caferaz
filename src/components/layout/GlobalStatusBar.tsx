@@ -6,12 +6,7 @@ import {
   logoutAdminAction,
   logoutUserAction,
 } from "@/actions/auth";
-import {
-  getOrders,
-  getCommentsByProductId,
-  getOrdersByPhone,
-  Comment,
-} from "@/lib/mock-db";
+import { prisma } from "@/lib/prisma";
 import {
   ShieldCheck,
   MessageSquare,
@@ -24,19 +19,6 @@ import {
   Home,
 } from "lucide-react";
 
-function countPendingComments(commentsList: Comment[]): number {
-  let count = 0;
-  for (const c of commentsList) {
-    if (c.status === "pending" || !c.status) {
-      count++;
-    }
-    if (c.replies && c.replies.length > 0) {
-      count += countPendingComments(c.replies);
-    }
-  }
-  return count;
-}
-
 export default async function GlobalStatusBar() {
   const isAdmin = await checkAdminAuth();
   const userRes = await getCurrentUserAction();
@@ -47,23 +29,37 @@ export default async function GlobalStatusBar() {
   }
 
   if (isAdmin) {
-    const rawComments = getCommentsByProductId("prod_coffee_bulk_01", true);
-    const pendingCommentsCount = countPendingComments(rawComments);
+    const pendingCommentsCount = await prisma.comment.count({
+      where: { status: "pending" },
+    });
 
-    const allOrders = getOrders();
-    const pendingOrdersCount = allOrders.filter(
-      (o) => o.status === "unreviewed",
-    ).length;
+    const pendingOrdersCount = await prisma.order.count({
+      where: { status: "unreviewed" },
+    });
 
     const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth();
-    const monthSales = allOrders
-      .filter((o) => {
-        const d = new Date(o.createdAt);
-        return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
-      })
-      .reduce((sum, o) => sum + o.finalPrice, 0);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    );
+
+    const monthSalesAggregate = await prisma.order.aggregate({
+      _sum: {
+        finalPrice: true,
+      },
+      where: {
+        createdAt: {
+          gte: startOfMonth,
+          lte: endOfMonth,
+        },
+      },
+    });
+    const monthSales = monthSalesAggregate._sum.finalPrice ?? 0;
 
     return (
       <div
@@ -234,10 +230,12 @@ export default async function GlobalStatusBar() {
   }
 
   if (user) {
-    const userOrders = getOrdersByPhone(user.phone);
-    const pendingUserOrdersCount = userOrders.filter(
-      (o) => o.status === "pending",
-    ).length;
+    const pendingUserOrdersCount = await prisma.order.count({
+      where: {
+        customerPhone: user.phone,
+        status: "pending",
+      },
+    });
 
     return (
       <div

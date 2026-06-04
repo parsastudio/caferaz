@@ -2,17 +2,24 @@ import CoffeeProductPage from "@/components/features/product/CoffeeProductPage";
 import { getProductAction } from "@/actions/product";
 import { getCommentsAction } from "@/actions/comment";
 import { getCouponsAction } from "@/actions/coupon";
-import { getOption } from "@/lib/mock-db";
+import { prisma } from "@/lib/prisma";
 import WhyCafeRaz from "@/components/features/landing/WhyCafeRaz";
-import FAQSection from "@/components/features/landing/FAQSection";
+import FAQSection, { FAQ } from "@/components/features/landing/FAQSection";
 
 export default async function Page() {
   const productResult = await getProductAction("prod_coffee_bulk_01");
   const commentsResult = await getCommentsAction("prod_coffee_bulk_01");
   const couponsResult = await getCouponsAction();
 
-  const faqs = getOption("site_faq") || [];
-  const siteSubtitle = getOption("site_subtitle") || "";
+  const siteFaqOpt = await prisma.option.findUnique({
+    where: { key: "site_faq" },
+  });
+  const siteSubtitleOpt = await prisma.option.findUnique({
+    where: { key: "site_subtitle" },
+  });
+
+  const faqs = siteFaqOpt ? (siteFaqOpt.value as unknown as FAQ[]) : [];
+  const siteSubtitle = siteSubtitleOpt ? (siteSubtitleOpt.value as string) : "";
 
   if (!productResult.success) {
     return (

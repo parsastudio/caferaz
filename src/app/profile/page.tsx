@@ -1,7 +1,7 @@
 import React from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getUserByPhone, getOrdersByPhone } from "@/lib/mock-db";
+import { prisma } from "@/lib/prisma";
 import ProfileDashboardClient from "@/components/features/profile/ProfileDashboardClient";
 
 export default async function ProfilePage() {
@@ -12,8 +12,49 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  const user = getUserByPhone(phone);
-  const orders = getOrdersByPhone(phone);
+  const userDb = await prisma.user.findUnique({
+    where: { phone: phone.trim() },
+  });
+
+  const user = userDb
+    ? {
+        id: userDb.id,
+        name: userDb.name,
+        phone: userDb.phone,
+        createdAt: userDb.createdAt.toISOString(),
+        address: userDb.address ?? undefined,
+      }
+    : null;
+
+  const ordersDb = await prisma.order.findMany({
+    where: { customerPhone: phone.trim() },
+    include: { orderItems: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const orders = ordersDb.map((o) => {
+    const firstItem = o.orderItems?.[0] || {
+      productId: "prod_coffee_bulk_01",
+      weightGrams: 250,
+      quantity: 1,
+      grindType:
+        "ترکیب: ۵۰٪ روبوستا / ۵۰٪ عربیکا | آسیاب: دانه کامل (آسیاب نشده)",
+    };
+
+    return {
+      id: o.id,
+      productId: firstItem.productId,
+      weightGrams: firstItem.weightGrams,
+      quantity: firstItem.quantity,
+      grindType: firstItem.grindType,
+      finalPrice: o.finalPrice,
+      customerName: o.customerName,
+      customerPhone: o.customerPhone,
+      customerAddress: o.customerAddress,
+      createdAt: o.createdAt.toISOString(),
+      status: o.status as "unreviewed" | "pending" | "completed" | "cancelled",
+    };
+  });
 
   return (
     <main className="min-h-screen bg-stone-950 text-stone-100 py-12 px-4">

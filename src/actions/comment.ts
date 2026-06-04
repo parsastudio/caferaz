@@ -1,15 +1,9 @@
 "use server";
 
-import {
-  getCommentsByProductId,
-  addComment,
-  deleteComment,
-  updateCommentStatus,
-  updateCommentText,
-  Comment,
-} from "@/lib/mock-db";
+import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { checkAdminAuth } from "@/actions/auth";
+import { Comment as UIComment } from "@/types";
 
 export type ActionResponse<T> =
   | { success: true; data: T; message?: string }
@@ -17,22 +11,30 @@ export type ActionResponse<T> =
 
 export async function getCommentsAction(
   productId: string,
-): Promise<ActionResponse<Comment[]>> {
+): Promise<ActionResponse<UIComment[]>> {
   try {
     if (!productId) {
       return { success: false, error: "شناسه محصول معتبر نیست." };
     }
 
-    const comments = getCommentsByProductId(productId, false);
-    return { success: true, data: comments };
-  } catch (error) {
+    const comments = await prisma.comment.findMany({
+      where: {
+        productId,
+        status: "approved",
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const tree = buildCommentTree(comments);
+    return { success: true, data: tree };
+  } catch {
     return { success: false, error: "خطا در بارگذاری دیدگاه‌ها رخ داد." };
   }
 }
 
 export async function getAdminCommentsAction(
   productId: string,
-): Promise<ActionResponse<Comment[]>> {
+): Promise<ActionResponse<UIComment[]>> {
   try {
     const isAdmin = await checkAdminAuth();
     if (!isAdmin) {
@@ -43,9 +45,14 @@ export async function getAdminCommentsAction(
       return { success: false, error: "شناسه محصول معتبر نیست." };
     }
 
-    const comments = getCommentsByProductId(productId, true);
-    return { success: true, data: comments };
-  } catch (error) {
+    const comments = await prisma.comment.findMany({
+      where: { productId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const tree = buildCommentTree(comments);
+    return { success: true, data: tree };
+  } catch {
     return {
       success: false,
       error: "خطا در بارگذاری دیدگاه‌های مدیریت رخ داد.",
@@ -60,9 +67,10 @@ export async function submitCommentAction(payload: {
   commentText: string;
   rating: number | null;
   parentId: string | null;
-}): Promise<ActionResponse<Comment>> {
+}): Promise<ActionResponse<UIComment>> {
   try {
-    const { productId, firstName, commentText, rating, parentId } = payload;
+    const { productId, phone, firstName, commentText, rating, parentId } =
+      payload;
 
     if (!productId || !firstName || !commentText) {
       return {
@@ -74,25 +82,51 @@ export async function submitCommentAction(payload: {
     const isAdmin = await checkAdminAuth();
     const status = isAdmin ? "approved" : "pending";
 
-    const newComment = addComment(productId, {
-      first_name: firstName,
-      last_name: "",
-      rating,
-      comment_text: commentText,
-      parentId,
-      status,
+    let userId: string | null = null;
+    if (phone) {
+      const user = await prisma.user.findUnique({
+        where: { phone: phone.trim() },
+      });
+      if (user) {
+        userId = user.id;
+      }
+    }
+
+    const newComment = await prisma.comment.create({
+      data: {
+        productId,
+        userId,
+        firstName,
+        lastName: "",
+        rating,
+        commentText,
+        status,
+        parentCommentId: parentId,
+      },
     });
 
     revalidatePath("/");
+
+    const uiComment: UIComment = {
+      id: newComment.id,
+      productId: newComment.productId ?? undefined,
+      first_name: newComment.firstName ?? "",
+      last_name: newComment.lastName ?? "",
+      rating: newComment.rating,
+      comment_text: newComment.commentText,
+      created_at: newComment.createdAt.toISOString(),
+      status: newComment.status as "pending" | "approved" | "rejected" | "spam",
+      replies: [],
+    };
 
     return {
       success: true,
       message: isAdmin
         ? "دیدگاه پشتیبان با موفقیت تایید و منتشر گردید."
         : "دیدگاه شما ثبت گردید و پس از بازبینی تایید خواهد شد.",
-      data: newComment,
+      data: uiComment,
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: "مشکلی در ذخیره دیدگاه شما وجود دارد." };
   }
 }
@@ -106,14 +140,10 @@ export async function approveCommentAction(
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    if (!commentId) {
-      return { success: false, error: "شناسه دیدگاه الزامی است." };
-    }
-
-    const isUpdated = updateCommentStatus(commentId, "approved");
-    if (!isUpdated) {
-      return { success: false, error: "دیدگاه مورد نظر یافت نشد." };
-    }
+    await prisma.comment.update({
+      where: { id: commentId },
+      data: { status: "approved" },
+    });
 
     revalidatePath("/");
     revalidatePath("/admin/comments");
@@ -123,7 +153,7 @@ export async function approveCommentAction(
       data: true,
       message: "دیدگاه با موفقیت تایید و منتشر شد.",
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: "خطا در تایید دیدگاه رخ داد." };
   }
 }
@@ -137,14 +167,10 @@ export async function rejectCommentAction(
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    if (!commentId) {
-      return { success: false, error: "شناسه دیدگاه الزامی است." };
-    }
-
-    const isUpdated = updateCommentStatus(commentId, "rejected");
-    if (!isUpdated) {
-      return { success: false, error: "دیدگاه مورد نظر یافت نشد." };
-    }
+    await prisma.comment.update({
+      where: { id: commentId },
+      data: { status: "rejected" },
+    });
 
     revalidatePath("/");
     revalidatePath("/admin/comments");
@@ -154,7 +180,7 @@ export async function rejectCommentAction(
       data: true,
       message: "دیدگاه با موفقیت رد شد و عدم انتشار قرار گرفت.",
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: "خطا در رد دیدگاه رخ داد." };
   }
 }
@@ -168,14 +194,10 @@ export async function spamCommentAction(
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    if (!commentId) {
-      return { success: false, error: "شناسه دیدگاه الزامی است." };
-    }
-
-    const isUpdated = updateCommentStatus(commentId, "spam");
-    if (!isUpdated) {
-      return { success: false, error: "دیدگاه مورد نظر یافت نشد." };
-    }
+    await prisma.comment.update({
+      where: { id: commentId },
+      data: { status: "spam" },
+    });
 
     revalidatePath("/");
     revalidatePath("/admin/comments");
@@ -185,7 +207,7 @@ export async function spamCommentAction(
       data: true,
       message: "دیدگاه مورد نظر با موفقیت در لیست اسپم قرار گرفت.",
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: "خطا در ثبت وضعیت اسپم دیدگاه." };
   }
 }
@@ -200,14 +222,10 @@ export async function editCommentAction(
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    if (!commentId || !commentText.trim()) {
-      return { success: false, error: "ورودی‌های ویرایش معتبر نیستند." };
-    }
-
-    const isUpdated = updateCommentText(commentId, commentText);
-    if (!isUpdated) {
-      return { success: false, error: "دیدگاه مورد نظر یافت نشد." };
-    }
+    await prisma.comment.update({
+      where: { id: commentId },
+      data: { commentText },
+    });
 
     revalidatePath("/");
     revalidatePath("/admin/comments");
@@ -217,7 +235,7 @@ export async function editCommentAction(
       data: true,
       message: "دیدگاه با موفقیت ویرایش شد.",
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: "خطا در ویرایش دیدگاه رخ داد." };
   }
 }
@@ -231,14 +249,9 @@ export async function deleteCommentAction(
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    if (!commentId) {
-      return { success: false, error: "شناسه دیدگاه ارسال نشده است." };
-    }
-
-    const isDeleted = deleteComment(commentId);
-    if (!isDeleted) {
-      return { success: false, error: "دیدگاه مورد نظر یافت نشد." };
-    }
+    await prisma.comment.delete({
+      where: { id: commentId },
+    });
 
     revalidatePath("/");
     revalidatePath("/admin/comments");
@@ -248,7 +261,72 @@ export async function deleteCommentAction(
       data: true,
       message: "دیدگاه مورد نظر با موفقیت حذف گردید.",
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: "خطا در حذف دیدگاه رخ داد." };
   }
+}
+
+interface PrismaCommentDb {
+  id: string;
+  productId: string | null;
+  userId: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  rating: number | null;
+  commentText: string;
+  createdAt: Date;
+  status: "pending" | "approved" | "rejected" | "spam" | string;
+  parentCommentId: string | null;
+}
+
+function buildCommentTree(comments: PrismaCommentDb[]): UIComment[] {
+  const commentMap = new Map<
+    string,
+    UIComment & { parentCommentId: string | null }
+  >();
+
+  comments.forEach((c) => {
+    commentMap.set(c.id, {
+      id: c.id,
+      productId: c.productId ?? undefined,
+      first_name: c.firstName ?? "",
+      last_name: c.lastName ?? "",
+      rating: c.rating,
+      comment_text: c.commentText,
+      created_at: c.createdAt.toISOString(),
+      status: c.status as "pending" | "approved" | "rejected" | "spam",
+      replies: [],
+      parentCommentId: c.parentCommentId,
+    });
+  });
+
+  const rootComments: UIComment[] = [];
+
+  comments.forEach((c) => {
+    const mapped = commentMap.get(c.id);
+    if (mapped) {
+      if (c.parentCommentId && commentMap.has(c.parentCommentId)) {
+        const parent = commentMap.get(c.parentCommentId);
+        if (parent) {
+          parent.replies = parent.replies || [];
+          parent.replies.push(mapped);
+        }
+      } else {
+        rootComments.push(mapped);
+      }
+    }
+  });
+
+  const sortReplies = (comment: UIComment) => {
+    if (comment.replies && comment.replies.length > 0) {
+      comment.replies.sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      );
+      comment.replies.forEach(sortReplies);
+    }
+  };
+  rootComments.forEach(sortReplies);
+
+  return rootComments;
 }

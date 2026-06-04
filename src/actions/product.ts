@@ -1,30 +1,30 @@
 "use server";
 
-import {
-  getProductWithPricing,
-  updateProductDetails,
-  ProductWithPricing,
-} from "@/lib/mock-db";
+import { prisma } from "@/lib/prisma";
 import { ActionResponse } from "./comment";
 import { revalidatePath } from "next/cache";
 import { checkAdminAuth } from "@/actions/auth";
+import { ProductWithPricing as UIProduct } from "@/types";
 
 export async function getProductAction(
   productId: string,
-): Promise<ActionResponse<ProductWithPricing>> {
+): Promise<ActionResponse<UIProduct>> {
   try {
     if (!productId) {
       return { success: false, error: "شناسه محصول ارسال نشده است." };
     }
 
-    const product = getProductWithPricing(productId);
+    const product = await prisma.product.findUnique({
+      where: { id: productId, deletedAt: null },
+      include: { pricing: true },
+    });
 
     if (!product) {
       return { success: false, error: "محصول مورد نظر یافت نشد." };
     }
 
-    return { success: true, data: product };
-  } catch (error) {
+    return { success: true, data: mapPrismaProduct(product) };
+  } catch {
     return { success: false, error: "خطا در دریافت اطلاعات محصول رخ داد." };
   }
 }
@@ -57,29 +57,17 @@ export async function updateProductDetailsAction(payload: {
       };
     }
 
-    const product = getProductWithPricing(productId);
-    if (!product) {
-      return {
-        success: false,
-        error: "محصول مورد نظر یافت نشد.",
-      };
-    }
-
-    const updated = updateProductDetails(
-      productId,
-      product.name,
-      product.description,
-      pricePerKgArabica,
-      pricePerKgRobusta,
-      stockGrams,
-    );
-
-    if (!updated) {
-      return {
-        success: false,
-        error: "محصول مورد نظر جهت تغییر اطلاعات یافت نشد.",
-      };
-    }
+    await prisma.$transaction([
+      prisma.product.update({
+        where: { id: productId },
+        data: { stockGrams },
+      }),
+      prisma.pricing.upsert({
+        where: { productId },
+        update: { pricePerKgArabica, pricePerKgRobusta },
+        create: { productId, pricePerKgArabica, pricePerKgRobusta },
+      }),
+    ]);
 
     revalidatePath("/");
     revalidatePath("/admin/pricing");
@@ -89,7 +77,7 @@ export async function updateProductDetailsAction(payload: {
       data: true,
       message: "نرخ‌های پایه و موجودی انبار با موفقیت به روزرسانی شدند.",
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: "خطا در ذخیره جزئیات جدید محصول رخ داد." };
   }
 }
@@ -114,29 +102,10 @@ export async function updateProductBasicInfoAction(payload: {
       };
     }
 
-    const product = getProductWithPricing(productId);
-    if (!product) {
-      return {
-        success: false,
-        error: "محصول مورد نظر یافت نشد.",
-      };
-    }
-
-    const updated = updateProductDetails(
-      productId,
-      name,
-      description,
-      product.pricing?.pricePerKgArabica || 2200000,
-      product.pricing?.pricePerKgRobusta || 1800000,
-      product.stock_grams,
-    );
-
-    if (!updated) {
-      return {
-        success: false,
-        error: "خطا در بروزرسانی مشخصات کالا.",
-      };
-    }
+    await prisma.product.update({
+      where: { id: productId },
+      data: { name, description },
+    });
 
     revalidatePath("/");
     revalidatePath("/admin/settings");
@@ -152,4 +121,30 @@ export async function updateProductBasicInfoAction(payload: {
       error: "خطا در ذخیره‌سازی اطلاعات پایه محصول.",
     };
   }
+}
+
+interface PrismaProductDb {
+  id: string;
+  name: string;
+  description: string;
+  stockGrams: number;
+  pricing: {
+    pricePerKgArabica: number;
+    pricePerKgRobusta: number;
+  } | null;
+}
+
+function mapPrismaProduct(p: PrismaProductDb): UIProduct {
+  return {
+    id: p.id,
+    name: p.name,
+    description: p.description,
+    stock_grams: p.stockGrams,
+    pricing: p.pricing
+      ? {
+          pricePerKgArabica: p.pricing.pricePerKgArabica,
+          pricePerKgRobusta: p.pricing.pricePerKgRobusta,
+        }
+      : null,
+  };
 }

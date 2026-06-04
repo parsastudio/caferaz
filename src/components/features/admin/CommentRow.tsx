@@ -12,7 +12,7 @@ import {
   Edit3,
   ShieldAlert,
 } from "lucide-react";
-import { Comment } from "@/lib/mock-db";
+import { Comment } from "@/types";
 import { Badge } from "@/components/ui/badge";
 
 interface CommentRowProps {

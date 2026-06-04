@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { updateProductDetailsAction } from "@/actions/product";
-import { ProductWithPricing } from "@/lib/mock-db";
+import { ProductWithPricing } from "@/types";
 import { toast } from "sonner";
 import { Loader2, Sparkles, Coffee } from "lucide-react";
 

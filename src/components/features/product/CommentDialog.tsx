@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "../../ui/dialog";
 import { useCommentForm } from "@/hooks/useCommentForm";
-import { Comment } from "@/lib/mock-db";
+import { Comment } from "@/types";
 
 interface CommentDialogProps {
   isOpen: boolean;

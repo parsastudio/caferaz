@@ -3,7 +3,7 @@
 import React, { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Ticket, Plus } from "lucide-react";
-import { Coupon } from "@/lib/mock-db";
+import { Coupon } from "@/types";
 import {
   createCouponAction,
   deleteCouponAction,

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { ActionResponse } from "./comment";
+import { prisma } from "@/lib/prisma";
 import {
   getBlendProfile,
   calculateAdvancedPriceMetrics,
@@ -10,6 +11,7 @@ import {
 import { toEnglishDigits } from "@/lib/utils";
 import { getTehranTodayString } from "@/lib/jalali-converter";
 import { checkAdminAuth } from "@/actions/auth";
+import { Coupon as UICoupon } from "@/types";
 
 const createCouponSchema = z.object({
   code: z.string().optional(),
@@ -61,11 +63,14 @@ export async function validateCouponAction(payload: {
         ? currentUserRes.user.phone
         : cleanPhone;
 
-    const { getCouponByCode, getCouponUsages, getProductWithPricing } =
-      await import("@/lib/mock-db");
+    const coupon = await prisma.coupon.findFirst({
+      where: {
+        code: cleanCode,
+        deletedAt: null,
+      },
+    });
 
-    const coupon = getCouponByCode(cleanCode);
-    if (!coupon || !coupon.isActive || coupon.deletedAt) {
+    if (!coupon || !coupon.isActive) {
       return { success: false, error: "کد تخفیف وارد شده معتبر نیست." };
     }
 
@@ -84,10 +89,10 @@ export async function validateCouponAction(payload: {
     }
 
     const tehranTodayStr = getTehranTodayString();
-    const normalizeDateToTimestamp = (dateStr: string): number => {
-      const normalized = dateStr.includes("T")
-        ? dateStr.split("T")[0]
-        : dateStr;
+    const normalizeDateToTimestamp = (dateStr: string | Date): number => {
+      const dStr =
+        typeof dateStr === "string" ? dateStr : dateStr.toISOString();
+      const normalized = dStr.includes("T") ? dStr.split("T")[0] : dStr;
       const [year, month, day] = normalized.split(/[-/]/).map(Number);
       return Date.UTC(year, month - 1, day);
     };
@@ -114,11 +119,15 @@ export async function validateCouponAction(payload: {
     }
 
     if (securePhone) {
-      const usages = getCouponUsages();
-      const alreadyUsed = usages.some(
-        (u) => u.couponId === coupon.id && u.phone === securePhone,
-      );
-      if (alreadyUsed) {
+      const usage = await prisma.couponUsage.findUnique({
+        where: {
+          couponId_phone: {
+            couponId: coupon.id,
+            phone: securePhone,
+          },
+        },
+      });
+      if (usage) {
         return {
           success: false,
           error: "شما قبلاً از این کد تخفیف استفاده کرده‌اید.",
@@ -126,24 +135,38 @@ export async function validateCouponAction(payload: {
       }
     }
 
-    const product = getProductWithPricing(productId);
-    if (!product) {
+    const productFromDb = await prisma.product.findUnique({
+      where: { id: productId },
+      include: { pricing: true },
+    });
+    if (!productFromDb) {
       return { success: false, error: "محصول مورد نظر یافت نشد." };
     }
 
     const blendProfile = getBlendProfile(blend);
-    const { MOCK_COUPONS, MOCK_COUPON_USAGES } = await import("@/lib/mock-db");
+    const activeCouponsFromDb = await prisma.coupon.findMany({
+      where: { deletedAt: null },
+    });
+    const couponUsagesFromDb = await prisma.couponUsage.findMany();
+
+    const mappedActiveCoupons = activeCouponsFromDb.map(mapPrismaCoupon);
+    const mappedUsages = couponUsagesFromDb.map((u) => ({
+      id: u.id,
+      couponId: u.couponId,
+      phone: u.phone,
+      usedAt: u.usedAt.toISOString(),
+    }));
 
     const pricingBreakdown = calculateAdvancedPriceMetrics({
       productId,
-      pricing: product.pricing,
+      pricing: productFromDb.pricing,
       blendProfile,
       weightGrams,
       quantity,
-      activeCoupons: MOCK_COUPONS,
+      activeCoupons: mappedActiveCoupons,
       appliedUserCouponCode: cleanCode,
       userPhone: securePhone,
-      couponUsages: MOCK_COUPON_USAGES,
+      couponUsages: mappedUsages,
     });
 
     if (pricingBreakdown.userCouponDiscountAmount <= 0) {
@@ -160,7 +183,7 @@ export async function validateCouponAction(payload: {
       data: {
         couponId: coupon.id,
         code: coupon.code,
-        discountType: coupon.discountType,
+        discountType: coupon.discountType as "percentage" | "fixed",
         discountValue: coupon.discountValue,
         discountAmount: pricingBreakdown.userCouponDiscountAmount,
         finalPrice: pricingBreakdown.finalPrice,
@@ -168,16 +191,18 @@ export async function validateCouponAction(payload: {
         conditionalDiscountAmount: pricingBreakdown.conditionalDiscountAmount,
       },
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: "خطا در پردازش و اعتبارسنجی کد تخفیف." };
   }
 }
 
 export async function getCouponsAction() {
   try {
-    const { getCoupons } = await import("@/lib/mock-db");
-    return { success: true, data: getCoupons() };
-  } catch (error) {
+    const coupons = await prisma.coupon.findMany({
+      where: { deletedAt: null },
+    });
+    return { success: true, data: coupons.map(mapPrismaCoupon) };
+  } catch {
     return { success: false, error: "خطا در دریافت لیست تخفیف‌ها." };
   }
 }
@@ -214,10 +239,27 @@ export async function createCouponAction(
       }
     }
 
-    const { createCoupon } = await import("@/lib/mock-db");
-    const coupon = createCoupon({
-      ...validated.data,
-      code: finalCode,
+    const validFromDate = validated.data.validFrom
+      ? new Date(validated.data.validFrom)
+      : null;
+    const validToDate = validated.data.validTo
+      ? new Date(validated.data.validTo)
+      : null;
+
+    const coupon = await prisma.coupon.create({
+      data: {
+        code: finalCode,
+        type: validated.data.type,
+        discountType: validated.data.discountType,
+        discountValue: validated.data.discountValue,
+        productId: validated.data.productId || null,
+        minWeightGrams: validated.data.minWeightGrams || null,
+        validFrom: validFromDate,
+        validTo: validToDate,
+        maxDiscountAmount: validated.data.maxDiscountAmount || null,
+        isActive: validated.data.isActive,
+        allowStacking: validated.data.allowStacking,
+      },
     });
 
     revalidatePath("/");
@@ -225,10 +267,10 @@ export async function createCouponAction(
 
     return {
       success: true,
-      data: coupon,
+      data: mapPrismaCoupon(coupon),
       message: "کد تخفیف با موفقیت در سیستم تعریف شد.",
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: "خطا در ثبت کد تخفیف جدید." };
   }
 }
@@ -240,12 +282,10 @@ export async function deleteCouponAction(id: string) {
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    const { deleteCoupon } = await import("@/lib/mock-db");
-    const isDeleted = deleteCoupon(id);
-
-    if (!isDeleted) {
-      return { success: false, error: "کد تخفیف مورد نظر یافت نشد." };
-    }
+    await prisma.coupon.update({
+      where: { id },
+      data: { deletedAt: new Date(), isActive: false },
+    });
 
     revalidatePath("/");
     revalidatePath("/admin/coupons");
@@ -255,7 +295,7 @@ export async function deleteCouponAction(id: string) {
       data: true,
       message: "کد تخفیف با موفقیت حذف گردید.",
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: "خطا در حذف کد تخفیف." };
   }
 }
@@ -267,12 +307,18 @@ export async function toggleCouponStatusAction(id: string) {
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    const { toggleCouponStatus } = await import("@/lib/mock-db");
-    const isToggled = toggleCouponStatus(id);
+    const existing = await prisma.coupon.findUnique({
+      where: { id },
+    });
 
-    if (!isToggled) {
+    if (!existing) {
       return { success: false, error: "کد تخفیف یافت نشد." };
     }
+
+    await prisma.coupon.update({
+      where: { id },
+      data: { isActive: !existing.isActive },
+    });
 
     revalidatePath("/");
     revalidatePath("/admin/coupons");
@@ -282,7 +328,41 @@ export async function toggleCouponStatusAction(id: string) {
       data: true,
       message: "وضعیت فعال‌بودن کد تخفیف تغییر یافت.",
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: "خطا در تغییر وضعیت کد تخفیف." };
   }
+}
+
+interface PrismaCouponDb {
+  id: string;
+  code: string;
+  type: "product_direct" | "conditional" | "user_code" | string;
+  discountType: "percentage" | "fixed" | string;
+  discountValue: number;
+  productId: string | null;
+  minWeightGrams: number | null;
+  validFrom: Date | null;
+  validTo: Date | null;
+  maxDiscountAmount: number | null;
+  isActive: boolean;
+  deletedAt: Date | null;
+  allowStacking: boolean;
+}
+
+function mapPrismaCoupon(c: PrismaCouponDb): UICoupon {
+  return {
+    id: c.id,
+    code: c.code,
+    type: c.type as "product_direct" | "conditional" | "user_code",
+    discountType: c.discountType as "percentage" | "fixed",
+    discountValue: c.discountValue,
+    productId: c.productId ?? undefined,
+    minWeightGrams: c.minWeightGrams ?? undefined,
+    validFrom: c.validFrom ? c.validFrom.toISOString() : undefined,
+    validTo: c.validTo ? c.validTo.toISOString() : undefined,
+    maxDiscountAmount: c.maxDiscountAmount ?? undefined,
+    isActive: c.isActive,
+    deletedAt: c.deletedAt ? c.deletedAt.toISOString() : null,
+    allowStacking: c.allowStacking,
+  };
 }

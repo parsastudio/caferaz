@@ -10,7 +10,7 @@ import { MessageSquare, Star, Plus, Clock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../ui/tabs";
 import { Button } from "../../ui/button";
 import CommentDialog from "./CommentDialog";
-import { Comment } from "@/lib/mock-db";
+import { Comment } from "@/types";
 
 export interface UIComment extends Omit<Comment, "replies"> {
   is_pending?: boolean;

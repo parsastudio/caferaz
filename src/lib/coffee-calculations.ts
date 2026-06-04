@@ -1,5 +1,5 @@
 import { getTehranTodayString } from "./jalali-converter";
-import { Coupon, CouponUsage } from "./mock-db";
+import { Coupon, CouponUsage } from "@/types";
 import { STATIC_BLENDS, BlendProfile } from "./constants";
 
 export interface PriceMetrics {

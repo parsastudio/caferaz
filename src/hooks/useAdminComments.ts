@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Comment } from "@/lib/mock-db";
+import { Comment } from "@/types";
 import { toast } from "sonner";
 import {
   submitCommentAction,

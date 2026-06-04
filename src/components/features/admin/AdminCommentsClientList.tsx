@@ -4,7 +4,7 @@ import React from "react";
 import CommentFilterTabs from "./CommentFilterTabs";
 import CommentRow from "./CommentRow";
 import { useAdminComments } from "@/hooks/useAdminComments";
-import { Comment } from "@/lib/mock-db";
+import { Comment } from "@/types";
 
 interface AdminCommentsClientListProps {
   initialComments: Comment[];

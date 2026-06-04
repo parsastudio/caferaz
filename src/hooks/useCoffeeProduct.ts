@@ -5,7 +5,7 @@ import {
   calculateAdvancedPriceMetrics,
   calculateRemainingStock,
 } from "@/lib/coffee-calculations";
-import { Coupon } from "@/lib/mock-db";
+import { Coupon } from "@/types";
 
 export interface ProductPricing {
   pricePerKgArabica: number;

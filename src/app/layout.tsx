@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { CheckoutProvider } from "@/context/CheckoutContext";
-import Footer from "@/components/layout/Footer";
+import Footer, { FooterConfig } from "@/components/layout/Footer";
 import GlobalStatusBar from "@/components/layout/GlobalStatusBar";
 import RouteProgressBar from "@/components/layout/RouteProgressBar";
-import { getOption } from "@/lib/mock-db";
+import { prisma } from "@/lib/prisma";
 import { Suspense } from "react";
 
 const vazirMatn = localFont({
@@ -18,12 +18,33 @@ export const metadata: Metadata = {
   description: "رست تخصصی و فروش مستقیم قهوه میکس ویژه اسپرسو",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const footerData = getOption("site_footer");
+  const footerOpt = await prisma.option.findUnique({
+    where: { key: "site_footer" },
+  });
+
+  let footerData: FooterConfig | null = null;
+
+  if (
+    footerOpt &&
+    typeof footerOpt.value === "object" &&
+    footerOpt.value !== null
+  ) {
+    const raw = footerOpt.value as Record<string, unknown>;
+
+    footerData = {
+      phones: Array.isArray(raw.phones) ? (raw.phones as string[]) : [],
+      address: typeof raw.address === "string" ? raw.address : "",
+      website: typeof raw.website === "string" ? raw.website : "",
+      eitaa: typeof raw.eitaa === "string" ? raw.eitaa : "",
+      instagram: typeof raw.instagram === "string" ? raw.instagram : "",
+      telegram: typeof raw.telegram === "string" ? raw.telegram : "",
+    };
+  }
 
   return (
     <html

@@ -13,7 +13,7 @@ import {
   Trash,
   X,
 } from "lucide-react";
-import { Order } from "@/lib/mock-db";
+import { Order } from "@/types";
 import { updateOrderStatusAction, deleteOrderAction } from "@/actions/order";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";

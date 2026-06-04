@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { submitCommentAction } from "@/actions/comment";
-import { Comment } from "@/lib/mock-db";
+import { Comment } from "@/types";
 
 export const commentSchema = z.object({
   firstName: z

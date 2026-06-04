@@ -1,5 +1,5 @@
 import React from "react";
-import { Coupon } from "@/lib/mock-db";
+import { Coupon } from "@/types";
 
 interface CouponStatsProps {
   coupons: Coupon[];

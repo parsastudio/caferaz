@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MOCK_PRODUCTS } from "@/lib/mock-db";
+import { STATIC_PRODUCTS } from "@/lib/constants";
 import {
   getTodayJalaliString,
   isValidJalaaliDate,
@@ -78,7 +78,7 @@ const schema = z
     },
     {
       message:
-        "وارد کردن کد تخفیف برای کوپن‌های دستی کاربر الزامی است (حداقل ۲ کاراکتر)",
+        "ورود کردن کد تخفیف برای کوپن‌های دستی کاربر الزامی است (حداقل ۲ کاراکتر)",
       path: ["code"],
     },
   );
@@ -135,7 +135,6 @@ export default function CouponCreateDialog({
 
   const currentType = watch("type");
   const currentDiscountType = watch("discountType");
-  const todayShamsi = getTodayJalaliString();
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -351,7 +350,7 @@ export default function CouponCreateDialog({
                     onChange={onChange}
                     className="w-full bg-stone-950 border border-stone-800 rounded-xl pl-9 pr-3.5 py-3 text-xs text-stone-300 outline-none appearance-none cursor-pointer focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50 transition-all font-bold mb-2"
                   >
-                    {MOCK_PRODUCTS.map((p) => (
+                    {STATIC_PRODUCTS.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
                       </option>
