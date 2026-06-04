@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -6,7 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-// تعریف Enumهای بومی در سطح پایگاه‌داده برای بهینه‌سازی فضا و امنیت داده
 enum OrderStatus {
   unreviewed
   pending
@@ -33,20 +33,23 @@ enum DiscountType {
 }
 
 model Product {
-  id          String    @id @default(uuid())
+  id          String      @id @default(cuid())
   name        String
   description String
-  stockGrams  Int       @map("stock_grams")
+  stockGrams  Int         @map("stock_grams")
+  isActive    Boolean     @default(true) @map("is_active")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  deletedAt   DateTime?   @map("deleted_at")
   pricing     Pricing?
   comments    Comment[]
-  orders      Order[]
+  orderItems  OrderItem[]
   coupons     Coupon[]
 
   @@map("products")
 }
 
 model Pricing {
-  id                String  @id @default(uuid())
+  id                String  @id @default(cuid())
   productId         String  @unique @map("product_id")
   product           Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   pricePerKgArabica  Int     @map("price_per_kg_arabica")
@@ -56,11 +59,16 @@ model Pricing {
 }
 
 model Comment {
-  id              String        @id @default(uuid())
+  id              String        @id @default(cuid())
   productId       String?       @map("product_id")
   product         Product?      @relation(fields: [productId], references: [id], onDelete: Cascade)
-  firstName       String        @map("first_name")
-  lastName        String        @map("last_name")
+  userId          String?       @map("user_id")
+  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // فیلدهای نام برای کاربران غیرعضو (مهمان) اختیاری می‌شوند
+  firstName       String?       @map("first_name")
+  lastName        String?       @map("last_name")
+  
   rating          Int?
   commentText     String        @map("comment_text")
   createdAt       DateTime      @default(now()) @map("created_at")
@@ -72,41 +80,64 @@ model Comment {
 
   @@index([productId])
   @@index([parentCommentId])
+  @@index([userId])
   @@map("comments")
 }
 
 model Order {
-  id              String      @id
-  productId       String      @map("product_id")
-  product         Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
-  weightGrams     Int         @map("weight_grams")
-  quantity        Int
-  grindType       String      @map("grind_type")
+  id              String      @id @default(cuid()) // استفاده از cuid برای جلوگیری از تداخل شناسه در پروداکشن
+  userId          String?     @map("user_id")
+  user            User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  couponId        String?     @map("coupon_id")
+  coupon          Coupon?     @relation(fields: [couponId], references: [id], onDelete: SetNull)
   finalPrice      Int         @map("final_price")
   customerName    String      @map("customer_name")
   customerPhone   String      @map("customer_phone")
   customerAddress String      @map("customer_address")
   createdAt       DateTime    @default(now()) @map("created_at")
   status          OrderStatus @default(unreviewed)
+  orderItems      OrderItem[]
 
-  @@index([productId])
+  @@index([userId])
+  @@index([couponId])
   @@index([customerPhone])
   @@index([status])
   @@map("orders")
 }
 
+// جدول واسط جهت توسعه‌پذیری چندمحصولی در آینده و ذخیره‌سازی دقیق ویژگی‌های هر آیتم
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String   @map("order_id")
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String   @map("product_id")
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  weightGrams Int      @map("weight_grams")
+  quantity    Int
+  blend       String
+  grind       String
+  grindType   String   @map("grind_type")
+  price       Int      // قیمت ثبت‌شده این آیتم در زمان خرید برای آرشیو مالی صحیح
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
 model User {
-  id        String   @id @default(uuid())
+  id        String    @id @default(cuid())
   name      String
-  phone     String   @unique
-  createdAt DateTime @default(now()) @map("created_at")
+  phone     String    @unique
+  createdAt DateTime  @default(now()) @map("created_at")
   address   String?
+  orders    Order[]
+  comments  Comment[]
 
   @@map("users")
 }
 
 model Coupon {
-  id                String        @id @default(uuid())
+  id                String        @id @default(cuid())
   code              String        @unique
   type              CouponType
   discountType      DiscountType  @map("discount_type")
@@ -121,13 +152,14 @@ model Coupon {
   deletedAt         DateTime?     @map("deleted_at")
   allowStacking     Boolean       @default(false) @map("allow_stacking")
   usages            CouponUsage[]
+  orders            Order[]
 
   @@index([productId])
   @@map("coupons")
 }
 
 model CouponUsage {
-  id       String   @id @default(uuid())
+  id       String   @id @default(cuid())
   couponId String   @map("coupon_id")
   coupon   Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
   phone    String
@@ -139,13 +171,13 @@ model CouponUsage {
 
 model Option {
   key   String @id
-  value Json   // استفاده از فرمت فوق بهینه باینری jsonb در PostgreSQL
+  value Json
 
   @@map("options")
 }
 
 model OtpRecord {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   phone     String
   code      String
   ip        String
@@ -154,5 +186,6 @@ model OtpRecord {
   used      Boolean  @default(false)
 
   @@index([phone])
+  @@index([expiresAt]) // ایندکس حیاتی برای کارایی بهینه‌تر کوئری‌های پاک‌سازی کرون‌جاب
   @@map("otp_records")
 }

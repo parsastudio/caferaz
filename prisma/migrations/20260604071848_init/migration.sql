@@ -1,9 +1,3 @@
-/*
-  Warnings:
-
-  - You are about to drop the `connection_tests` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "OrderStatus" AS ENUM ('unreviewed', 'pending', 'completed', 'cancelled');
 
@@ -15,9 +9,6 @@ CREATE TYPE "CouponType" AS ENUM ('product_direct', 'conditional', 'user_code');
 
 -- CreateEnum
 CREATE TYPE "DiscountType" AS ENUM ('percentage', 'fixed');
-
--- DropTable
-DROP TABLE "connection_tests";
 
 -- CreateTable
 CREATE TABLE "products" (
@@ -43,6 +34,7 @@ CREATE TABLE "pricing" (
 CREATE TABLE "comments" (
     "id" TEXT NOT NULL,
     "product_id" TEXT,
+    "user_id" TEXT,
     "first_name" TEXT NOT NULL,
     "last_name" TEXT NOT NULL,
     "rating" INTEGER,
@@ -58,8 +50,12 @@ CREATE TABLE "comments" (
 CREATE TABLE "orders" (
     "id" TEXT NOT NULL,
     "product_id" TEXT NOT NULL,
+    "user_id" TEXT,
+    "coupon_id" TEXT,
     "weight_grams" INTEGER NOT NULL,
     "quantity" INTEGER NOT NULL,
+    "blend" TEXT NOT NULL,
+    "grind" TEXT NOT NULL,
     "grind_type" TEXT NOT NULL,
     "final_price" INTEGER NOT NULL,
     "customer_name" TEXT NOT NULL,
@@ -142,7 +138,16 @@ CREATE INDEX "comments_product_id_idx" ON "comments"("product_id");
 CREATE INDEX "comments_parent_comment_id_idx" ON "comments"("parent_comment_id");
 
 -- CreateIndex
+CREATE INDEX "comments_user_id_idx" ON "comments"("user_id");
+
+-- CreateIndex
 CREATE INDEX "orders_product_id_idx" ON "orders"("product_id");
+
+-- CreateIndex
+CREATE INDEX "orders_user_id_idx" ON "orders"("user_id");
+
+-- CreateIndex
+CREATE INDEX "orders_coupon_id_idx" ON "orders"("coupon_id");
 
 -- CreateIndex
 CREATE INDEX "orders_customer_phone_idx" ON "orders"("customer_phone");
@@ -172,10 +177,19 @@ ALTER TABLE "pricing" ADD CONSTRAINT "pricing_product_id_fkey" FOREIGN KEY ("pro
 ALTER TABLE "comments" ADD CONSTRAINT "comments_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "comments" ADD CONSTRAINT "comments_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "comments" ADD CONSTRAINT "comments_parent_comment_id_fkey" FOREIGN KEY ("parent_comment_id") REFERENCES "comments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "orders" ADD CONSTRAINT "orders_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "orders" ADD CONSTRAINT "orders_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "orders" ADD CONSTRAINT "orders_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "orders" ADD CONSTRAINT "orders_coupon_id_fkey" FOREIGN KEY ("coupon_id") REFERENCES "coupons"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "coupons" ADD CONSTRAINT "coupons_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "products"("id") ON DELETE CASCADE ON UPDATE CASCADE;

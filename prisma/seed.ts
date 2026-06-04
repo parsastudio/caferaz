@@ -14,22 +14,23 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log("🌱 شروع فرآیند Seeding ساختار بهینه کافه راز...");
+  console.log("🌱 شروع فرآیند Seeding ساختار تولیدی و بهینه کافه راز...");
 
-  // ۱. پاکسازی داده‌های قدیمی جهت بازسازی کامل ساختار
+  // حذف رکوردها با رعایت اولویت کلیدهای خارجی برای جلوگیری از خطای Referential Integrity
   await prisma.otpRecord.deleteMany();
   await prisma.option.deleteMany();
   await prisma.couponUsage.deleteMany();
   await prisma.coupon.deleteMany();
+  await prisma.orderItem.deleteMany(); // ابتدا رکوردهای میانی آیتم‌های سفارش حذف شوند
   await prisma.order.deleteMany();
   await prisma.comment.deleteMany();
   await prisma.pricing.deleteMany();
   await prisma.user.deleteMany();
   await prisma.product.deleteMany();
 
-  console.log("🗑️ تمام رکوردهای قبلی با موفقیت حذف شدند.");
+  console.log("🗑️ تمام رکوردهای قدیمی با رعایت ساختار کلیدهای خارجی حذف شدند.");
 
-  // ۲. ثبت محصول اصلی
+  // ۱. ایجاد محصول اصلی
   const mainProduct = await prisma.product.create({
     data: {
       id: "prod_coffee_bulk_01",
@@ -37,11 +38,12 @@ async function main() {
       description:
         "ترکیبی اقتصادی و باکیفیت از دانه‌های مرغوب عربیکا و روبوستا با طعم یاد متعادل و قیمتی فراتر از انتظار. ایده‌آل برای مصارف روزانه خانگی، کافه‌ها و ادارات.",
       stockGrams: 150000,
+      isActive: true,
     },
   });
-  console.log("📦 محصول اصلی در دیتابیس ثبت شد.");
+  console.log("📦 محصول اصلی به همراه وضعیت فعال بودن ثبت شد.");
 
-  // ۳. ثبت قیمت‌های مرجع عربیکا و روبوستا
+  // ۲. ثبت قیمت مرجع
   await prisma.pricing.create({
     data: {
       productId: mainProduct.id,
@@ -51,7 +53,7 @@ async function main() {
   });
   console.log("🏷️ نرخ‌های مرجع عربیکا و روبوستا در دیتابیس ذخیره شدند.");
 
-  // ۴. ثبت کاربران فرضی اولیه
+  // ۳. ثبت کاربران پیش‌فرض
   await prisma.user.createMany({
     data: [
       {
@@ -72,43 +74,65 @@ async function main() {
   });
   console.log("👥 کاربران پیش‌فرض ثبت شدند.");
 
-  // ۵. ثبت فاکتورهای اولیه (متصل به مدل اِنام‌های جدید)
-  await prisma.order.createMany({
-    data: [
-      {
-        id: "ORD-9824",
-        productId: mainProduct.id,
-        weightGrams: 1000,
-        quantity: 2,
-        grindType:
-          "ترکیب: ۷۰٪ روبوستا / ۳۰٪ عربیکا | آسیاب: آسیاب اسپرسو (دستگاه برقی)",
-        finalPrice: 3880000,
-        customerName: "علیرضا شفیعی",
-        customerPhone: "09121112233",
-        customerAddress:
-          "تهران، میدان ونک، خیابان گاندی، کوچه چهارم، پلاک ۱۲، واحد ۳",
-        createdAt: new Date("2026-05-30T10:15:00.000Z"),
-        status: "completed", // مقداردهی ایمن اِنام
+  // ۴. ثبت فاکتورهای سفارش جدید به همراه آیتم‌های مرتبط (Relational Nested Writes)
+  // سفارش اول علیرضا شفیعی
+  await prisma.order.create({
+    data: {
+      id: "ORD-9824",
+      userId: "usr_default_1",
+      customerName: "علیرضا شفیعی",
+      customerPhone: "09121112233",
+      customerAddress:
+        "تهران، میدان ونک، خیابان گاندی، کوچه چهارم، پلاک ۱۲، واحد ۳",
+      createdAt: new Date("2026-05-30T10:15:00.000Z"),
+      status: "completed",
+      finalPrice: 3880000,
+      orderItems: {
+        create: [
+          {
+            productId: mainProduct.id,
+            weightGrams: 1000,
+            quantity: 2,
+            blend: "۵۰٪ روبوستا / ۵۰٪ عربیکا",
+            grind: "آسیاب اسپرسو (دستگاه برقی)",
+            grindType:
+              "ترکیب: ۷۰٪ روبوستا / ۳۰٪ عربیکا | آسیاب: آسیاب اسپرسو (دستگاه برقی)",
+            price: 1940000, // سهم هر واحد از فاکتور اصلی
+          },
+        ],
       },
-      {
-        id: "ORD-7612",
-        productId: mainProduct.id,
-        weightGrams: 250,
-        quantity: 4,
-        grindType: "ترکیب: ۱۰۰٪ عربیکا | آسیاب: دانه کامل (آسیاب نشده)",
-        finalPrice: 2200000,
-        customerName: "سارا فلاحی",
-        customerPhone: "09354445566",
-        customerAddress:
-          "شیراز، بلوار ارم، کوچه بنفشه، ساختمان طلوع، طبقه همکف",
-        createdAt: new Date("2026-05-29T18:40:00.000Z"),
-        status: "unreviewed", // مقداردهی ایمن اِنام
-      },
-    ],
+    },
   });
-  console.log("🛍️ فاکتورهای سفارش پیش‌فرض ثبت شدند.");
 
-  // ۶. ثبت کوپن‌های تخفیف (متصل به مدل اِنام‌های جدید)
+  // سفارش دوم سارا فلاحی
+  await prisma.order.create({
+    data: {
+      id: "ORD-7612",
+      userId: "usr_default_2",
+      customerName: "سارا فلاحی",
+      customerPhone: "09354445566",
+      customerAddress: "شیراز، بلوار ارم، کوچه بنفشه، ساختمان طلوع، طبقه همکف",
+      createdAt: new Date("2026-05-29T18:40:00.000Z"),
+      status: "unreviewed",
+      finalPrice: 2200000,
+      orderItems: {
+        create: [
+          {
+            productId: mainProduct.id,
+            weightGrams: 250,
+            quantity: 4,
+            blend: "۱۰۰٪ عربیکا",
+            grind: "دانه کامل (آسیاب نشده)",
+            grindType: "ترکیب: ۱۰۰٪ عربیکا | آسیاب: دانه کامل (آسیاب نشده)",
+            price: 550000,
+          },
+        ],
+      },
+    },
+  });
+  console.log("🛍️ فاکتورها و جزئیات اقلام سفارش بر اساس ساختار جدید ثبت شدند.");
+
+  // ۵. ثبت کوپن‌ها
   await prisma.coupon.createMany({
     data: [
       {
@@ -143,11 +167,12 @@ async function main() {
   });
   console.log("🎫 تخفیف‌ها و کوپن‌های جدید ثبت شدند.");
 
-  // ۷. ثبت نظرات تایید شده
+  // ۶. بازخوردهای مشتریان
   const comment1 = await prisma.comment.create({
     data: {
       id: "comm_1",
       productId: mainProduct.id,
+      userId: "usr_default_1",
       firstName: "سهراب",
       lastName: "کریمی",
       rating: 5,
@@ -186,9 +211,9 @@ async function main() {
       status: "approved",
     },
   });
-  console.log("💬 بازخوردهای بهینه مشتریان ذخیره شدند.");
+  console.log("💬 نظرات بهینه‌ مشتریان ثبت شدند.");
 
-  // ۸. ثبت تنظیمات پویای سایت مستقیماً با فرمت باینری jsonb (بدون JSON.stringify)
+  // ۷. تنظیمات متون پویا سایت
   await prisma.option.createMany({
     data: [
       {
@@ -265,14 +290,13 @@ async function main() {
       },
     ],
   });
-  console.log("⚙️ تنظیمات و داده‌های پویا با فرمت باینری jsonb ذخیره شدند.");
-
-  console.log("🎉 مرحله دوم به بهینه‌ترین شکل ممکن کامل گردید.");
+  console.log("⚙️ تنظیمات و داده‌های داینامیک با موفقیت ثبت شدند.");
+  console.log("🎉 دیتابیس لوکال برای نسخه جدید توسعه و تست آماده است.");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ خطا در اجرای اسکریپت Seed:");
+    console.error("❌ خطا در اجرای اسکریپت Seed دیتابیس:");
     console.error(e);
     process.exit(1);
   })
