@@ -19,6 +19,7 @@ interface CoffeeProductPageProps {
   initialComments: UIComment[];
   activeCoupons: Coupon[];
   siteSubtitle?: string;
+  serverTodayStr?: string; // پراپ سراسری برچسب زمانی هماهنگ با سرور
 }
 
 export default function CoffeeProductPage({
@@ -26,6 +27,7 @@ export default function CoffeeProductPage({
   initialComments,
   activeCoupons,
   siteSubtitle,
+  serverTodayStr,
 }: CoffeeProductPageProps) {
   const {
     selectedWeight,
@@ -45,7 +47,7 @@ export default function CoffeeProductPage({
     priceMetrics,
     remainingStockCount,
     isOutOfStock,
-  } = useCoffeeProduct(initialProduct, activeCoupons);
+  } = useCoffeeProduct(initialProduct, activeCoupons, serverTodayStr);
 
   const { openCheckout } = useCheckout();
 

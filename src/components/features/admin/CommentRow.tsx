@@ -91,7 +91,10 @@ export default function CommentRow({
                 </Badge>
               )}
             </span>
-            <span className="text-[10px] text-stone-500 mt-0.5">
+            <span
+              className="text-[10px] text-stone-500 mt-0.5"
+              suppressHydrationWarning
+            >
               {new Date(comment.created_at).toLocaleDateString("fa-IR")}
             </span>
           </div>

@@ -10,8 +10,10 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { ActionResponse } from "./comment";
 import { toEnglishDigits } from "@/lib/utils";
-import { checkAdminAuth } from "@/actions/auth";
+import { checkAdminAuth, verifyOtpInternal } from "@/actions/auth";
 import { Order as UIOrder } from "@/types";
+import crypto from "crypto";
+import { createSignedToken } from "@/lib/session";
 
 const serverOrderSchema = z.object({
   productId: z.string().min(1, "شناسه کالا نامعتبر است."),
@@ -155,114 +157,121 @@ export async function submitOrderAction(payload: {
 
     const { getCurrentUserAction } = await import("@/actions/auth");
     const currentUserRes = await getCurrentUserAction();
-    const securePhone =
-      currentUserRes.success && currentUserRes.user
-        ? currentUserRes.user.phone
-        : customerPhone;
+    const isUserAuthenticated = currentUserRes.success && !!currentUserRes.user;
+    const securePhone = isUserAuthenticated
+      ? currentUserRes.user!.phone
+      : customerPhone;
 
-    const isOtpValid = await verifyOtpInternal(securePhone, otp);
-    if (!isOtpValid) {
+    if (!isUserAuthenticated) {
+      const isOtpValid = await verifyOtpInternal(securePhone, otp);
+      if (!isOtpValid) {
+        return {
+          success: false,
+          error:
+            "کد تایید وارد شده اشتباه یا زمان اعتبار آن به پایان رسیده است.",
+        };
+      }
+    }
+
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      include: { pricing: true },
+    });
+
+    if (!product) {
+      return { success: false, error: "محصول مورد نظر یافت نشد." };
+    }
+
+    const totalWeightNeeded = weightGrams * quantity;
+    if (product.stockGrams < totalWeightNeeded) {
       return {
         success: false,
-        error: "کد تایید وارد شده اشتباه یا زمان اعتبار آن به پایان رسیده است.",
+        error: "موجودى فیزیکی انبار برای ثبت این مقدار سفارش کافی نیست.",
       };
     }
 
-    return await prisma.$transaction(async (tx) => {
-      const product = await tx.product.findUnique({
-        where: { id: productId },
-        include: { pricing: true },
+    let coupon = null;
+    if (appliedCouponCode) {
+      const cleanCode = appliedCouponCode.trim().toUpperCase();
+      coupon = await prisma.coupon.findUnique({
+        where: { code: cleanCode },
       });
 
-      if (!product) {
-        throw new Error("محصول مورد نظر یافت نشد.");
+      if (!coupon || !coupon.isActive || coupon.deletedAt) {
+        return {
+          success: false,
+          error: "کد تخفیف وارد شده معتبر نیست یا منقضی شده است.",
+        };
       }
 
-      const totalWeightNeeded = weightGrams * quantity;
-      if (product.stockGrams < totalWeightNeeded) {
-        throw new Error(
-          "موجودی فیزیکی انبار برای ثبت این مقدار سفارش کافی نیست.",
-        );
+      if (coupon.productId && coupon.productId !== productId) {
+        return {
+          success: false,
+          error: "این کد تخفیف برای محصول انتخابی شما معتبر نیست.",
+        };
       }
 
-      let coupon = null;
-      if (appliedCouponCode) {
-        const cleanCode = appliedCouponCode.trim().toUpperCase();
-        coupon = await tx.coupon.findUnique({
-          where: { code: cleanCode },
-        });
-
-        if (!coupon || !coupon.isActive || coupon.deletedAt) {
-          throw new Error("کد تخفیف وارد شده معتبر نیست یا منقضی شده است.");
-        }
-
-        if (coupon.productId && coupon.productId !== productId) {
-          throw new Error("این کد تخفیف برای محصول انتخابی شما معتبر نیست.");
-        }
-
-        const usage = await tx.couponUsage.findUnique({
-          where: {
-            couponId_phone: {
-              couponId: coupon.id,
-              phone: securePhone,
-            },
+      const usage = await prisma.couponUsage.findUnique({
+        where: {
+          couponId_phone: {
+            couponId: coupon.id,
+            phone: securePhone,
           },
-        });
+        },
+      });
 
-        if (usage) {
-          throw new Error(
+      if (usage) {
+        return {
+          success: false,
+          error:
             "تراکنش مسدود شد: این کد تخفیف قبلاً توسط شما استفاده شده است.",
-          );
-        }
+        };
       }
+    }
 
-      const blendProfile = getBlendProfile(blend);
-      const activeCoupons = await tx.coupon.findMany({
-        where: { deletedAt: null },
-      });
-      const couponUsages = await tx.couponUsage.findMany();
+    const blendProfile = getBlendProfile(blend);
+    const activeCoupons = await prisma.coupon.findMany({
+      where: { deletedAt: null },
+    });
+    const couponUsages = await prisma.couponUsage.findMany();
 
-      const mappedCoupons = activeCoupons.map((c) => ({
-        id: c.id,
-        code: c.code,
-        type: c.type as "product_direct" | "conditional" | "user_code",
-        discountType: c.discountType as "percentage" | "fixed",
-        discountValue: c.discountValue,
-        productId: c.productId ?? undefined,
-        minWeightGrams: c.minWeightGrams ?? undefined,
-        validFrom: c.validFrom ? c.validFrom.toISOString() : undefined,
-        validTo: c.validTo ? c.validTo.toISOString() : undefined,
-        maxDiscountAmount: c.maxDiscountAmount ?? undefined,
-        isActive: c.isActive,
-        deletedAt: c.deletedAt ? c.deletedAt.toISOString() : null,
-        allowStacking: c.allowStacking,
-      }));
+    const mappedCoupons = activeCoupons.map(mapPrismaCoupon);
 
-      const mappedUsages = couponUsages.map((u) => ({
-        id: u.id,
-        couponId: u.couponId,
-        phone: u.phone,
-        usedAt: u.usedAt.toISOString(),
-      }));
+    const mappedUsages = couponUsages.map((u) => ({
+      id: u.id,
+      couponId: u.couponId,
+      phone: u.phone,
+      usedAt: u.usedAt.toISOString(),
+    }));
 
-      const pricingBreakdown = calculateAdvancedPriceMetrics({
-        productId,
-        pricing: product.pricing,
-        blendProfile,
-        weightGrams,
-        quantity,
-        activeCoupons: mappedCoupons,
-        appliedUserCouponCode: appliedCouponCode,
-        userPhone: securePhone,
-        couponUsages: mappedUsages,
-      });
+    const pricingBreakdown = calculateAdvancedPriceMetrics({
+      productId,
+      pricing: product.pricing,
+      blendProfile,
+      weightGrams,
+      quantity,
+      activeCoupons: mappedCoupons,
+      appliedUserCouponCode: appliedCouponCode,
+      userPhone: securePhone,
+      couponUsages: mappedUsages,
+    });
 
-      await tx.product.update({
-        where: { id: productId },
+    const finalOrder = await prisma.$transaction(async (tx) => {
+      const updateResult = await tx.product.updateMany({
+        where: {
+          id: productId,
+          stockGrams: { gte: totalWeightNeeded },
+        },
         data: {
           stockGrams: { decrement: totalWeightNeeded },
         },
       });
+
+      if (updateResult.count === 0) {
+        throw new Error(
+          "موجودى فیزیکی انبار برای ثبت این مقدار سفارش کافی نیست.",
+        );
+      }
 
       const user = await tx.user.upsert({
         where: { phone: securePhone },
@@ -283,10 +292,12 @@ export async function submitOrderAction(payload: {
         });
       }
 
-      const customOrderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
-      const newOrder = await tx.order.create({
+      const secureRandomId = crypto.randomInt(100000000000, 1000000000000);
+      const generatedId = `ORD-${secureRandomId}`;
+
+      const createdOrder = await tx.order.create({
         data: {
-          id: customOrderId,
+          id: generatedId,
           userId: user.id,
           couponId: coupon ? coupon.id : null,
           finalPrice: pricingBreakdown.finalPrice,
@@ -311,23 +322,25 @@ export async function submitOrderAction(payload: {
         },
       });
 
-      const cookieStore = await cookies();
-      cookieStore.set("user_phone", securePhone, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 60 * 60 * 24 * 30,
-        path: "/",
-      });
-
-      revalidatePath("/");
-      revalidatePath("/profile");
-
-      return {
-        success: true,
-        data: mapPrismaOrder(newOrder),
-      };
+      return createdOrder;
     });
+
+    const cookieStore = await cookies();
+    cookieStore.set("user_phone", createSignedToken(securePhone), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+    });
+
+    revalidatePath("/");
+    revalidatePath("/profile");
+
+    return {
+      success: true,
+      data: mapPrismaOrder(finalOrder),
+    };
   } catch (error) {
     return {
       success: false,
@@ -337,37 +350,6 @@ export async function submitOrderAction(payload: {
           : "خطایی در فرآیند محاسبات و ثبت نهایی سفارش رخ داد.",
     };
   }
-}
-
-async function verifyOtpInternal(
-  phone: string,
-  code: string,
-): Promise<boolean> {
-  const cleanPhone = phone.trim();
-  const now = new Date();
-
-  if (code === "1234") {
-    return true;
-  }
-
-  const record = await prisma.otpRecord.findFirst({
-    where: {
-      phone: cleanPhone,
-      code,
-      used: false,
-      expiresAt: { gt: now },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  if (record) {
-    await prisma.otpRecord.update({
-      where: { id: record.id },
-      data: { used: true },
-    });
-    return true;
-  }
-  return false;
 }
 
 interface PrismaOrderDb {
@@ -407,5 +389,39 @@ function mapPrismaOrder(o: PrismaOrderDb): UIOrder {
     customerAddress: o.customerAddress,
     createdAt: o.createdAt.toISOString(),
     status: o.status as "unreviewed" | "pending" | "completed" | "cancelled",
+  };
+}
+
+interface PrismaCouponDb {
+  id: string;
+  code: string;
+  type: "product_direct" | "conditional" | "user_code" | string;
+  discountType: "percentage" | "fixed" | string;
+  discountValue: number;
+  productId: string | null;
+  minWeightGrams: number | null;
+  validFrom: Date | null;
+  validTo: Date | null;
+  maxDiscountAmount: number | null;
+  isActive: boolean;
+  deletedAt: Date | null;
+  allowStacking: boolean;
+}
+
+function mapPrismaCoupon(c: PrismaCouponDb) {
+  return {
+    id: c.id,
+    code: c.code,
+    type: c.type as "product_direct" | "conditional" | "user_code",
+    discountType: c.discountType as "percentage" | "fixed",
+    discountValue: c.discountValue,
+    productId: c.productId ?? undefined,
+    minWeightGrams: c.minWeightGrams ?? undefined,
+    validFrom: c.validFrom ? c.validFrom.toISOString() : undefined,
+    validTo: c.validTo ? c.validTo.toISOString() : undefined,
+    maxDiscountAmount: c.maxDiscountAmount ?? undefined,
+    isActive: c.isActive,
+    deletedAt: c.deletedAt ? c.deletedAt.toISOString() : null,
+    allowStacking: c.allowStacking,
   };
 }

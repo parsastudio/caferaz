@@ -63,7 +63,7 @@ export default function ProfileDashboardClient({
             >
               شماره همراه: <span className="font-sans">{user?.phone}</span> |
               تاریخ پیوستن:{" "}
-              <span className="font-sans">
+              <span className="font-sans" suppressHydrationWarning>
                 {user
                   ? new Date(user.createdAt).toLocaleDateString("fa-IR")
                   : "-"}
@@ -158,7 +158,10 @@ export default function ProfileDashboardClient({
                     <span className="text-xs font-black text-gold-500 font-sans">
                       {order.id}
                     </span>
-                    <span className="text-[10px] text-stone-500 font-sans">
+                    <span
+                      className="text-[10px] text-stone-500 font-sans"
+                      suppressHydrationWarning
+                    >
                       {new Date(order.createdAt).toLocaleDateString("fa-IR")}
                     </span>
                   </div>

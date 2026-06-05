@@ -4,13 +4,19 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { checkAdminAuth } from "@/actions/auth";
 import { FAQ } from "@/components/features/landing/FAQSection";
+import { Prisma } from "@prisma/client";
 
-interface FooterConfig {
+export interface FooterConfig {
   phones: string[];
   address: string;
   eitaa: string;
   website: string;
 }
+
+export type SettingsPayload =
+  | { key: "site_subtitle"; value: string }
+  | { key: "site_faq"; value: FAQ[] }
+  | { key: "site_footer"; value: FooterConfig };
 
 export async function getSettingsAction() {
   try {
@@ -45,10 +51,7 @@ export async function getSettingsAction() {
   }
 }
 
-export async function updateSettingsAction(payload: {
-  key: "site_subtitle" | "site_faq" | "site_footer";
-  value: any;
-}) {
+export async function updateSettingsAction(payload: SettingsPayload) {
   try {
     const isAdmin = await checkAdminAuth();
     if (!isAdmin) {
@@ -59,8 +62,8 @@ export async function updateSettingsAction(payload: {
 
     await prisma.option.upsert({
       where: { key },
-      update: { value },
-      create: { key, value },
+      update: { value: value as unknown as Prisma.InputJsonValue },
+      create: { key, value: value as unknown as Prisma.InputJsonValue },
     });
 
     revalidatePath("/");

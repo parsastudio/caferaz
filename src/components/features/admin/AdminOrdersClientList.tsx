@@ -161,7 +161,10 @@ export default function AdminOrdersClientList({
                   <span className="text-sm font-black text-gold-500 font-sans">
                     {order.id}
                   </span>
-                  <span className="text-xs text-stone-500 font-sans flex items-center gap-1.5">
+                  <span
+                    className="text-xs text-stone-500 font-sans flex items-center gap-1.5"
+                    suppressHydrationWarning
+                  >
                     <Calendar className="w-3.5 h-3.5 text-stone-600" />
                     {new Date(order.createdAt).toLocaleDateString("fa-IR")}
                   </span>

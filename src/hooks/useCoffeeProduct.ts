@@ -23,6 +23,7 @@ export interface CoffeeProduct {
 export function useCoffeeProduct(
   initialProduct: CoffeeProduct,
   activeCoupons: Coupon[],
+  serverTodayStr?: string, // تزریق زمان مطمئن سرور
 ) {
   const selection = useCoffeeSelection();
 
@@ -48,6 +49,7 @@ export function useCoffeeProduct(
       weightGrams: computedWeight,
       quantity: selection.quantity,
       activeCoupons,
+      serverTodayStr,
     });
   }, [
     initialProduct.id,
@@ -56,6 +58,7 @@ export function useCoffeeProduct(
     computedWeight,
     selection.quantity,
     activeCoupons,
+    serverTodayStr,
   ]);
 
   const remainingStockCount = useMemo(() => {

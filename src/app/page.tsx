@@ -5,6 +5,7 @@ import { getCouponsAction } from "@/actions/coupon";
 import { prisma } from "@/lib/prisma";
 import WhyCafeRaz from "@/components/features/landing/WhyCafeRaz";
 import FAQSection, { FAQ } from "@/components/features/landing/FAQSection";
+import { getTehranTodayString } from "@/lib/jalali-converter";
 
 export default async function Page() {
   const productResult = await getProductAction("prod_coffee_bulk_01");
@@ -20,6 +21,9 @@ export default async function Page() {
 
   const faqs = siteFaqOpt ? (siteFaqOpt.value as unknown as FAQ[]) : [];
   const siteSubtitle = siteSubtitleOpt ? (siteSubtitleOpt.value as string) : "";
+
+  // استخراج زمان تایید شده سرور برای استفاده سراسری بدون وابستگی به کلاک کاربر
+  const serverTodayStr = getTehranTodayString();
 
   if (!productResult.success) {
     return (
@@ -42,6 +46,7 @@ export default async function Page() {
           couponsResult.success && couponsResult.data ? couponsResult.data : []
         }
         siteSubtitle={siteSubtitle}
+        serverTodayStr={serverTodayStr}
       />
       <WhyCafeRaz />
       <FAQSection faqs={faqs} />

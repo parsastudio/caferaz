@@ -3,10 +3,17 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import ProfileDashboardClient from "@/components/features/profile/ProfileDashboardClient";
+import { verifySignedToken } from "@/lib/session";
 
 export default async function ProfilePage() {
   const cookieStore = await cookies();
-  const phone = cookieStore.get("user_phone")?.value;
+  const signedCookie = cookieStore.get("user_phone")?.value;
+
+  if (!signedCookie) {
+    redirect("/login");
+  }
+
+  const phone = verifySignedToken(signedCookie);
 
   if (!phone) {
     redirect("/login");

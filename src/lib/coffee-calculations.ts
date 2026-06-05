@@ -49,8 +49,7 @@ export function calculatePriceMetrics(
     activePricing.pricePerKgArabica * arabicaRatio +
     activePricing.pricePerKgRobusta * robustaRatio;
 
-  const pricePerGram = pricePerKg / 1000;
-  const finalPrice = Math.round(pricePerGram * weight * quantity);
+  const finalPrice = Math.round((pricePerKg * weight * quantity) / 1000);
 
   return { originalPrice: finalPrice, finalPrice };
 }
@@ -73,6 +72,7 @@ export function calculateAdvancedPriceMetrics(params: {
   appliedUserCouponCode?: string | null;
   userPhone?: string | null;
   couponUsages?: CouponUsage[];
+  serverTodayStr?: string;
 }): AdvancedPriceMetrics {
   const activePricing = params.pricing || {
     pricePerKgArabica: 2200000,
@@ -86,12 +86,11 @@ export function calculateAdvancedPriceMetrics(params: {
     activePricing.pricePerKgArabica * arabicaRatio +
     activePricing.pricePerKgRobusta * robustaRatio;
 
-  const pricePerGram = pricePerKg / 1000;
   const basePrice = Math.round(
-    pricePerGram * params.weightGrams * params.quantity,
+    (pricePerKg * params.weightGrams * params.quantity) / 1000,
   );
 
-  const tehranTodayStr = getTehranTodayString();
+  const tehranTodayStr = params.serverTodayStr || getTehranTodayString();
 
   const normalizeDateToTimestamp = (dateStr: string): number => {
     const normalized = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
@@ -137,14 +136,12 @@ export function calculateAdvancedPriceMetrics(params: {
       isCouponDateValid(c),
   );
 
-  let bestDirect: Coupon | null = null;
   let directDiscountAmount = 0;
   if (directCoupons.length > 0) {
     directCoupons.forEach((c) => {
       const disc = getStandaloneDiscount(c, basePrice);
       if (disc > directDiscountAmount) {
         directDiscountAmount = disc;
-        bestDirect = c;
       }
     });
   }
@@ -156,14 +153,12 @@ export function calculateAdvancedPriceMetrics(params: {
     return isCouponDateValid(c);
   });
 
-  let bestConditional: Coupon | null = null;
   let conditionalDiscountAmount = 0;
   if (conditionalCoupons.length > 0) {
     conditionalCoupons.forEach((c) => {
       const disc = getStandaloneDiscount(c, basePrice);
       if (disc > conditionalDiscountAmount) {
         conditionalDiscountAmount = disc;
-        bestConditional = c;
       }
     });
   }
@@ -205,14 +200,13 @@ export function calculateAdvancedPriceMetrics(params: {
   let finalUser = 0;
 
   if (eligibleUserCoupon && eligibleUserCoupon.allowStacking) {
-    const bestAutoDiscount = Math.max(
+    const autoDiscount = Math.max(
       directDiscountAmount,
       conditionalDiscountAmount,
     );
-    finalDiscount = userCouponDiscountAmount + bestAutoDiscount;
-
+    finalDiscount = userCouponDiscountAmount + autoDiscount;
     finalUser = userCouponDiscountAmount;
-    if (bestAutoDiscount > 0) {
+    if (autoDiscount > 0) {
       if (directDiscountAmount >= conditionalDiscountAmount) {
         finalDirect = directDiscountAmount;
       } else {

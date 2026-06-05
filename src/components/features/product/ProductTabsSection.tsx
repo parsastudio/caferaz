@@ -181,7 +181,7 @@ export default function ProductTabsSection({
   };
 
   const handleCommentFailed = (tempId: string) => {
-    // Optimistic UI automatically handles revert on fail. No local state cleanup needed.
+    // Optimistic UI automatically handles revert on fail.
   };
 
   const openNewCommentDialog = () => {
@@ -319,7 +319,7 @@ function CommentNode({ comment, onReply }: CommentNodeProps) {
             </div>
           )}
         </div>
-        <span className="text-xs text-stone-500">
+        <span className="text-xs text-stone-500" suppressHydrationWarning>
           {new Date(comment.created_at).toLocaleDateString("fa-IR")}
         </span>
       </div>

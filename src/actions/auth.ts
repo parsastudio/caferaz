@@ -3,21 +3,57 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import crypto from "crypto";
+import { createSignedToken, verifySignedToken } from "@/lib/session";
+
+function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto
+    .pbkdf2Sync(password, salt, 600000, 64, "sha512")
+    .toString("hex");
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password: string, storedHash: string): boolean {
+  try {
+    const parts = storedHash.split(":");
+    if (parts.length !== 2) return false;
+    const [salt, hash] = parts;
+    const verifyHash = crypto
+      .pbkdf2Sync(password, salt, 600000, 64, "sha512")
+      .toString("hex");
+    return hash === verifyHash;
+  } catch {
+    return false;
+  }
+}
 
 export async function loginAdminAction(formData: FormData) {
-  const username = formData.get("username") as string;
+  const username = (formData.get("username") as string)?.trim();
   const password = formData.get("password") as string;
 
-  const savedPasswordOpt = await prisma.option.findUnique({
-    where: { key: "admin_password" },
-  });
-  const adminPasswordStore = savedPasswordOpt
-    ? (savedPasswordOpt.value as string)
-    : "admin123";
+  if (!username || !password) {
+    return { success: false, error: "تمامی فیلدها الزامی هستند." };
+  }
 
-  if (username === "admin" && password === adminPasswordStore) {
+  const adminCredentialsOpt = await prisma.option.findUnique({
+    where: { key: "admin_credentials" },
+  });
+
+  const storedCreds = adminCredentialsOpt
+    ? (adminCredentialsOpt.value as { username: string; passwordHash: string })
+    : null;
+
+  if (!storedCreds) {
+    return { success: false, error: "تنظیمات ادمین یافت نشد." };
+  }
+
+  const isUsernameMatch = username === storedCreds.username;
+  const isPasswordMatch = verifyPassword(password, storedCreds.passwordHash);
+
+  if (isUsernameMatch && isPasswordMatch) {
     const cookieStore = await cookies();
-    cookieStore.set("admin_session", "authenticated_token_xyz123", {
+    cookieStore.set("admin_session", createSignedToken("admin"), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -39,7 +75,8 @@ export async function logoutAdminAction() {
 export async function checkAdminAuth() {
   const cookieStore = await cookies();
   const session = cookieStore.get("admin_session")?.value;
-  return session === "authenticated_token_xyz123";
+  if (!session) return false;
+  return verifySignedToken(session) === "admin";
 }
 
 export async function updateAdminPasswordAction(payload: {
@@ -58,14 +95,27 @@ export async function updateAdminPasswordAction(payload: {
       return { success: false, error: "پر کردن تمامی فیلدها الزامی است." };
     }
 
-    const savedPasswordOpt = await prisma.option.findUnique({
-      where: { key: "admin_password" },
+    const adminCredentialsOpt = await prisma.option.findUnique({
+      where: { key: "admin_credentials" },
     });
-    const adminPasswordStore = savedPasswordOpt
-      ? (savedPasswordOpt.value as string)
-      : "admin123";
 
-    if (oldPass !== adminPasswordStore) {
+    const storedCreds = adminCredentialsOpt
+      ? (adminCredentialsOpt.value as {
+          username: string;
+          passwordHash: string;
+        })
+      : null;
+
+    if (!storedCreds) {
+      return { success: false, error: "تنظیمات ادمین یافت نشد." };
+    }
+
+    const isOldPasswordValid = verifyPassword(
+      oldPass,
+      storedCreds.passwordHash,
+    );
+
+    if (!isOldPasswordValid) {
       return { success: false, error: "رمز عبور فعلی نادرست است." };
     }
 
@@ -76,10 +126,15 @@ export async function updateAdminPasswordAction(payload: {
       };
     }
 
+    const updatedCreds = {
+      username: storedCreds.username,
+      passwordHash: hashPassword(newPass),
+    };
+
     await prisma.option.upsert({
-      where: { key: "admin_password" },
-      update: { value: newPass },
-      create: { key: "admin_password", value: newPass },
+      where: { key: "admin_credentials" },
+      update: { value: updatedCreds },
+      create: { key: "admin_credentials", value: updatedCreds },
     });
 
     return {
@@ -160,7 +215,7 @@ export async function sendUserOtpAction(payload: { phone: string }) {
       };
     }
 
-    const generatedCode = Math.floor(1000 + Math.random() * 9000).toString();
+    const generatedCode = crypto.randomInt(1000, 10000).toString();
     const expiresAt = new Date(now.getTime() + 2 * 60 * 1000);
 
     await prisma.otpRecord.create({
@@ -171,15 +226,75 @@ export async function sendUserOtpAction(payload: { phone: string }) {
         createdAt: now,
         expiresAt,
         used: false,
+        attempts: 0,
       },
     });
 
+    const isProd = process.env.NODE_ENV === "production";
+
     return {
       success: true,
-      message: `کد تایید با موفقیت ارسال شد. (کد تست ارسالی: ${generatedCode})`,
+      message: isProd
+        ? "کد تایید با موفقیت ارسال شد."
+        : `کد تایید با موفقیت ارسال شد. (کد تست ارسالی: ${generatedCode})`,
     };
   } catch {
     return { success: false, error: "خطا در فرآیند ارسال کد تایید پیامکی." };
+  }
+}
+
+export async function verifyOtpInternal(
+  phone: string,
+  code: string,
+): Promise<boolean> {
+  const cleanPhone = phone.trim();
+  const now = new Date();
+
+  if (process.env.NODE_ENV === "development" && code === "1234") {
+    return true;
+  }
+
+  const record = await prisma.otpRecord.findFirst({
+    where: {
+      phone: cleanPhone,
+      used: false,
+      expiresAt: { gt: now },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (!record) {
+    return false;
+  }
+
+  const MAX_ATTEMPTS = 5;
+
+  if (record.attempts >= MAX_ATTEMPTS) {
+    await prisma.otpRecord.update({
+      where: { id: record.id },
+      data: { used: true },
+    });
+    return false;
+  }
+
+  if (record.code === code) {
+    await prisma.otpRecord.update({
+      where: { id: record.id },
+      data: { used: true },
+    });
+    return true;
+  } else {
+    const nextAttempts = record.attempts + 1;
+    const shouldInvalidate = nextAttempts >= MAX_ATTEMPTS;
+
+    await prisma.otpRecord.update({
+      where: { id: record.id },
+      data: {
+        attempts: nextAttempts,
+        used: shouldInvalidate ? true : record.used,
+      },
+    });
+    return false;
   }
 }
 
@@ -199,7 +314,7 @@ export async function loginUserAction(payload: {
     if (!isOtpValid) {
       return {
         success: false,
-        error: "کد تایید وارد شده نادرست یا منقضی گردیده است.",
+        error: "کد تایید وارد شده نادرست، منقضی یا بیش از حد حدس زده شده است.",
       };
     }
 
@@ -212,7 +327,7 @@ export async function loginUserAction(payload: {
     });
 
     const cookieStore = await cookies();
-    cookieStore.set("user_phone", phone.trim(), {
+    cookieStore.set("user_phone", createSignedToken(phone.trim()), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -241,7 +356,7 @@ export async function loginUserWithOtpAction(payload: {
     if (!isOtpValid) {
       return {
         success: false,
-        error: "کد تایید وارد شده نادرست یا منقضی گردیده است.",
+        error: "کد تایید وارد شده نادرست، منقضی یا بیش از حد حدس زده شده است.",
       };
     }
 
@@ -257,7 +372,7 @@ export async function loginUserWithOtpAction(payload: {
     });
 
     const cookieStore = await cookies();
-    cookieStore.set("user_phone", phone.trim(), {
+    cookieStore.set("user_phone", createSignedToken(phone.trim()), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -288,7 +403,7 @@ export async function registerUserAction(payload: {
     if (!isOtpValid) {
       return {
         success: false,
-        error: "کد تایید وارد شده نادرست یا منقضی گردیده است.",
+        error: "کد تایید وارد شده نادرست، منقضی یا بیش از حد حدس زده شده است.",
       };
     }
 
@@ -299,7 +414,7 @@ export async function registerUserAction(payload: {
     });
 
     const cookieStore = await cookies();
-    cookieStore.set("user_phone", phone.trim(), {
+    cookieStore.set("user_phone", createSignedToken(phone.trim()), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -339,7 +454,12 @@ export async function checkPhoneRegisteredAction(payload: { phone: string }) {
 export async function getCurrentUserAction() {
   try {
     const cookieStore = await cookies();
-    const phone = cookieStore.get("user_phone")?.value;
+    const signedCookie = cookieStore.get("user_phone")?.value;
+    if (!signedCookie) {
+      return { success: true, user: null };
+    }
+
+    const phone = verifySignedToken(signedCookie);
     if (!phone) {
       return { success: true, user: null };
     }
@@ -368,35 +488,4 @@ export async function logoutUserAction() {
   const cookieStore = await cookies();
   cookieStore.delete("user_phone");
   redirect("/");
-}
-
-async function verifyOtpInternal(
-  phone: string,
-  code: string,
-): Promise<boolean> {
-  const cleanPhone = phone.trim();
-  const now = new Date();
-
-  if (code === "1234") {
-    return true;
-  }
-
-  const record = await prisma.otpRecord.findFirst({
-    where: {
-      phone: cleanPhone,
-      code,
-      used: false,
-      expiresAt: { gt: now },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  if (record) {
-    await prisma.otpRecord.update({
-      where: { id: record.id },
-      data: { used: true },
-    });
-    return true;
-  }
-  return false;
 }
