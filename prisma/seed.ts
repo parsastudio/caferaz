@@ -16,12 +16,11 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log("🌱 شروع فرآیند Seeding ساختار تولیدی و بهینه کافه راز...");
 
-  // حذف رکوردها با رعایت اولویت کلیدهای خارجی برای جلوگیری از خطای Referential Integrity
   await prisma.otpRecord.deleteMany();
   await prisma.option.deleteMany();
   await prisma.couponUsage.deleteMany();
   await prisma.coupon.deleteMany();
-  await prisma.orderItem.deleteMany(); // ابتدا رکوردهای میانی آیتم‌های سفارش حذف شوند
+  await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
   await prisma.comment.deleteMany();
   await prisma.pricing.deleteMany();
@@ -30,7 +29,6 @@ async function main() {
 
   console.log("🗑️ تمام رکوردهای قدیمی با رعایت ساختار کلیدهای خارجی حذف شدند.");
 
-  // ۱. ایجاد محصول اصلی
   const mainProduct = await prisma.product.create({
     data: {
       id: "prod_coffee_bulk_01",
@@ -43,7 +41,6 @@ async function main() {
   });
   console.log("📦 محصول اصلی به همراه وضعیت فعال بودن ثبت شد.");
 
-  // ۲. ثبت قیمت مرجع
   await prisma.pricing.create({
     data: {
       productId: mainProduct.id,
@@ -53,7 +50,6 @@ async function main() {
   });
   console.log("🏷️ نرخ‌های مرجع عربیکا و روبوستا در دیتابیس ذخیره شدند.");
 
-  // ۳. ثبت کاربران پیش‌فرض
   await prisma.user.createMany({
     data: [
       {
@@ -74,8 +70,6 @@ async function main() {
   });
   console.log("👥 کاربران پیش‌فرض ثبت شدند.");
 
-  // ۴. ثبت فاکتورهای سفارش جدید به همراه آیتم‌های مرتبط (Relational Nested Writes)
-  // سفارش اول علیرضا شفیعی
   await prisma.order.create({
     data: {
       id: "ORD-9824",
@@ -97,14 +91,13 @@ async function main() {
             grind: "آسیاب اسپرسو (دستگاه برقی)",
             grindType:
               "ترکیب: ۷۰٪ روبوستا / ۳۰٪ عربیکا | آسیاب: آسیاب اسپرسو (دستگاه برقی)",
-            price: 1940000, // سهم هر واحد از فاکتور اصلی
+            price: 1940000,
           },
         ],
       },
     },
   });
 
-  // سفارش دوم سارا فلاحی
   await prisma.order.create({
     data: {
       id: "ORD-7612",
@@ -132,7 +125,6 @@ async function main() {
   });
   console.log("🛍️ فاکتورها و جزئیات اقلام سفارش بر اساس ساختار جدید ثبت شدند.");
 
-  // ۵. ثبت کوپن‌ها
   await prisma.coupon.createMany({
     data: [
       {
@@ -167,7 +159,6 @@ async function main() {
   });
   console.log("🎫 تخفیف‌ها و کوپن‌های جدید ثبت شدند.");
 
-  // ۶. بازخوردهای مشتریان
   const comment1 = await prisma.comment.create({
     data: {
       id: "comm_1",
@@ -213,7 +204,6 @@ async function main() {
   });
   console.log("💬 نظرات بهینه‌ مشتریان ثبت شدند.");
 
-  // ۷. تنظیمات متون پویا سایت
   await prisma.option.createMany({
     data: [
       {
@@ -224,39 +214,6 @@ async function main() {
           eitaa: "https://eitaa.com/razcoffee",
           website: "https://caferaz.ir",
         },
-      },
-      {
-        key: "site_usps",
-        value: [
-          {
-            id: "usp_1",
-            icon: "Coins",
-            title: "قیمت فوق‌العاده اقتصادی",
-            description:
-              "تأمین مستقیم قهوه با حاشیه سود حداقلی و حذف واسطه‌ها، قیمتی کاملاً رقابتی و اقتصادی‌تر از بازار را تضمین می‌کند.",
-          },
-          {
-            id: "usp_2",
-            icon: "MapPin",
-            title: "ارسال رایگان در پیروزی و حکیمیه",
-            description:
-              "تحویل سریع و کاملاً رایگان سفارشات قهوه بدون محدودیت در وزن و تعداد در محدوده محله‌های پیروزی و حکیمیه تهران.",
-          },
-          {
-            id: "usp_3",
-            icon: "Sliders",
-            title: "شخصی‌سازی بالانس طعمی",
-            description:
-              "امکان تعیین نسبت دقیق عربیکا و روبوستا برای رسیدن به تلخی، کافئین و بادی دلخواه شما.",
-          },
-          {
-            id: "usp_4",
-            icon: "Coffee",
-            title: "آسیاب دقیق دانه قهوه",
-            description:
-              "آسیاب همگن دانه‌ها متناسب با تجهیزات و روش‌های گوناگون دم‌آوری شما اعم از خانگی و صنعتی.",
-          },
-        ],
       },
       {
         key: "site_faq",

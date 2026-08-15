@@ -30,30 +30,6 @@ export class ProductService {
     };
   }
 
-  static async getProductById(
-    productId: string,
-  ): Promise<ProductWithPricing | null> {
-    const product = await prisma.product.findUnique({
-      where: { id: productId, deletedAt: null },
-      include: { pricing: true },
-    });
-
-    if (!product) return null;
-
-    return {
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      stockGrams: product.stockGrams,
-      pricing: product.pricing
-        ? {
-            pricePerKgArabica: product.pricing.pricePerKgArabica,
-            pricePerKgRobusta: product.pricing.pricePerKgRobusta,
-          }
-        : null,
-    };
-  }
-
   static async updateProductDetails(
     input: UpdateProductDetailsInput,
   ): Promise<boolean> {

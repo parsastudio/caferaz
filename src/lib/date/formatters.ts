@@ -37,16 +37,6 @@ export function formatJalaliString(jy: number, jm: number, jd: number): string {
   return `${jy}/${mm}/${dd}`;
 }
 
-export function getTodayJalaliString(): string {
-  const today = new Date();
-  const res = toJalaali(
-    today.getFullYear(),
-    today.getMonth() + 1,
-    today.getDate(),
-  );
-  return formatJalaliString(res.jy, res.jm, res.jd);
-}
-
 export function formatGregorianToJalaliString(gregorianStr: string): string {
   const d = new Date(gregorianStr);
   if (isNaN(d.getTime())) return gregorianStr;

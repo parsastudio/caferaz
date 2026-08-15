@@ -10,8 +10,6 @@ export const footerConfigSchema = z.object({
   address: z.string(),
   eitaa: z.string(),
   website: z.string(),
-  instagram: z.string().optional(),
-  telegram: z.string().optional(),
 });
 
 export const updateSettingsSchema = z.discriminatedUnion("key", [

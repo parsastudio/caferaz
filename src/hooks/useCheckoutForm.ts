@@ -5,9 +5,9 @@ import { useForm, Resolver, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCheckout } from "@/context/CheckoutContext";
 import {
-  checkoutSchema,
+  checkoutFormSchema,
   CheckoutFormValues,
-} from "@/components/features/checkout/schema";
+} from "@/domain/validations/order.schema";
 import { getCurrentUserAction } from "@/actions/auth";
 import { useCouponManager } from "@/hooks/useCouponManager";
 import { useCheckoutAuth } from "@/hooks/checkout/useCheckoutAuth";
@@ -23,7 +23,7 @@ export function useCheckoutForm() {
 
   const methods = useForm<CheckoutFormValues>({
     resolver: zodResolver(
-      checkoutSchema,
+      checkoutFormSchema,
     ) as unknown as Resolver<CheckoutFormValues>,
     defaultValues: {
       firstName: "",

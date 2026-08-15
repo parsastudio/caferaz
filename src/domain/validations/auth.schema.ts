@@ -42,12 +42,6 @@ export const registerUserSchema = z.object({
   otp: otpCodeSchema,
 });
 
-export const quickLoginUserSchema = z.object({
-  phone: phoneSchema,
-  name: z.string().optional().default("کاربر کافه راز"),
-  otp: otpCodeSchema,
-});
-
 export type AdminLoginInput = z.infer<typeof adminLoginSchema>;
 export type UpdateAdminPasswordInput = z.infer<
   typeof updateAdminPasswordSchema
@@ -55,4 +49,3 @@ export type UpdateAdminPasswordInput = z.infer<
 export type SendOtpInput = z.infer<typeof sendOtpSchema>;
 export type LoginUserWithOtpInput = z.infer<typeof loginUserWithOtpSchema>;
 export type RegisterUserInput = z.infer<typeof registerUserSchema>;
-export type QuickLoginUserInput = z.infer<typeof quickLoginUserSchema>;

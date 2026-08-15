@@ -12,10 +12,10 @@ export const dynamic = "force-dynamic";
 export default async function Page() {
   const productResult = await getMainProductAction();
 
-  if (!productResult.success || !productResult.data) {
+  if (!productResult.success) {
     return (
       <div className="text-center py-20 text-stone-400">
-        {productResult.error || "محصولی یافت نشد."}
+        {productResult.error}
       </div>
     );
   }

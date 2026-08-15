@@ -9,7 +9,6 @@ export {
   isValidJalaaliDate,
   parseJalaliString,
   formatJalaliString,
-  getTodayJalaliString,
   formatGregorianToJalaliString,
   getTehranTodayString,
 } from "@/lib/date/formatters";

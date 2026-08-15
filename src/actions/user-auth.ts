@@ -8,7 +8,6 @@ import {
   sendOtpSchema,
   loginUserWithOtpSchema,
   registerUserSchema,
-  quickLoginUserSchema,
 } from "@/domain/validations/auth.schema";
 
 export async function sendUserOtpAction(payload: { phone: string }) {
@@ -33,48 +32,6 @@ export async function sendUserOtpAction(payload: { phone: string }) {
     return await AuthService.sendOtp(parsed.data.phone, ip);
   } catch {
     return { success: false, error: "خطا در فرآیند ارسال کد تایید پیامکی." };
-  }
-}
-
-export async function loginUserAction(payload: {
-  phone: string;
-  name: string;
-  otp: string;
-}) {
-  try {
-    const parsed = quickLoginUserSchema.safeParse(payload);
-    if (!parsed.success) {
-      return {
-        success: false,
-        error: parsed.error.issues[0]?.message || "اطلاعات ناقص است.",
-      };
-    }
-
-    const isOtpValid = await AuthService.verifyOtp(
-      parsed.data.phone,
-      parsed.data.otp,
-    );
-    if (!isOtpValid) {
-      return {
-        success: false,
-        error: "کد تایید وارد شده نادرست، منقضی یا بیش از حد حدس زده شده است.",
-      };
-    }
-
-    const user = await AuthService.quickLoginUser(parsed.data);
-
-    const cookieStore = await cookies();
-    cookieStore.set("user_phone", createSignedToken(user.phone), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 60 * 60 * 24 * 30,
-      path: "/",
-    });
-
-    return { success: true };
-  } catch {
-    return { success: false, error: "خطایی در فرآیند ورود رخ داد." };
   }
 }
 

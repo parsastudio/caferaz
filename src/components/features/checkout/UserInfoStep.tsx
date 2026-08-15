@@ -3,8 +3,8 @@
 import React from "react";
 import { User, Phone, KeyRound } from "lucide-react";
 import { useFormContext } from "react-hook-form";
-import { Button } from "../../ui/button";
-import { CheckoutFormValues } from "./schema";
+import { Button } from "@/components/ui/button";
+import { CheckoutFormValues } from "@/domain/validations/order.schema";
 import { toEnglishDigits } from "@/lib/utils";
 
 interface UserInfoStepProps {

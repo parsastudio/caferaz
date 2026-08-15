@@ -3,8 +3,8 @@
 import React from "react";
 import { MapPin, Check, Truck, Loader2, Ticket } from "lucide-react";
 import { useFormContext } from "react-hook-form";
-import { Button } from "../../ui/button";
-import { CheckoutFormValues } from "./schema";
+import { Button } from "@/components/ui/button";
+import { CheckoutFormValues } from "@/domain/validations/order.schema";
 
 interface ShippingStepProps {
   onSubmit: (e: React.FormEvent) => void;

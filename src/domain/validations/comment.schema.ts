@@ -34,7 +34,11 @@ export const submitCommentSchema = commentFormSchema.extend({
 
 export const editCommentSchema = z.object({
   commentId: z.string().min(1, "شناسه دیدگاه الزامی است."),
-  commentText: z.string().min(1, "متن دیدگاه نمی‌تواند خالی باشد."),
+  commentText: z
+    .string()
+    .min(1, "متن دیدگاه نمی‌تواند خالی باشد.")
+    .min(5, "دیدگاه باید حداقل ۵ کاراکتر باشد")
+    .max(1000, "دیدگاه بیش از حد طولانی است"),
 });
 
 export type CommentStatus = z.infer<typeof commentStatusSchema>;

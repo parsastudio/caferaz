@@ -5,6 +5,7 @@ import { checkAdminAuth } from "@/actions/admin-auth";
 import { Comment } from "@/domain/types";
 import { ActionResponse } from "@/types/actions";
 import { CommentService } from "@/services/comment.service";
+import { editCommentSchema } from "@/domain/validations/comment.schema";
 
 export async function getAdminCommentsAction(
   productId: string,
@@ -111,11 +112,19 @@ export async function editCommentAction(
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    if (!commentText.trim()) {
-      return { success: false, error: "متن دیدگاه نمی‌تواند خالی باشد." };
+    const validated = editCommentSchema.safeParse({ commentId, commentText });
+    if (!validated.success) {
+      return {
+        success: false,
+        error:
+          validated.error.issues[0]?.message || "اطلاعات ارسالی نامعتبر است.",
+      };
     }
 
-    await CommentService.editCommentText(commentId, commentText);
+    await CommentService.editCommentText(
+      validated.data.commentId,
+      validated.data.commentText,
+    );
 
     revalidatePath("/");
     revalidatePath("/admin/comments");

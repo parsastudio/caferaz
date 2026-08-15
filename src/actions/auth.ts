@@ -9,7 +9,6 @@ export {
 
 export {
   sendUserOtpAction,
-  loginUserAction,
   loginUserWithOtpAction,
   registerUserAction,
   checkPhoneRegisteredAction,

@@ -19,13 +19,6 @@ export interface Product {
   stockGrams: number;
 }
 
-export interface ProductVariantPricing {
-  id: string;
-  productId: string;
-  pricePerKgArabica: number;
-  pricePerKgRobusta: number;
-}
-
 export interface ProductWithPricing extends Product {
   pricing: {
     pricePerKgArabica: number;

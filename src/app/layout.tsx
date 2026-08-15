@@ -43,8 +43,6 @@ export default async function RootLayout({
         address: typeof raw.address === "string" ? raw.address : "",
         website: typeof raw.website === "string" ? raw.website : "",
         eitaa: typeof raw.eitaa === "string" ? raw.eitaa : "",
-        instagram: typeof raw.instagram === "string" ? raw.instagram : "",
-        telegram: typeof raw.telegram === "string" ? raw.telegram : "",
       };
     }
   } catch (error) {

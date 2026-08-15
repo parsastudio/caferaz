@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { Smartphone, Loader2 } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { CheckoutFormValues } from "./schema";
+import { CheckoutFormValues } from "@/domain/validations/order.schema";
 import { toEnglishDigits } from "@/lib/utils";
 import { sendUserOtpAction } from "@/actions/auth";
 

@@ -8,7 +8,6 @@ import {
   UpdateAdminPasswordInput,
   RegisterUserInput,
   LoginUserWithOtpInput,
-  QuickLoginUserInput,
 } from "@/domain/validations/auth.schema";
 
 export class AuthService {
@@ -112,22 +111,6 @@ export class AuthService {
       where: { phone: input.phone },
       update: {},
       create: { phone: input.phone, name: displayName },
-    });
-
-    return {
-      id: user.id,
-      name: user.name,
-      phone: user.phone,
-      createdAt: user.createdAt.toISOString(),
-      address: user.address ?? undefined,
-    };
-  }
-
-  static async quickLoginUser(input: QuickLoginUserInput): Promise<User> {
-    const user = await prisma.user.upsert({
-      where: { phone: input.phone },
-      update: { name: input.name },
-      create: { phone: input.phone, name: input.name },
     });
 
     return {
