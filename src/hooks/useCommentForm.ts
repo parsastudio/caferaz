@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { submitCommentAction } from "@/actions/comment";
-import { Comment } from "@/types";
 
 export const commentSchema = z.object({
   firstName: z
@@ -40,11 +39,6 @@ interface UseCommentFormProps {
     rating: number | null;
     parentId: string | null;
   }) => void;
-  onCommentSuccess: (
-    tempId: string,
-    realComment: Comment,
-    parentId: string | null,
-  ) => void;
   startTransition: React.TransitionStartFunction;
 }
 
@@ -53,7 +47,6 @@ export function useCommentForm({
   replyParentId,
   isOpen,
   onCommentSubmitted,
-  onCommentSuccess,
   startTransition,
 }: UseCommentFormProps) {
   const [commentMessage, setCommentMessage] = useState<string | null>(null);
@@ -109,7 +102,6 @@ export function useCommentForm({
 
         if (result.success) {
           setCommentMessage(result.message || "دیدگاه شما ثبت گردید.");
-          onCommentSuccess(tempId, result.data, replyParentId);
           reset();
         } else {
           setCommentError(result.error);

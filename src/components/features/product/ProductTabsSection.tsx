@@ -1,11 +1,6 @@
 "use client";
 
-import React, {
-  useState,
-  useOptimistic,
-  useTransition,
-  useEffect,
-} from "react";
+import React, { useState, useOptimistic, useTransition } from "react";
 import { MessageSquare, Star, Plus, Clock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -33,82 +28,9 @@ export default function ProductTabsSection({
   const [replyParentId, setReplyParentId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const [localPendingComments, setLocalPendingComments] = useState<UIComment[]>(
-    [],
-  );
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem(`pending_comments_${productId}`);
-      if (stored) {
-        try {
-          const parsed: UIComment[] = JSON.parse(stored);
-
-          const isApproved = (id: string, list: UIComment[]): boolean => {
-            return list.some(
-              (c) => c.id === id || (c.replies && isApproved(id, c.replies)),
-            );
-          };
-
-          const stillPending = parsed.filter((pending) => {
-            return !isApproved(pending.id, initialComments);
-          });
-
-          setLocalPendingComments(stillPending);
-          localStorage.setItem(
-            `pending_comments_${productId}`,
-            JSON.stringify(stillPending),
-          );
-        } catch {
-          // Ignored
-        }
-      }
-    }
-  }, [productId, initialComments]);
-
-  const getMergedComments = (): UIComment[] => {
-    let merged = [...initialComments];
-
-    localPendingComments.forEach((pending) => {
-      if (pending.parent_id_temp) {
-        const insertReply = (list: UIComment[]): UIComment[] => {
-          return list.map((c) => {
-            if (c.id === pending.parent_id_temp) {
-              const alreadyExists = (c.replies || []).some(
-                (r) => r.id === pending.id,
-              );
-              return {
-                ...c,
-                replies: alreadyExists
-                  ? c.replies
-                  : [...(c.replies || []), pending],
-              };
-            }
-            if (c.replies && c.replies.length > 0) {
-              return {
-                ...c,
-                replies: insertReply(c.replies),
-              };
-            }
-            return c;
-          });
-        };
-        merged = insertReply(merged);
-      } else {
-        if (!merged.some((c) => c.id === pending.id)) {
-          merged = [pending, ...merged];
-        }
-      }
-    });
-
-    return merged;
-  };
-
-  const mergedCommentsSnapshot = getMergedComments();
-
   const [optimisticComments, addOptimisticComment] = useOptimistic(
-    mergedCommentsSnapshot,
-    (state, newComment: UIComment) => {
+    initialComments,
+    (state: UIComment[], newComment: UIComment) => {
       if (newComment.parent_id_temp) {
         const insertReply = (list: UIComment[]): UIComment[] => {
           return list.map((c) => {
@@ -153,28 +75,6 @@ export default function ProductTabsSection({
     };
 
     addOptimisticComment(newLocalComment);
-  };
-
-  const handleCommentSuccess = (
-    _tempId: string,
-    realComment: Comment,
-    parentId: string | null,
-  ) => {
-    const newUIComment: UIComment = {
-      ...realComment,
-      is_pending: true,
-      replies: realComment.replies as UIComment[] | undefined,
-      parent_id_temp: parentId,
-    };
-
-    setLocalPendingComments((prev) => {
-      const updated = [newUIComment, ...prev];
-      localStorage.setItem(
-        `pending_comments_${productId}`,
-        JSON.stringify(updated),
-      );
-      return updated;
-    });
   };
 
   const openNewCommentDialog = () => {
@@ -270,7 +170,6 @@ export default function ProductTabsSection({
         productId={productId}
         replyParentId={replyParentId}
         onCommentSubmitted={handleCommentSubmitted}
-        onCommentSuccess={handleCommentSuccess}
         isPending={isPending}
         startTransition={startTransition}
       />

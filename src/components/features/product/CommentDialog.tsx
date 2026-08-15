@@ -12,7 +12,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useCommentForm } from "@/hooks/useCommentForm";
-import { Comment } from "@/types";
 
 interface CommentDialogProps {
   isOpen: boolean;
@@ -26,11 +25,6 @@ interface CommentDialogProps {
     rating: number | null;
     parentId: string | null;
   }) => void;
-  onCommentSuccess: (
-    tempId: string,
-    realComment: Comment,
-    parentId: string | null,
-  ) => void;
   isPending: boolean;
   startTransition: React.TransitionStartFunction;
 }
@@ -41,7 +35,6 @@ export default function CommentDialog({
   productId,
   replyParentId,
   onCommentSubmitted,
-  onCommentSuccess,
   isPending,
   startTransition,
 }: CommentDialogProps) {
@@ -51,7 +44,6 @@ export default function CommentDialog({
       replyParentId,
       isOpen,
       onCommentSubmitted,
-      onCommentSuccess,
       startTransition,
     });
 
