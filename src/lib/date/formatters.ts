@@ -40,7 +40,23 @@ function formatJalaliString(jy: number, jm: number, jd: number): string {
 export function formatGregorianToJalaliString(gregorianStr: string): string {
   const d = new Date(gregorianStr);
   if (isNaN(d.getTime())) return gregorianStr;
-  const res = toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate());
+
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Tehran",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  });
+
+  const parts = formatter.formatToParts(d);
+  const gy = parseInt(
+    parts.find((p) => p.type === "year")?.value || "1970",
+    10,
+  );
+  const gm = parseInt(parts.find((p) => p.type === "month")?.value || "1", 10);
+  const gd = parseInt(parts.find((p) => p.type === "day")?.value || "1", 10);
+
+  const res = toJalaali(gy, gm, gd);
   return formatJalaliString(res.jy, res.jm, res.jd);
 }
 

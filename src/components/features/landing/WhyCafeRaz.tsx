@@ -1,10 +1,22 @@
 "use client";
 
 import React from "react";
-import * as Icons from "lucide-react";
+import {
+  Coins,
+  MapPin,
+  Sliders,
+  Coffee,
+  HelpCircle,
+  LucideIcon,
+} from "lucide-react";
 import { STATIC_USPS } from "@/lib/constants";
 
-type LucideIconType = React.ComponentType<{ className?: string }>;
+const iconRegistry: Record<string, LucideIcon> = {
+  Coins,
+  MapPin,
+  Sliders,
+  Coffee,
+};
 
 export default function WhyCafeRaz() {
   return (
@@ -27,9 +39,7 @@ export default function WhyCafeRaz() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {STATIC_USPS.map((usp) => {
-          const IconComponent =
-            (Icons[usp.icon as keyof typeof Icons] as LucideIconType) ||
-            Icons.HelpCircle;
+          const IconComponent = iconRegistry[usp.icon] || HelpCircle;
 
           return (
             <div
@@ -56,4 +66,3 @@ export default function WhyCafeRaz() {
     </section>
   );
 }
-  

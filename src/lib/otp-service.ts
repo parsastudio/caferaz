@@ -19,7 +19,7 @@ export async function sendOtpCode(
     },
   });
 
-  if (ipUsageLastHour >= 10) {
+  if (ipUsageLastHour >= 40) {
     return {
       success: false,
       error:

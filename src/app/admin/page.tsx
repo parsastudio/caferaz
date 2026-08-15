@@ -21,7 +21,9 @@ export default async function AdminDashboardPage() {
     ? commentsResult.data?.length || 0
     : 0;
   const totalRevenue = ordersResult.success
-    ? ordersResult.data?.reduce((sum, order) => sum + order.finalPrice, 0) || 0
+    ? ordersResult.data
+        ?.filter((order) => order.status !== "cancelled")
+        .reduce((sum, order) => sum + order.finalPrice, 0) || 0
     : 0;
 
   return (

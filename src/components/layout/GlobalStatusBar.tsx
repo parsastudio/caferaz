@@ -39,6 +39,9 @@ export default async function GlobalStatusBar() {
         finalPrice: true,
       },
       where: {
+        status: {
+          not: "cancelled",
+        },
         createdAt: {
           gte: startOfMonth,
           lte: endOfMonth,
