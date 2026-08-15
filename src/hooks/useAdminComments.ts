@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { Comment } from "@/types";
 import { toast } from "sonner";
+import { submitCommentAction } from "@/actions/public-comment";
 import {
-  submitCommentAction,
   deleteCommentAction,
   approveCommentAction,
   rejectCommentAction,
   spamCommentAction,
   editCommentAction,
-} from "@/actions/comment";
+} from "@/actions/admin-comment";
 
 export function useAdminComments(initialComments: Comment[]) {
   const [comments, setComments] = useState<Comment[]>(initialComments);

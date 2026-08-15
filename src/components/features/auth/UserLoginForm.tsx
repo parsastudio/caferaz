@@ -7,7 +7,7 @@ import {
   loginUserWithOtpAction,
   checkPhoneRegisteredAction,
   registerUserAction,
-} from "@/actions/auth";
+} from "@/actions/user-auth";
 import {
   Smartphone,
   ArrowRight,

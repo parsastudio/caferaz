@@ -6,7 +6,7 @@ import { CheckoutFormValues } from "@/domain/validations/order.schema";
 import {
   checkPhoneRegisteredAction,
   loginUserWithOtpAction,
-} from "@/actions/auth";
+} from "@/actions/user-auth";
 import { toEnglishDigits } from "@/lib/utils";
 
 export type OtpPurpose = "login" | "checkout";

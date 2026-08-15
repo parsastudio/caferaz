@@ -8,7 +8,7 @@ import {
   createCouponAction,
   deleteCouponAction,
   toggleCouponStatusAction,
-} from "@/actions/coupon";
+} from "@/actions/admin-coupon";
 import { CreateCouponInput } from "@/domain/validations/coupon.schema";
 import { Button } from "@/components/ui/button";
 import CouponStats from "@/components/features/admin/coupons/CouponStats";

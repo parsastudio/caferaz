@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { loginAdminAction } from "@/actions/auth";
+import { loginAdminAction } from "@/actions/admin-auth";
 import { Lock, User, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

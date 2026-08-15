@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useForm, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { submitCommentAction } from "@/actions/comment";
+import { submitCommentAction } from "@/actions/public-comment";
 import {
   commentFormSchema,
   type CommentFormValues,

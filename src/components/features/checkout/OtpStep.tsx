@@ -6,7 +6,7 @@ import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { CheckoutFormValues } from "@/domain/validations/order.schema";
 import { toEnglishDigits } from "@/lib/utils";
-import { sendUserOtpAction } from "@/actions/auth";
+import { sendUserOtpAction } from "@/actions/user-auth";
 import OrderSummaryCard from "@/components/features/checkout/components/OrderSummaryCard";
 
 interface OtpStepProps {

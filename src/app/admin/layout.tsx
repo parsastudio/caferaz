@@ -1,6 +1,6 @@
 import React from "react";
 import { redirect } from "next/navigation";
-import { checkAdminAuth } from "@/actions/auth";
+import { checkAdminAuth } from "@/actions/admin-auth";
 import AdminSidebar from "@/components/features/admin/AdminSidebar";
 
 export default async function AdminLayout({

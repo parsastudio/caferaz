@@ -1,6 +1,6 @@
 import React from "react";
-import { getOrdersAction } from "@/actions/order";
-import { getAdminCommentsAction } from "@/actions/comment";
+import { getOrdersAction } from "@/actions/admin-order";
+import { getAdminCommentsAction } from "@/actions/admin-comment";
 import { getMainProductAction } from "@/actions/product";
 
 export default async function AdminDashboardPage() {

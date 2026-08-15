@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { logoutUserAction } from "@/actions/auth";
+import { logoutUserAction } from "@/actions/user-auth";
 import { User, Award, Clock, Home, LogOut } from "lucide-react";
 import { User as UserType } from "@/types";
 
@@ -59,7 +59,7 @@ export default function UserStatusBar({
             <form action={logoutUserAction} className="inline-block">
               <button
                 type="submit"
-                className="p-1.5 text-stone-400 hover:text-red-400 hover:bg-red-500/5 rounded-lg border border-stone-850 transition-all cursor-pointer flex items-center justify-center"
+                className="p-1.5 text-stone-400 hover:text-red-400 hover:bg-red-500/5 rounded-lg border border-stone-855 transition-all cursor-pointer flex items-center justify-center"
                 title="خروج از حساب"
               >
                 <LogOut className="w-4 h-4" />
@@ -108,7 +108,7 @@ export default function UserStatusBar({
             <form action={logoutUserAction} className="inline-block">
               <button
                 type="submit"
-                className="p-1.5 text-stone-400 hover:text-red-400 hover:bg-red-500/5 rounded-lg border border-stone-850 transition-all cursor-pointer flex items-center justify-center"
+                className="p-1.5 text-stone-400 hover:text-red-400 hover:bg-red-500/5 rounded-lg border border-stone-855 transition-all cursor-pointer flex items-center justify-center"
                 title="خروج از حساب"
               >
                 <LogOut className="w-4 h-4" />

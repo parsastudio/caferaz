@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { logoutAdminAction } from "@/actions/auth";
+import { logoutAdminAction } from "@/actions/admin-auth";
 import {
   ShieldCheck,
   MessageSquare,

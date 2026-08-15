@@ -2,7 +2,10 @@
 
 import React, { useState } from "react";
 import { Order, OrderStatus } from "@/domain/types";
-import { updateOrderStatusAction, deleteOrderAction } from "@/actions/order";
+import {
+  updateOrderStatusAction,
+  deleteOrderAction,
+} from "@/actions/admin-order";
 import { toast } from "sonner";
 import OrderFilterTabs from "@/components/features/admin/orders/OrderFilterTabs";
 import OrderCard from "@/components/features/admin/orders/OrderCard";

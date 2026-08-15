@@ -2,7 +2,7 @@
 
 import { ActionResponse } from "@/types/actions";
 import { revalidatePath } from "next/cache";
-import { checkAdminAuth } from "@/actions/auth";
+import { checkAdminAuth } from "@/actions/admin-auth";
 import { ProductWithPricing } from "@/domain/types";
 import { ProductService } from "@/services/product.service";
 import {

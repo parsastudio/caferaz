@@ -8,7 +8,7 @@ import {
   checkoutFormSchema,
   CheckoutFormValues,
 } from "@/domain/validations/order.schema";
-import { getCurrentUserAction, sendUserOtpAction } from "@/actions/auth";
+import { getCurrentUserAction, sendUserOtpAction } from "@/actions/user-auth";
 import { useCouponManager } from "@/hooks/useCouponManager";
 import { useCheckoutAuth } from "@/hooks/checkout/useCheckoutAuth";
 import { useCheckoutSubmit } from "@/hooks/checkout/useCheckoutSubmit";

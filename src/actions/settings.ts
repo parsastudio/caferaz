@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { checkAdminAuth } from "@/actions/auth";
+import { checkAdminAuth } from "@/actions/admin-auth";
 import { SettingsService } from "@/services/settings.service";
 import {
   updateSettingsSchema,

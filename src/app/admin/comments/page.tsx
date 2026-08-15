@@ -1,5 +1,5 @@
 import React from "react";
-import { getAdminCommentsAction } from "@/actions/comment";
+import { getAdminCommentsAction } from "@/actions/admin-comment";
 import { getMainProductAction } from "@/actions/product";
 import AdminCommentsClientList from "@/components/features/admin/AdminCommentsClientList";
 

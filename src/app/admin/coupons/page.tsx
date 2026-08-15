@@ -1,5 +1,5 @@
 import React from "react";
-import { getCouponsAction } from "@/actions/coupon";
+import { getCouponsAction } from "@/actions/admin-coupon";
 import { ProductService } from "@/services/product.service";
 import AdminCouponsClientList from "@/components/features/admin/coupons/AdminCouponsClientList";
 

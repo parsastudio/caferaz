@@ -1,5 +1,6 @@
 import React from "react";
-import { checkAdminAuth, getCurrentUserAction } from "@/actions/auth";
+import { checkAdminAuth } from "@/actions/admin-auth";
+import { getCurrentUserAction } from "@/actions/user-auth";
 import { prisma } from "@/lib/prisma";
 import AdminStatusBar from "@/components/layout/AdminStatusBar";
 import UserStatusBar from "@/components/layout/UserStatusBar";

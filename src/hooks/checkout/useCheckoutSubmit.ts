@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { CheckoutFormValues } from "@/domain/validations/order.schema";
-import { submitOrderAction } from "@/actions/order";
+import { submitOrderAction } from "@/actions/checkout";
 import { toEnglishDigits } from "@/lib/utils";
 import { CheckoutData } from "@/context/CheckoutContext";
 

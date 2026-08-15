@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { validateCouponAction } from "@/actions/coupon";
+import { validateCouponAction } from "@/actions/validate-coupon";
 import { toEnglishDigits } from "@/lib/utils";
 
 interface UseCouponManagerProps {
