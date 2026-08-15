@@ -8,6 +8,7 @@ import BlendSelector from "./BlendSelector";
 import GrindSelector from "./GrindSelector";
 import QuantitySelector from "./QuantitySelector";
 import PriceSummary from "./PriceSummary";
+import MobileStickyBar from "./MobileStickyBar";
 import CheckoutDialog from "../checkout/CheckoutDialog";
 import ProductTabsSection, { UIComment } from "./ProductTabsSection";
 import { useCheckout } from "@/context/CheckoutContext";
@@ -50,6 +51,20 @@ export default function CoffeeProductPage({
   } = useCoffeeProduct(initialProduct, activeCoupons, serverTodayStr);
 
   const { openCheckout } = useCheckout();
+
+  const handleOpenCheckoutModal = () => {
+    openCheckout({
+      productId: initialProduct.id,
+      selectedWeight: computedWeight,
+      selectedBlend,
+      selectedGrind,
+      quantity,
+      finalPrice: priceMetrics.finalPrice,
+      basePrice: priceMetrics.basePrice,
+      directDiscountAmount: priceMetrics.directDiscountAmount,
+      conditionalDiscountAmount: priceMetrics.conditionalDiscountAmount,
+    });
+  };
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-12" dir="rtl">
@@ -101,20 +116,7 @@ export default function CoffeeProductPage({
             basePrice={priceMetrics.basePrice}
             finalPrice={priceMetrics.finalPrice}
             isOutOfStock={isOutOfStock}
-            onCheckout={() =>
-              openCheckout({
-                productId: initialProduct.id,
-                selectedWeight: computedWeight,
-                selectedBlend,
-                selectedGrind,
-                quantity,
-                finalPrice: priceMetrics.finalPrice,
-                basePrice: priceMetrics.basePrice,
-                directDiscountAmount: priceMetrics.directDiscountAmount,
-                conditionalDiscountAmount:
-                  priceMetrics.conditionalDiscountAmount,
-              })
-            }
+            onCheckout={handleOpenCheckoutModal}
           />
         </div>
       </div>
@@ -123,6 +125,13 @@ export default function CoffeeProductPage({
         productId={initialProduct.id}
         description={siteSubtitle || initialProduct.description}
         initialComments={initialComments}
+      />
+
+      <MobileStickyBar
+        basePrice={priceMetrics.basePrice}
+        finalPrice={priceMetrics.finalPrice}
+        isOutOfStock={isOutOfStock}
+        onCheckout={handleOpenCheckoutModal}
       />
 
       <CheckoutDialog />
