@@ -130,7 +130,11 @@ export function useCheckoutForm() {
       const phoneVal = toEnglishDigits(getValues("phone").trim());
       setIsSendingOtp(true);
       try {
-        const otpRes = await sendUserOtpAction({ phone: phoneVal });
+        const otpRes = await sendUserOtpAction({
+          phone: phoneVal,
+          honeypot: authManager.honeypot,
+          formToken: authManager.formToken,
+        });
         if (otpRes.success) {
           setStep("otp");
         } else {

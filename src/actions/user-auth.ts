@@ -2,15 +2,31 @@
 
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { createSignedToken, verifySignedToken } from "@/lib/session";
+import {
+  createSignedToken,
+  verifySignedToken,
+  createFormToken,
+  verifyFormToken,
+} from "@/lib/session";
 import { AuthService } from "@/services/auth.service";
 import {
   sendOtpSchema,
   loginUserWithOtpSchema,
   registerUserSchema,
+  type SendOtpInput,
 } from "@/domain/validations/auth.schema";
+import { ActionResponse } from "@/types/actions";
 
-export async function sendUserOtpAction(payload: { phone: string }) {
+export async function getOtpFormTokenAction(): Promise<ActionResponse<string>> {
+  try {
+    const token = createFormToken("otp_challenge");
+    return { success: true, data: token };
+  } catch {
+    return { success: false, error: "خطا در تولید توکن اعتبارسنجی." };
+  }
+}
+
+export async function sendUserOtpAction(payload: SendOtpInput) {
   try {
     const parsed = sendOtpSchema.safeParse(payload);
     if (!parsed.success) {
@@ -18,6 +34,23 @@ export async function sendUserOtpAction(payload: { phone: string }) {
         success: false,
         error: parsed.error.issues[0]?.message || "شماره همراه نامعتبر است.",
       };
+    }
+
+    if (parsed.data.honeypot && parsed.data.honeypot.trim().length > 0) {
+      return {
+        success: true,
+        message: "کد تایید با موفقیت ارسال شد.",
+      };
+    }
+
+    if (parsed.data.formToken) {
+      const isValidTiming = verifyFormToken(parsed.data.formToken, 1000);
+      if (!isValidTiming) {
+        return {
+          success: true,
+          message: "کد تایید با موفقیت ارسال شد.",
+        };
+      }
     }
 
     const headersList = await headers();

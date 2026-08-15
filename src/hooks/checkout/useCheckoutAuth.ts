@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { CheckoutFormValues } from "@/domain/validations/order.schema";
 import {
   checkPhoneRegisteredAction,
   loginUserWithOtpAction,
+  sendUserOtpAction,
+  getOtpFormTokenAction,
 } from "@/actions/user-auth";
 import { toEnglishDigits } from "@/lib/utils";
 
@@ -32,8 +34,18 @@ export function useCheckoutAuth({
   const [otpPurpose, setOtpPurpose] = useState<OtpPurpose>("checkout");
   const [isLoggedInUser, setIsLoggedInUser] = useState(false);
   const [isSubmittingAuth, setIsSubmittingAuth] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
+  const [formToken, setFormToken] = useState("");
 
   const { trigger, getValues, setValue } = methods;
+
+  useEffect(() => {
+    getOtpFormTokenAction().then((res) => {
+      if (res.success && res.data) {
+        setFormToken(res.data);
+      }
+    });
+  }, []);
 
   const handleUserInfoNext = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +64,18 @@ export function useCheckoutAuth({
           setValue("lastName", nameParts.slice(1).join(" ") || "");
           setValue("shippingAddress", checkRes.user.address || "");
           setOtpPurpose("login");
-          onProceedToOtp("login");
+
+          const otpRes = await sendUserOtpAction({
+            phone: phoneVal,
+            honeypot,
+            formToken,
+          });
+
+          if (otpRes.success) {
+            onProceedToOtp("login");
+          } else {
+            setErrorMessage(otpRes.error || "خطا در ارسال کد تایید.");
+          }
         } else {
           setErrorMessage(
             "این شماره همراه قبلاً ثبت‌نام نکرده است. لطفاً ثبت‌نام کنید.",
@@ -106,6 +129,9 @@ export function useCheckoutAuth({
     isLoggedInUser,
     setIsLoggedInUser,
     isSubmittingAuth,
+    honeypot,
+    setHoneypot,
+    formToken,
     handleUserInfoNext,
     handleVerifyLoginOtp,
   };

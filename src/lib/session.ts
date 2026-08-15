@@ -61,3 +61,27 @@ export function verifySignedToken(token: string): string | null {
     return null;
   }
 }
+
+export function createFormToken(purpose: string = "otp_challenge"): string {
+  const timestamp = Date.now();
+  return createSignedToken(`${purpose}:${timestamp}`, 10 * 60 * 1000);
+}
+
+export function verifyFormToken(
+  token: string,
+  minAgeMs: number = 1000,
+  maxAgeMs: number = 10 * 60 * 1000,
+): boolean {
+  const verified = verifySignedToken(token);
+  if (!verified) return false;
+
+  const colonIndex = verified.indexOf(":");
+  if (colonIndex === -1) return false;
+
+  const timestampStr = verified.substring(colonIndex + 1);
+  const issuedAt = parseInt(timestampStr, 10);
+  if (isNaN(issuedAt)) return false;
+
+  const elapsed = Date.now() - issuedAt;
+  return elapsed >= minAgeMs && elapsed <= maxAgeMs;
+}

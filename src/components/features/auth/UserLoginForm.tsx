@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   sendUserOtpAction,
   loginUserWithOtpAction,
   checkPhoneRegisteredAction,
   registerUserAction,
+  getOtpFormTokenAction,
 } from "@/actions/user-auth";
 import {
   Smartphone,
@@ -32,8 +33,18 @@ export default function UserLoginForm() {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [otp, setOtp] = useState("");
+  const [honeypot, setHoneypot] = useState("");
+  const [formToken, setFormToken] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    getOtpFormTokenAction().then((res) => {
+      if (res.success && res.data) {
+        setFormToken(res.data);
+      }
+    });
+  }, []);
 
   const handlePhoneSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +76,7 @@ export default function UserLoginForm() {
           return;
         }
 
-        const otpRes = await sendUserOtpAction({ phone });
+        const otpRes = await sendUserOtpAction({ phone, honeypot, formToken });
         if (otpRes.success) {
           setStep("otp");
         } else {
@@ -125,7 +136,7 @@ export default function UserLoginForm() {
           onSubmit={handlePhoneSubmit}
           className="space-y-4"
         >
-          <div className="flex bg-stone-950 p-1 rounded-xl border border-stone-850">
+          <div className="flex bg-stone-950 p-1 rounded-xl border border-stone-855">
             <button
               type="button"
               onClick={() => {
@@ -154,6 +165,28 @@ export default function UserLoginForm() {
             >
               ثبت‌نام جدید
             </button>
+          </div>
+
+          <div
+            style={{
+              position: "absolute",
+              opacity: 0,
+              top: 0,
+              left: "-9999px",
+              height: 0,
+              width: 0,
+              overflow: "hidden",
+            }}
+            aria-hidden="true"
+          >
+            <input
+              type="text"
+              name="company_website_url"
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+              tabIndex={-1}
+              autoComplete="off"
+            />
           </div>
 
           <div className="space-y-1.5 text-right">

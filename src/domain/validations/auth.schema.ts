@@ -28,6 +28,8 @@ export const updateAdminPasswordSchema = z.object({
 
 export const sendOtpSchema = z.object({
   phone: phoneSchema,
+  honeypot: z.string().optional(),
+  formToken: z.string().optional(),
 });
 
 export const loginUserWithOtpSchema = z.object({
@@ -46,5 +48,6 @@ export type AdminLoginInput = z.infer<typeof adminLoginSchema>;
 export type UpdateAdminPasswordInput = z.infer<
   typeof updateAdminPasswordSchema
 >;
+export type SendOtpInput = z.infer<typeof sendOtpSchema>;
 export type LoginUserWithOtpInput = z.infer<typeof loginUserWithOtpSchema>;
 export type RegisterUserInput = z.infer<typeof registerUserSchema>;
