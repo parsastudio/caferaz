@@ -7,9 +7,9 @@ import React, {
   useEffect,
 } from "react";
 import { MessageSquare, Star, Plus, Clock } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../ui/tabs";
-import { Button } from "../../ui/button";
-import CommentDialog from "./CommentDialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import CommentDialog from "@/components/features/product/CommentDialog";
 import { Comment } from "@/types";
 
 export interface UIComment extends Omit<Comment, "replies"> {
@@ -59,11 +59,8 @@ export default function ProductTabsSection({
             `pending_comments_${productId}`,
             JSON.stringify(stillPending),
           );
-        } catch (e) {
-          console.error(
-            "Failed to parse pending comments from localStorage",
-            e,
-          );
+        } catch {
+          // Ignored
         }
       }
     }
@@ -159,7 +156,7 @@ export default function ProductTabsSection({
   };
 
   const handleCommentSuccess = (
-    tempId: string,
+    _tempId: string,
     realComment: Comment,
     parentId: string | null,
   ) => {
@@ -178,10 +175,6 @@ export default function ProductTabsSection({
       );
       return updated;
     });
-  };
-
-  const handleCommentFailed = (tempId: string) => {
-    // Optimistic UI automatically handles revert on fail.
   };
 
   const openNewCommentDialog = () => {
@@ -278,7 +271,6 @@ export default function ProductTabsSection({
         replyParentId={replyParentId}
         onCommentSubmitted={handleCommentSubmitted}
         onCommentSuccess={handleCommentSuccess}
-        onCommentFailed={handleCommentFailed}
         isPending={isPending}
         startTransition={startTransition}
       />

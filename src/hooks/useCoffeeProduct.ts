@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useCoffeeSelection } from "./useCoffeeSelection";
+import { useCoffeeSelection } from "@/hooks/useCoffeeSelection";
 import {
   getBlendProfile,
   calculateAdvancedPriceMetrics,
@@ -23,7 +23,7 @@ export interface CoffeeProduct {
 export function useCoffeeProduct(
   initialProduct: CoffeeProduct,
   activeCoupons: Coupon[],
-  serverTodayStr?: string, // تزریق زمان مطمئن سرور
+  serverTodayStr?: string,
 ) {
   const selection = useCoffeeSelection();
 
@@ -67,10 +67,6 @@ export function useCoffeeProduct(
 
   const isOutOfStock = selection.quantity > remainingStockCount;
 
-  const variantDetailsSnapshot = useMemo(() => {
-    return `ترکیب: ${selection.selectedBlend} | آسیاب: ${selection.selectedGrind}`;
-  }, [selection.selectedBlend, selection.selectedGrind]);
-
   return {
     ...selection,
     blendProfile,
@@ -78,6 +74,5 @@ export function useCoffeeProduct(
     priceMetrics,
     remainingStockCount,
     isOutOfStock,
-    variantDetailsSnapshot,
   };
 }

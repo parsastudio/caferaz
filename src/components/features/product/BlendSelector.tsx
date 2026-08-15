@@ -3,16 +3,7 @@
 import React from "react";
 import { Percent, Zap, Coffee, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { CoffeeBlend } from "@/lib/constants";
-
-interface BlendProfile {
-  robusta: number;
-  arabica: number;
-  caffeine: number;
-  body: number;
-  aroma: number;
-  label: string;
-}
+import { STATIC_BLENDS, CoffeeBlend, BlendProfile } from "@/lib/constants";
 
 interface BlendSelectorProps {
   selectedBlend: string;
@@ -21,77 +12,12 @@ interface BlendSelectorProps {
   blends?: CoffeeBlend[];
 }
 
-const fallbackBlends: CoffeeBlend[] = [
-  {
-    value: "۵۰٪ روبوستا / ۵۰٪ عربیکا",
-    desc: "ترکیب متعادل، اسیدیته بسیار ملایم، بادی مناسب و عطر دلپذیر روزانه",
-    profile: {
-      robusta: 50,
-      arabica: 50,
-      caffeine: 60,
-      body: 60,
-      aroma: 65,
-      label: "بالانس عالی از عطر عربیکا و گیرایی روبوستا",
-    },
-  },
-  {
-    value: "۷۰٪ روبوستا / ۳۰٪ عربیکا",
-    desc: "کافئین بالا، تنواری سنگین، کرمای ضخیم و تلخی جذاب",
-    profile: {
-      robusta: 70,
-      arabica: 30,
-      caffeine: 80,
-      body: 80,
-      aroma: 45,
-      label: "کافئین بالا، غلظت سنگین و تلخی جذاب",
-    },
-  },
-  {
-    value: "۳۰٪ روبوستا / ۷۰٪ عربیکا",
-    desc: "اسیدیته ملایم رو به بالا، معطر و طعم یاد مرکباتی و شکلاتی",
-    profile: {
-      robusta: 30,
-      arabica: 70,
-      caffeine: 45,
-      body: 45,
-      aroma: 80,
-      label: "بسیار خوش‌عطر، ترشی ملایم و طعم یاد مرکباتی",
-    },
-  },
-  {
-    value: "۱۰۰٪ روبوستا",
-    desc: "بسیار سنگین، خامه ضخیم، کافئین حداکثری و بدون ترشی",
-    profile: {
-      robusta: 100,
-      arabica: 0,
-      caffeine: 95,
-      body: 95,
-      aroma: 25,
-      label: "کافئین فوق‌العاده بالا و خامه (کرما) ضخیم",
-    },
-  },
-  {
-    value: "۱۰۰٪ عربیکا",
-    desc: "بسیار معطر، ترشی ظریف، طعم یاد گلی و میوه‌ای تخصصی",
-    profile: {
-      robusta: 0,
-      arabica: 100,
-      caffeine: 25,
-      body: 25,
-      aroma: 98,
-      label: "رایحه گلی بی‌نظیر، اسیدیته شفاف و طعم تخصصی",
-    },
-  },
-];
-
 export default function BlendSelector({
   selectedBlend,
   setSelectedBlend,
   blendProfile,
-  blends = [],
+  blends = STATIC_BLENDS,
 }: BlendSelectorProps) {
-  const finalBlends = blends.length > 0 ? blends : fallbackBlends;
-
   return (
     <div className="space-y-4">
       <label className="text-sm font-black text-stone-300 flex items-center gap-2">
@@ -101,7 +27,7 @@ export default function BlendSelector({
         درصد ترکیب دانه‌ها (بلند):
       </label>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {finalBlends.map((blend) => {
+        {blends.map((blend) => {
           const isSelected = selectedBlend === blend.value;
           return (
             <button

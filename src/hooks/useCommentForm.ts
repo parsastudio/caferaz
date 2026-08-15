@@ -45,7 +45,6 @@ interface UseCommentFormProps {
     realComment: Comment,
     parentId: string | null,
   ) => void;
-  onCommentFailed: (tempId: string) => void;
   startTransition: React.TransitionStartFunction;
 }
 
@@ -55,7 +54,6 @@ export function useCommentForm({
   isOpen,
   onCommentSubmitted,
   onCommentSuccess,
-  onCommentFailed,
   startTransition,
 }: UseCommentFormProps) {
   const [commentMessage, setCommentMessage] = useState<string | null>(null);
@@ -115,11 +113,9 @@ export function useCommentForm({
           reset();
         } else {
           setCommentError(result.error);
-          onCommentFailed(tempId);
         }
-      } catch (err) {
+      } catch {
         setCommentError("خطا در ارتباط با سیستم ثبت بازخورد.");
-        onCommentFailed(tempId);
       }
     });
   };

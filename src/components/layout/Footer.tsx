@@ -2,15 +2,7 @@
 
 import React from "react";
 import { Phone, MapPin, Send, ShieldCheck, Award } from "lucide-react";
-
-export interface FooterConfig {
-  phones: string[];
-  address: string;
-  instagram: string;
-  telegram: string;
-  eitaa: string;
-  website: string;
-}
+import { FooterConfig } from "@/types";
 
 interface FooterProps {
   config?: FooterConfig | null;

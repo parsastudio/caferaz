@@ -8,12 +8,13 @@ import {
 } from "@/lib/coffee-calculations";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { ActionResponse } from "./comment";
+import { ActionResponse } from "@/actions/comment";
 import { toEnglishDigits } from "@/lib/utils";
 import { checkAdminAuth, verifyOtpInternal } from "@/actions/auth";
 import { Order as UIOrder } from "@/types";
 import crypto from "crypto";
 import { createSignedToken } from "@/lib/session";
+import { mapPrismaCoupon } from "@/actions/coupon";
 
 const serverOrderSchema = z.object({
   productId: z.string().min(1, "شناسه کالا نامعتبر است."),
@@ -389,39 +390,5 @@ function mapPrismaOrder(o: PrismaOrderDb): UIOrder {
     customerAddress: o.customerAddress,
     createdAt: o.createdAt.toISOString(),
     status: o.status as "unreviewed" | "pending" | "completed" | "cancelled",
-  };
-}
-
-interface PrismaCouponDb {
-  id: string;
-  code: string;
-  type: "product_direct" | "conditional" | "user_code" | string;
-  discountType: "percentage" | "fixed" | string;
-  discountValue: number;
-  productId: string | null;
-  minWeightGrams: number | null;
-  validFrom: Date | null;
-  validTo: Date | null;
-  maxDiscountAmount: number | null;
-  isActive: boolean;
-  deletedAt: Date | null;
-  allowStacking: boolean;
-}
-
-function mapPrismaCoupon(c: PrismaCouponDb) {
-  return {
-    id: c.id,
-    code: c.code,
-    type: c.type as "product_direct" | "conditional" | "user_code",
-    discountType: c.discountType as "percentage" | "fixed",
-    discountValue: c.discountValue,
-    productId: c.productId ?? undefined,
-    minWeightGrams: c.minWeightGrams ?? undefined,
-    validFrom: c.validFrom ? c.validFrom.toISOString() : undefined,
-    validTo: c.validTo ? c.validTo.toISOString() : undefined,
-    maxDiscountAmount: c.maxDiscountAmount ?? undefined,
-    isActive: c.isActive,
-    deletedAt: c.deletedAt ? c.deletedAt.toISOString() : null,
-    allowStacking: c.allowStacking,
   };
 }

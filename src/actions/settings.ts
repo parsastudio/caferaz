@@ -4,14 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { checkAdminAuth } from "@/actions/auth";
 import { FAQ } from "@/components/features/landing/FAQSection";
+import { FooterConfig } from "@/types";
 import { Prisma } from "@prisma/client";
-
-export interface FooterConfig {
-  phones: string[];
-  address: string;
-  eitaa: string;
-  website: string;
-}
 
 export type SettingsPayload =
   | { key: "site_subtitle"; value: string }

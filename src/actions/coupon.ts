@@ -2,14 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { ActionResponse } from "./comment";
+import { ActionResponse } from "@/actions/comment";
 import { prisma } from "@/lib/prisma";
 import {
   getBlendProfile,
   calculateAdvancedPriceMetrics,
 } from "@/lib/coffee-calculations";
 import { toEnglishDigits } from "@/lib/utils";
-import { getTehranTodayString } from "@/lib/jalali-converter";
 import { checkAdminAuth } from "@/actions/auth";
 import { Coupon as UICoupon } from "@/types";
 
@@ -86,36 +85,6 @@ export async function validateCouponAction(payload: {
         success: false,
         error: "این کد تخفیف برای محصول انتخابی شما تعریف نشده است.",
       };
-    }
-
-    const tehranTodayStr = getTehranTodayString();
-    const normalizeDateToTimestamp = (dateStr: string | Date): number => {
-      const dStr =
-        typeof dateStr === "string" ? dateStr : dateStr.toISOString();
-      const normalized = dStr.includes("T") ? dStr.split("T")[0] : dStr;
-      const [year, month, day] = normalized.split(/[-/]/).map(Number);
-      return Date.UTC(year, month - 1, day);
-    };
-    const [ty, tm, td] = tehranTodayStr.split("-").map(Number);
-    const todayTimestamp = Date.UTC(ty, tm - 1, td);
-
-    if (coupon.validFrom) {
-      const fromTimestamp = normalizeDateToTimestamp(coupon.validFrom);
-      if (todayTimestamp < fromTimestamp) {
-        return {
-          success: false,
-          error: "زمان فعال‌سازی این کد تخفیف هنوز فرا نرسیده است.",
-        };
-      }
-    }
-    if (coupon.validTo) {
-      const toTimestamp = normalizeDateToTimestamp(coupon.validTo);
-      if (todayTimestamp > toTimestamp) {
-        return {
-          success: false,
-          error: "اعتبار این کد تخفیف به پایان رسیده است.",
-        };
-      }
     }
 
     if (securePhone) {
@@ -333,7 +302,7 @@ export async function toggleCouponStatusAction(id: string) {
   }
 }
 
-interface PrismaCouponDb {
+export interface PrismaCouponDb {
   id: string;
   code: string;
   type: "product_direct" | "conditional" | "user_code" | string;
@@ -349,7 +318,7 @@ interface PrismaCouponDb {
   allowStacking: boolean;
 }
 
-function mapPrismaCoupon(c: PrismaCouponDb): UICoupon {
+export function mapPrismaCoupon(c: PrismaCouponDb): UICoupon {
   return {
     id: c.id,
     code: c.code,

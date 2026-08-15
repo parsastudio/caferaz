@@ -75,3 +75,12 @@ export interface CouponUsage {
   phone: string;
   usedAt: string;
 }
+
+export interface FooterConfig {
+  phones: string[];
+  address: string;
+  eitaa: string;
+  website: string;
+  instagram?: string;
+  telegram?: string;
+}

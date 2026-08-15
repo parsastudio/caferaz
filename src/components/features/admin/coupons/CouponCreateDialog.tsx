@@ -14,10 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { STATIC_PRODUCTS } from "@/lib/constants";
-import {
-  getTodayJalaliString,
-  isValidJalaaliDate,
-} from "@/lib/jalali-converter";
+import { isValidJalaaliDate } from "@/lib/jalali-converter";
 
 const schema = z
   .object({

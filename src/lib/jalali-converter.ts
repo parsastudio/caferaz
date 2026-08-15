@@ -165,7 +165,7 @@ export function parseJalaliString(
 export function formatJalaliString(jy: number, jm: number, jd: number): string {
   const mm = String(jm).padStart(2, "0");
   const dd = String(jd).padStart(2, "0");
-  return `${jy}/${mm}/${dd}`; // استفاده از کاراکتر اسلش اصلاح شد
+  return `${jy}/${mm}/${dd}`;
 }
 
 export function getTodayJalaliString(): string {

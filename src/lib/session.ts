@@ -4,10 +4,6 @@ const SESSION_SECRET =
   process.env.SESSION_SECRET ||
   "razcoffee_secure_fallback_secret_32_chars_long";
 
-/**
- * ایجاد توکن نشست به همراه مهر زمانی انقضای رمزنگاری‌شده در سمت سرور
- * زمان انقضای پیش‌فرض: ۳۰ روز
- */
 export function createSignedToken(
   payload: string,
   maxAgeMs: number = 30 * 24 * 60 * 60 * 1000,
@@ -20,9 +16,6 @@ export function createSignedToken(
   return `${rawPayload}.${signature}`;
 }
 
-/**
- * اعتبارسنجی همزمان امضای دیجیتال و منقضی نشدن برچسب زمانی توکن
- */
 export function verifySignedToken(token: string): string | null {
   if (!token) return null;
   const parts = token.split(".");
@@ -52,7 +45,7 @@ export function verifySignedToken(token: string): string | null {
     const expiresAt = parseInt(expiresAtStr, 10);
 
     if (isNaN(expiresAt) || Date.now() > expiresAt) {
-      return null; // توکن منقضی شده یا دستکاری شده است
+      return null;
     }
 
     return payload;

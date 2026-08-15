@@ -3,14 +3,14 @@
 import React from "react";
 import { Controller } from "react-hook-form";
 import { MessageSquare, Star, Loader2 } from "lucide-react";
-import { Button } from "../../ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "../../ui/dialog";
+} from "@/components/ui/dialog";
 import { useCommentForm } from "@/hooks/useCommentForm";
 import { Comment } from "@/types";
 
@@ -31,7 +31,6 @@ interface CommentDialogProps {
     realComment: Comment,
     parentId: string | null,
   ) => void;
-  onCommentFailed: (tempId: string) => void;
   isPending: boolean;
   startTransition: React.TransitionStartFunction;
 }
@@ -43,7 +42,6 @@ export default function CommentDialog({
   replyParentId,
   onCommentSubmitted,
   onCommentSuccess,
-  onCommentFailed,
   isPending,
   startTransition,
 }: CommentDialogProps) {
@@ -54,7 +52,6 @@ export default function CommentDialog({
       isOpen,
       onCommentSubmitted,
       onCommentSuccess,
-      onCommentFailed,
       startTransition,
     });
 

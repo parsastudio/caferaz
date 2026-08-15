@@ -7,22 +7,33 @@ import WhyCafeRaz from "@/components/features/landing/WhyCafeRaz";
 import FAQSection, { FAQ } from "@/components/features/landing/FAQSection";
 import { getTehranTodayString } from "@/lib/jalali-converter";
 
+export const dynamic = "force-dynamic";
+
 export default async function Page() {
   const productResult = await getProductAction("prod_coffee_bulk_01");
   const commentsResult = await getCommentsAction("prod_coffee_bulk_01");
   const couponsResult = await getCouponsAction();
 
-  const siteFaqOpt = await prisma.option.findUnique({
-    where: { key: "site_faq" },
-  });
-  const siteSubtitleOpt = await prisma.option.findUnique({
-    where: { key: "site_subtitle" },
-  });
+  let faqs: FAQ[] = [];
+  let siteSubtitle = "";
 
-  const faqs = siteFaqOpt ? (siteFaqOpt.value as unknown as FAQ[]) : [];
-  const siteSubtitle = siteSubtitleOpt ? (siteSubtitleOpt.value as string) : "";
+  try {
+    const siteFaqOpt = await prisma.option.findUnique({
+      where: { key: "site_faq" },
+    });
+    const siteSubtitleOpt = await prisma.option.findUnique({
+      where: { key: "site_subtitle" },
+    });
 
-  // استخراج زمان تایید شده سرور برای استفاده سراسری بدون وابستگی به کلاک کاربر
+    faqs = siteFaqOpt ? (siteFaqOpt.value as unknown as FAQ[]) : [];
+    siteSubtitle = siteSubtitleOpt ? (siteSubtitleOpt.value as string) : "";
+  } catch (error) {
+    console.warn(
+      "⚠️ [Page] Database is offline during build time. Using fallbacks for layout configuration.",
+      error,
+    );
+  }
+
   const serverTodayStr = getTehranTodayString();
 
   if (!productResult.success) {

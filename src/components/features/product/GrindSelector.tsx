@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CoffeeGrind } from "@/lib/constants";
+import { STATIC_GRINDS, CoffeeGrind } from "@/lib/constants";
 
 interface GrindSelectorProps {
   selectedGrind: string;
@@ -9,36 +9,11 @@ interface GrindSelectorProps {
   grinds?: CoffeeGrind[];
 }
 
-const fallbackGrinds: CoffeeGrind[] = [
-  {
-    value: "دانه کامل (آسیاب نشده)",
-    desc: "دانه‌های قهوه سالم، مناسب برای نگهداری طولانی‌مدت",
-  },
-  {
-    value: "آسیاب اسپرسو (دستگاه برقی)",
-    desc: "مناسب برای انواع دستگاه‌های اسپرسوساز برقی",
-  },
-  {
-    value: "آسیاب موکاپات (روگازی)",
-    desc: "مناسب برای دم‌آوری با قهوه‌سازهای روگازی",
-  },
-  {
-    value: "آسیاب قهوه ترک (جذوه)",
-    desc: "آسیاب کاملاً پودری و بسیار نرم مخصوص قهوه ترک",
-  },
-  {
-    value: "آسیاب فرنچ پرس (فرانسه)",
-    desc: "آسیاب درشت، مناسب برای قهوه‌ساز فرنچ پرس",
-  },
-];
-
 export default function GrindSelector({
   selectedGrind,
   setSelectedGrind,
-  grinds = [],
+  grinds = STATIC_GRINDS,
 }: GrindSelectorProps) {
-  const finalGrinds = grinds.length > 0 ? grinds : fallbackGrinds;
-
   return (
     <div className="space-y-3.5">
       <label className="text-sm font-black text-stone-300 flex items-center gap-2">
@@ -48,7 +23,7 @@ export default function GrindSelector({
         نوع آسیاب دانه قهوه:
       </label>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {finalGrinds.map((grind) => (
+        {grinds.map((grind) => (
           <button
             key={grind.value}
             type="button"

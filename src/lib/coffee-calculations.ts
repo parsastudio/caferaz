@@ -1,11 +1,6 @@
-import { getTehranTodayString } from "./jalali-converter";
+import { getTehranTodayString } from "@/lib/jalali-converter";
 import { Coupon, CouponUsage } from "@/types";
-import { STATIC_BLENDS, BlendProfile } from "./constants";
-
-export interface PriceMetrics {
-  originalPrice: number;
-  finalPrice: number;
-}
+import { STATIC_BLENDS, BlendProfile } from "@/lib/constants";
 
 export interface AdvancedPriceMetrics {
   basePrice: number;
@@ -29,29 +24,6 @@ export function getBlendProfile(selectedBlend: string): BlendProfile {
     aroma: 65,
     label: "بالانس متعادل",
   };
-}
-
-export function calculatePriceMetrics(
-  pricing: { pricePerKgArabica: number; pricePerKgRobusta: number } | null,
-  blendProfile: BlendProfile,
-  weight: number,
-  quantity: number,
-): PriceMetrics {
-  const activePricing = pricing || {
-    pricePerKgArabica: 2200000,
-    pricePerKgRobusta: 1800000,
-  };
-
-  const arabicaRatio = blendProfile.arabica / 100;
-  const robustaRatio = blendProfile.robusta / 100;
-
-  const pricePerKg =
-    activePricing.pricePerKgArabica * arabicaRatio +
-    activePricing.pricePerKgRobusta * robustaRatio;
-
-  const finalPrice = Math.round((pricePerKg * weight * quantity) / 1000);
-
-  return { originalPrice: finalPrice, finalPrice };
 }
 
 export function calculateRemainingStock(

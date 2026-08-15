@@ -23,27 +23,34 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const footerOpt = await prisma.option.findUnique({
-    where: { key: "site_footer" },
-  });
-
   let footerData: FooterConfig | null = null;
 
-  if (
-    footerOpt &&
-    typeof footerOpt.value === "object" &&
-    footerOpt.value !== null
-  ) {
-    const raw = footerOpt.value as Record<string, unknown>;
+  try {
+    const footerOpt = await prisma.option.findUnique({
+      where: { key: "site_footer" },
+    });
 
-    footerData = {
-      phones: Array.isArray(raw.phones) ? (raw.phones as string[]) : [],
-      address: typeof raw.address === "string" ? raw.address : "",
-      website: typeof raw.website === "string" ? raw.website : "",
-      eitaa: typeof raw.eitaa === "string" ? raw.eitaa : "",
-      instagram: typeof raw.instagram === "string" ? raw.instagram : "",
-      telegram: typeof raw.telegram === "string" ? raw.telegram : "",
-    };
+    if (
+      footerOpt &&
+      typeof footerOpt.value === "object" &&
+      footerOpt.value !== null
+    ) {
+      const raw = footerOpt.value as Record<string, unknown>;
+
+      footerData = {
+        phones: Array.isArray(raw.phones) ? (raw.phones as string[]) : [],
+        address: typeof raw.address === "string" ? raw.address : "",
+        website: typeof raw.website === "string" ? raw.website : "",
+        eitaa: typeof raw.eitaa === "string" ? raw.eitaa : "",
+        instagram: typeof raw.instagram === "string" ? raw.instagram : "",
+        telegram: typeof raw.telegram === "string" ? raw.telegram : "",
+      };
+    }
+  } catch (error) {
+    console.warn(
+      "⚠️ [RootLayout] Database is offline during build time. Skipping layout query. Live connection will resume at runtime.",
+      error,
+    );
   }
 
   return (

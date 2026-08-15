@@ -12,7 +12,6 @@ export function useCoffeeSelection() {
     STATIC_GRINDS[0].value,
   );
   const [quantity, setQuantity] = useState<number>(1);
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
 
   return {
     selectedWeight,
@@ -27,7 +26,5 @@ export function useCoffeeSelection() {
     setSelectedGrind,
     quantity,
     setQuantity,
-    isCheckoutOpen,
-    setIsCheckoutOpen,
   };
 }

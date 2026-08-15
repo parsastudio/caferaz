@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { ActionResponse } from "./comment";
+import { ActionResponse } from "@/actions/comment";
 import { revalidatePath } from "next/cache";
 import { checkAdminAuth } from "@/actions/auth";
 import { ProductWithPricing as UIProduct } from "@/types";
