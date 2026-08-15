@@ -8,9 +8,8 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
-} from "../../ui/dialog";
+} from "@/components/ui/dialog";
 
 import UserInfoStep from "./UserInfoStep";
 import ShippingStep from "./ShippingStep";

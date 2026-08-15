@@ -29,7 +29,7 @@ function AdminLoginForm() {
         } else {
           setError(result.error || "خطایی رخ داد.");
         }
-      } catch (err) {
+      } catch {
         setError("خطای غیرمنتظره در ارتباط با سرور رخ داد.");
       }
     });

@@ -53,7 +53,6 @@ function jalCal(jy: number): { leap: number; gy: number; march: number } {
   const gy = jy + 621;
   let leapJ = -14;
   let jp = breaks[0];
-  let jm = 0;
   let jump = 0;
 
   if (jy < jp || jy >= breaks[bl - 1]) {
@@ -64,7 +63,6 @@ function jalCal(jy: number): { leap: number; gy: number; march: number } {
     const jb = breaks[i];
     const n = jb - jp;
     if (jy < jb) {
-      jm = i - 1;
       jump = Math.floor(n / 33) * 4 + Math.floor((n % 33) / 4);
       break;
     }

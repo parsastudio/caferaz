@@ -56,7 +56,10 @@ export function useCouponManager({
       const cleanPhone = toEnglishDigits(phone.trim());
       const isValid = /^09[0-9]{9}$/.test(cleanPhone);
       if (isValid && cleanPhone !== lastValidatedPhone) {
-        handleRemoveCoupon();
+        const timer = setTimeout(() => {
+          handleRemoveCoupon();
+        }, 0);
+        return () => clearTimeout(timer);
       }
     }
   }, [phone, appliedCoupon, lastValidatedPhone, handleRemoveCoupon]);
@@ -92,19 +95,18 @@ export function useCouponManager({
     setIsApplyingCoupon(false);
   };
 
-  const resetCouponState = (
-    nextFinalPrice: number,
-    nextDirect: number,
-    nextConditional: number,
-  ) => {
-    setAppliedCoupon(null);
-    setCouponCode("");
-    setCouponError(null);
-    setCheckoutFinalPrice(nextFinalPrice);
-    setDirectDiscountAmount(nextDirect);
-    setConditionalDiscountAmount(nextConditional);
-    setLastValidatedPhone("");
-  };
+  const resetCouponState = useCallback(
+    (nextFinalPrice: number, nextDirect: number, nextConditional: number) => {
+      setAppliedCoupon(null);
+      setCouponCode("");
+      setCouponError(null);
+      setCheckoutFinalPrice(nextFinalPrice);
+      setDirectDiscountAmount(nextDirect);
+      setConditionalDiscountAmount(nextConditional);
+      setLastValidatedPhone("");
+    },
+    [],
+  );
 
   return {
     couponCode,

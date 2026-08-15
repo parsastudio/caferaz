@@ -147,14 +147,16 @@ function LoginForm() {
             otp,
           });
           if (regRes.success) {
-            window.location.href = "/profile";
+            router.push("/profile");
+            router.refresh();
           } else {
             setError(regRes.error || "خطایی در ثبت‌نام رخ داد.");
           }
         } else {
           const loginRes = await loginUserWithOtpAction({ phone, otp });
           if (loginRes.success) {
-            window.location.href = "/profile";
+            router.push("/profile");
+            router.refresh();
           } else {
             setError(loginRes.error || "کد تایید اشتباه است.");
           }

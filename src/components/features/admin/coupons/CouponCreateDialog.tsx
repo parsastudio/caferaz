@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useForm, Controller, Resolver } from "react-hook-form";
+import { useForm, Controller, Resolver, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Sparkles, Scale, Calendar, ChevronDown } from "lucide-react";
@@ -126,12 +126,11 @@ export default function CouponCreateDialog({
     register,
     handleSubmit,
     control,
-    watch,
     formState: { errors },
   } = methods;
 
-  const currentType = watch("type");
-  const currentDiscountType = watch("discountType");
+  const currentType = useWatch({ control, name: "type" });
+  const currentDiscountType = useWatch({ control, name: "discountType" });
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

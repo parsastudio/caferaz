@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useTransition } from "react";
-import { useForm, Resolver } from "react-hook-form";
+import { useForm, Resolver, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCheckout } from "@/context/CheckoutContext";
 import {
@@ -48,8 +48,8 @@ export function useCheckoutForm() {
     mode: "onTouched",
   });
 
-  const { trigger, getValues, reset, setValue, watch } = methods;
-  const watchedPhone = watch("phone");
+  const { trigger, getValues, reset, setValue, control } = methods;
+  const watchedPhone = useWatch({ control, name: "phone" });
 
   const couponManager = useCouponManager({
     productId: checkoutData?.productId ?? "",
@@ -82,15 +82,17 @@ export function useCheckoutForm() {
     }
   }, [isOpen, setValue]);
 
+  const { resetCouponState } = couponManager;
+
   useEffect(() => {
     if (isOpen && checkoutData) {
-      couponManager.resetCouponState(
+      resetCouponState(
         checkoutData.finalPrice,
         checkoutData.directDiscountAmount,
         checkoutData.conditionalDiscountAmount,
       );
     }
-  }, [isOpen, checkoutData]);
+  }, [isOpen, checkoutData, resetCouponState]);
 
   const handleReset = () => {
     setStep("user_info");

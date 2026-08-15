@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -51,6 +51,15 @@ export function useCommentForm({
 }: UseCommentFormProps) {
   const [commentMessage, setCommentMessage] = useState<string | null>(null);
   const [commentError, setCommentError] = useState<string | null>(null);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+
+  if (prevIsOpen !== isOpen) {
+    setPrevIsOpen(isOpen);
+    if (!isOpen) {
+      setCommentMessage(null);
+      setCommentError(null);
+    }
+  }
 
   const methods = useForm<CommentFormValues>({
     resolver: zodResolver(commentSchema),
@@ -64,14 +73,6 @@ export function useCommentForm({
   });
 
   const { reset } = methods;
-
-  useEffect(() => {
-    if (!isOpen) {
-      reset();
-      setCommentMessage(null);
-      setCommentError(null);
-    }
-  }, [isOpen, reset]);
 
   const onSubmit = async (values: CommentFormValues) => {
     setCommentError(null);

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 export default function RouteProgressBar() {
@@ -36,7 +36,7 @@ export default function RouteProgressBar() {
     }, 120);
   };
 
-  const completeProgress = () => {
+  const completeProgress = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -51,11 +51,14 @@ export default function RouteProgressBar() {
     resetTimeoutRef.current = setTimeout(() => {
       setProgress(0);
     }, 450);
-  };
+  }, []);
 
   useEffect(() => {
-    completeProgress();
-  }, [pathname, searchParams]);
+    const frame = requestAnimationFrame(() => {
+      completeProgress();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [pathname, searchParams, completeProgress]);
 
   useEffect(() => {
     const handleAnchorClick = (event: MouseEvent) => {

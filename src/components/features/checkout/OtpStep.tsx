@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Smartphone, Loader2 } from "lucide-react";
 import { useFormContext } from "react-hook-form";
-import { Button } from "../../ui/button";
+import { Button } from "@/components/ui/button";
 import { CheckoutFormValues } from "./schema";
 import { toEnglishDigits } from "@/lib/utils";
 import { sendUserOtpAction } from "@/actions/auth";
@@ -32,17 +32,13 @@ export default function OtpStep({
   const otpInputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
   const [timer, setTimer] = useState(120);
-  const [isResendDisabled, setIsResendDisabled] = useState(true);
+  const isResendDisabled = timer > 0;
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    } else {
-      setIsResendDisabled(false);
-    }
+    if (timer <= 0) return;
+    const interval = setInterval(() => {
+      setTimer((prev) => prev - 1);
+    }, 1000);
     return () => clearInterval(interval);
   }, [timer]);
 
@@ -99,14 +95,12 @@ export default function OtpStep({
 
   const handleResendCode = async () => {
     try {
-      // ارسال درخواست واقعی پیامک به دیتابیس بدون درگیر کردن کدهای هوک خارجی
       const res = await sendUserOtpAction({ phone });
       if (res.success) {
         const cleared = ["", "", "", ""];
         setOtpDigits(cleared);
         setValue("otp", "", { shouldValidate: true });
         setTimer(120);
-        setIsResendDisabled(true);
         otpInputsRef.current[0]?.focus();
       }
     } catch (err) {
