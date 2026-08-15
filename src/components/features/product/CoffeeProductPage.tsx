@@ -2,15 +2,17 @@
 
 import React from "react";
 import { useCoffeeProduct } from "@/hooks/useCoffeeProduct";
-import ProductVisuals from "./ProductVisuals";
-import WeightSelector from "./WeightSelector";
-import BlendSelector from "./BlendSelector";
-import GrindSelector from "./GrindSelector";
-import QuantitySelector from "./QuantitySelector";
-import PriceSummary from "./PriceSummary";
-import MobileStickyBar from "./MobileStickyBar";
-import CheckoutDialog from "../checkout/CheckoutDialog";
-import ProductTabsSection, { UIComment } from "./ProductTabsSection";
+import ProductVisuals from "@/components/features/product/ProductVisuals";
+import WeightSelector from "@/components/features/product/WeightSelector";
+import BlendSelector from "@/components/features/product/BlendSelector";
+import GrindSelector from "@/components/features/product/GrindSelector";
+import QuantitySelector from "@/components/features/product/QuantitySelector";
+import PriceSummary from "@/components/features/product/PriceSummary";
+import MobileStickyBar from "@/components/features/product/MobileStickyBar";
+import CheckoutDialog from "@/components/features/checkout/CheckoutDialog";
+import ProductTabsSection, {
+  UIComment,
+} from "@/components/features/product/ProductTabsSection";
 import { useCheckout } from "@/context/CheckoutContext";
 import { Coupon, ProductWithPricing } from "@/types";
 import { STATIC_BLENDS, STATIC_GRINDS } from "@/lib/constants";

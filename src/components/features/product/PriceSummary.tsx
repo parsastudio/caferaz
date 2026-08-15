@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import { ShoppingBag, Percent, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -12,7 +12,7 @@ interface PriceSummaryProps {
   onCheckout: () => void;
 }
 
-export default function PriceSummary({
+function PriceSummaryComponent({
   basePrice,
   finalPrice,
   isOutOfStock,
@@ -76,3 +76,5 @@ export default function PriceSummary({
     </div>
   );
 }
+
+export default memo(PriceSummaryComponent);

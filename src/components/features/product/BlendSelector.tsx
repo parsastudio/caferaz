@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import { Percent, Zap, Coffee, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { STATIC_BLENDS, CoffeeBlend, BlendProfile } from "@/lib/constants";
@@ -12,7 +12,7 @@ interface BlendSelectorProps {
   blends?: CoffeeBlend[];
 }
 
-export default function BlendSelector({
+function BlendSelectorComponent({
   selectedBlend,
   setSelectedBlend,
   blendProfile,
@@ -176,3 +176,5 @@ export default function BlendSelector({
     </div>
   );
 }
+
+export default memo(BlendSelectorComponent);

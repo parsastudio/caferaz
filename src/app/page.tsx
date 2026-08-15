@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import CoffeeProductPage from "@/components/features/product/CoffeeProductPage";
+import ProductPageSkeleton from "@/components/features/product/ProductPageSkeleton";
 import { getMainProductAction } from "@/actions/product";
 import { getCommentsAction } from "@/actions/comment";
 import { getCouponsAction } from "@/actions/coupon";
@@ -74,19 +76,23 @@ export default async function Page() {
           __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
         }}
       />
-      <CoffeeProductPage
-        initialProduct={mainProduct}
-        initialComments={
-          commentsResult.success && commentsResult.data
-            ? commentsResult.data
-            : []
-        }
-        activeCoupons={
-          couponsResult.success && couponsResult.data ? couponsResult.data : []
-        }
-        siteSubtitle={siteSubtitle}
-        serverTodayStr={serverTodayStr}
-      />
+      <Suspense fallback={<ProductPageSkeleton />}>
+        <CoffeeProductPage
+          initialProduct={mainProduct}
+          initialComments={
+            commentsResult.success && commentsResult.data
+              ? commentsResult.data
+              : []
+          }
+          activeCoupons={
+            couponsResult.success && couponsResult.data
+              ? couponsResult.data
+              : []
+          }
+          siteSubtitle={siteSubtitle}
+          serverTodayStr={serverTodayStr}
+        />
+      </Suspense>
       <WhyCafeRaz />
       <FAQSection faqs={faqs} />
     </main>
