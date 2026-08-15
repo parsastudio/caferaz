@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef } from "react";
 import { toEnglishDigits } from "@/lib/utils";
 
 interface OtpInputProps {
@@ -18,23 +18,13 @@ export default function OtpInput({
   disabled = false,
   hasError = false,
 }: OtpInputProps) {
-  const [digits, setDigits] = useState<string[]>(Array(length).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  useEffect(() => {
-    const chars = value.split("").slice(0, length);
-    const newDigits = Array(length).fill("");
-    chars.forEach((c, i) => {
-      newDigits[i] = c;
-    });
-    setDigits(newDigits);
-  }, [value, length]);
+  const digits = Array.from({ length }, (_, i) => value[i] || "");
 
   const handleDigitChange = (val: string, index: number) => {
     const clean = toEnglishDigits(val).replace(/[^0-9]/g, "");
     const newDigits = [...digits];
     newDigits[index] = clean ? clean.substring(clean.length - 1) : "";
-    setDigits(newDigits);
 
     const fullValue = newDigits.join("");
     onChange(fullValue);
@@ -53,13 +43,11 @@ export default function OtpInput({
       if (digits[index] === "") {
         if (index > 0) {
           newDigits[index - 1] = "";
-          setDigits(newDigits);
           onChange(newDigits.join(""));
           inputRefs.current[index - 1]?.focus();
         }
       } else {
         newDigits[index] = "";
-        setDigits(newDigits);
         onChange(newDigits.join(""));
       }
     }
@@ -72,8 +60,6 @@ export default function OtpInput({
       .substring(0, length);
 
     if (pasted.length === length) {
-      const chars = pasted.split("");
-      setDigits(chars);
       onChange(pasted);
       inputRefs.current[length - 1]?.focus();
     }

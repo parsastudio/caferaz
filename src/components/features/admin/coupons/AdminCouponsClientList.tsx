@@ -84,8 +84,8 @@ export default function AdminCouponsClientList({
       };
 
       const result = await createCouponAction(payload);
-      if (result.success && result.data) {
-        setCoupons((prev) => [...prev, result.data as Coupon]);
+      if (result.success) {
+        setCoupons((prev) => [...prev, result.data]);
         toast.success(result.message || "کوپن جدید با موفقیت ثبت شد.");
         setIsOpen(false);
       } else {

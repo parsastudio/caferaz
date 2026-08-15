@@ -66,12 +66,14 @@ export function useCheckoutForm() {
     onSuccess: () => setStep("success"),
   });
 
+  const { setIsLoggedInUser } = authManager;
+
   useEffect(() => {
     if (isOpen) {
       startTransition(async () => {
         const res = await getCurrentUserAction();
         if (res.success && res.user) {
-          authManager.setIsLoggedInUser(true);
+          setIsLoggedInUser(true);
           const nameParts = res.user.name.split(" ");
           setValue("firstName", nameParts[0] || "");
           setValue("lastName", nameParts.slice(1).join(" ") || "");
@@ -79,12 +81,12 @@ export function useCheckoutForm() {
           setValue("shippingAddress", res.user.address || "");
           setStep("shipping");
         } else {
-          authManager.setIsLoggedInUser(false);
+          setIsLoggedInUser(false);
           setStep("user_info");
         }
       });
     }
-  }, [isOpen, setValue, authManager.setIsLoggedInUser]);
+  }, [isOpen, setValue, setIsLoggedInUser]);
 
   const { resetCouponState } = couponManager;
 
