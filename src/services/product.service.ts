@@ -7,6 +7,29 @@ import {
 } from "@/domain/validations/product.schema";
 
 export class ProductService {
+  static async getMainProduct(): Promise<ProductWithPricing | null> {
+    const product = await prisma.product.findFirst({
+      where: { deletedAt: null, isActive: true },
+      include: { pricing: true },
+      orderBy: { createdAt: "asc" },
+    });
+
+    if (!product) return null;
+
+    return {
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      stockGrams: product.stockGrams,
+      pricing: product.pricing
+        ? {
+            pricePerKgArabica: product.pricing.pricePerKgArabica,
+            pricePerKgRobusta: product.pricing.pricePerKgRobusta,
+          }
+        : null,
+    };
+  }
+
   static async getProductById(
     productId: string,
   ): Promise<ProductWithPricing | null> {

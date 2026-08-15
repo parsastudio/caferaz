@@ -40,20 +40,14 @@ export default async function ProfilePage() {
   });
 
   const orders = ordersDb.map((o) => {
-    const firstItem = o.orderItems?.[0] || {
-      productId: "prod_coffee_bulk_01",
-      weightGrams: 250,
-      quantity: 1,
-      grindType:
-        "ترکیب: ۵۰٪ روبوستا / ۵۰٪ عربیکا | آسیاب: دانه کامل (آسیاب نشده)",
-    };
+    const firstItem = o.orderItems?.[0];
 
     return {
       id: o.id,
-      productId: firstItem.productId,
-      weightGrams: firstItem.weightGrams,
-      quantity: firstItem.quantity,
-      grindType: firstItem.grindType,
+      productId: firstItem?.productId ?? "",
+      weightGrams: firstItem?.weightGrams ?? 0,
+      quantity: firstItem?.quantity ?? 1,
+      grindType: firstItem?.grindType ?? "",
       finalPrice: o.finalPrice,
       customerName: o.customerName,
       customerPhone: o.customerPhone,

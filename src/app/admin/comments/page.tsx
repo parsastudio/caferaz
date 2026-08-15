@@ -1,9 +1,17 @@
 import React from "react";
 import { getAdminCommentsAction } from "@/actions/comment";
+import { getMainProductAction } from "@/actions/product";
 import AdminCommentsClientList from "@/components/features/admin/AdminCommentsClientList";
 
 export default async function AdminCommentsPage() {
-  const commentsResult = await getAdminCommentsAction("prod_coffee_bulk_01");
+  const productResult = await getMainProductAction();
+  const productId =
+    productResult.success && productResult.data ? productResult.data.id : "";
+
+  const commentsResult = productId
+    ? await getAdminCommentsAction(productId)
+    : { success: false, data: [] };
+
   const comments = commentsResult.success ? commentsResult.data || [] : [];
 
   return (

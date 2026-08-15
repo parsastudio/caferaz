@@ -23,8 +23,8 @@ export class OrderService {
       const item = o.orderItems[0];
       return {
         id: o.id,
-        productId: item?.productId ?? "prod_coffee_bulk_01",
-        weightGrams: item?.weightGrams ?? 250,
+        productId: item?.productId ?? "",
+        weightGrams: item?.weightGrams ?? 0,
         quantity: item?.quantity ?? 1,
         grindType: item?.grindType ?? "",
         finalPrice: o.finalPrice,

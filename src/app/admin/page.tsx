@@ -1,12 +1,17 @@
 import React from "react";
 import { getOrdersAction } from "@/actions/order";
 import { getAdminCommentsAction } from "@/actions/comment";
-import { getProductAction } from "@/actions/product";
+import { getMainProductAction } from "@/actions/product";
 
 export default async function AdminDashboardPage() {
   const ordersResult = await getOrdersAction();
-  const commentsResult = await getAdminCommentsAction("prod_coffee_bulk_01");
-  const productResult = await getProductAction("prod_coffee_bulk_01");
+  const productResult = await getMainProductAction();
+
+  const productId =
+    productResult.success && productResult.data ? productResult.data.id : "";
+  const commentsResult = productId
+    ? await getAdminCommentsAction(productId)
+    : { success: false, data: [] };
 
   const orders = ordersResult.success ? ordersResult.data || [] : [];
   const totalOrders = orders.length;

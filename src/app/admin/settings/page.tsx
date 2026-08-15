@@ -1,12 +1,14 @@
 import React from "react";
 import { getSettingsAction } from "@/actions/settings";
-import { getProductAction } from "@/actions/product";
+import { getMainProductAction } from "@/actions/product";
 import AdminSettingsClient from "@/components/features/admin/AdminSettingsClient";
 
 export default async function AdminSettingsPage() {
   const result = await getSettingsAction();
-  const productResult = await getProductAction("prod_coffee_bulk_01");
+  const productResult = await getMainProductAction();
 
+  const productId =
+    productResult.success && productResult.data ? productResult.data.id : "";
   const productName =
     productResult.success && productResult.data ? productResult.data.name : "";
   const productDescription =
@@ -18,6 +20,7 @@ export default async function AdminSettingsPage() {
     result.success && result.data
       ? {
           ...result.data,
+          productId,
           productName,
           productDescription,
         }
@@ -25,6 +28,7 @@ export default async function AdminSettingsPage() {
           siteSubtitle: "",
           siteFaq: [],
           siteFooter: { phones: [], address: "", eitaa: "", website: "" },
+          productId,
           productName,
           productDescription,
         };

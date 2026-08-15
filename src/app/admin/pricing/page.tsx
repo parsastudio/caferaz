@@ -1,9 +1,9 @@
 import React from "react";
-import { getProductAction } from "@/actions/product";
+import { getMainProductAction } from "@/actions/product";
 import AdminPricingForm from "@/components/features/admin/AdminPricingForm";
 
 export default async function AdminPricingPage() {
-  const productResult = await getProductAction("prod_coffee_bulk_01");
+  const productResult = await getMainProductAction();
 
   if (!productResult.success || !productResult.data) {
     return (

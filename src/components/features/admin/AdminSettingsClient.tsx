@@ -16,6 +16,7 @@ interface AdminSettingsClientProps {
       eitaa: string;
       website: string;
     };
+    productId: string;
     productName: string;
     productDescription: string;
   };

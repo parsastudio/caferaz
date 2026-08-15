@@ -12,6 +12,28 @@ import {
   type UpdateProductBasicInfoInput,
 } from "@/domain/validations/product.schema";
 
+export async function getMainProductAction(): Promise<
+  ActionResponse<ProductWithPricing>
+> {
+  try {
+    const product = await ProductService.getMainProduct();
+
+    if (!product) {
+      return { success: false, error: "هیچ محصول فعالی در سیستم یافت نشد." };
+    }
+
+    return {
+      success: true,
+      data: product,
+    };
+  } catch {
+    return {
+      success: false,
+      error: "خطا در دریافت اطلاعات محصول اصلی رخ داد.",
+    };
+  }
+}
+
 export async function getProductAction(
   productId: string,
 ): Promise<ActionResponse<ProductWithPricing>> {

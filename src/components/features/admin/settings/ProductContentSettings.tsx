@@ -8,12 +8,14 @@ import { updateSettingsAction } from "@/actions/settings";
 import { updateProductBasicInfoAction } from "@/actions/product";
 
 interface ProductContentSettingsProps {
+  productId: string;
   initialProductName: string;
   initialProductDescription: string;
   initialSiteSubtitle: string;
 }
 
 export default function ProductContentSettings({
+  productId,
   initialProductName,
   initialProductDescription,
   initialSiteSubtitle,
@@ -27,8 +29,13 @@ export default function ProductContentSettings({
 
   const handleSave = () => {
     startTransition(async () => {
+      if (!productId) {
+        toast.error("شناسه محصول نامعتبر است.");
+        return;
+      }
+
       const resProd = await updateProductBasicInfoAction({
-        productId: "prod_coffee_bulk_01",
+        productId,
         name: productName,
         description: productDescription,
       });

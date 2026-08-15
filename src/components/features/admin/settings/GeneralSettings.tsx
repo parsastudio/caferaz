@@ -9,6 +9,7 @@ interface GeneralSettingsProps {
   initialSettings: {
     siteSubtitle: string;
     siteFooter: FooterConfig;
+    productId: string;
     productName: string;
     productDescription: string;
   };
@@ -23,6 +24,7 @@ export default function GeneralSettings({
       dir="rtl"
     >
       <ProductContentSettings
+        productId={initialSettings.productId}
         initialProductName={initialSettings.productName}
         initialProductDescription={initialSettings.productDescription}
         initialSiteSubtitle={initialSettings.siteSubtitle}
