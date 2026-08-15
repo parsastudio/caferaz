@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CheckoutFormValues } from "@/domain/validations/order.schema";
 import { toEnglishDigits } from "@/lib/utils";
 import { sendUserOtpAction } from "@/actions/auth";
+import OrderSummaryCard from "@/components/features/checkout/components/OrderSummaryCard";
 
 interface OtpStepProps {
   phone: string;
@@ -14,6 +15,12 @@ interface OtpStepProps {
   onSubmit: (e: React.FormEvent) => void;
   isSubmitting: boolean;
   finalPrice: number;
+  summaryData?: {
+    blend: string;
+    grind: string;
+    weightGrams: number;
+    quantity: number;
+  } | null;
 }
 
 export default function OtpStep({
@@ -22,6 +29,7 @@ export default function OtpStep({
   onSubmit,
   isSubmitting,
   finalPrice,
+  summaryData,
 }: OtpStepProps) {
   const {
     setValue,
@@ -104,7 +112,7 @@ export default function OtpStep({
         otpInputsRef.current[0]?.focus();
       }
     } catch (err) {
-      console.error("خطا در ارسال مجدد کد تایید", err);
+      console.error("OTP resend error:", err);
     }
   };
 
@@ -115,17 +123,29 @@ export default function OtpStep({
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-5 text-right" dir="rtl">
-      <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-full bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center mx-auto mb-1">
-          <Smartphone className="w-6 h-6" />
+    <form onSubmit={onSubmit} className="space-y-4 text-right" dir="rtl">
+      {summaryData && (
+        <OrderSummaryCard
+          blend={summaryData.blend}
+          grind={summaryData.grind}
+          weightGrams={summaryData.weightGrams}
+          quantity={summaryData.quantity}
+        />
+      )}
+
+      <div className="text-center space-y-1.5 pt-1">
+        <div className="w-10 h-10 rounded-full bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center mx-auto mb-1">
+          <Smartphone className="w-5 h-5" />
         </div>
-        <p className="text-sm font-black text-stone-200">
-          کد تایید را وارد کنید
+        <p className="text-xs font-black text-stone-200">
+          کد تایید پیامک‌شده را وارد کنید
         </p>
         <p className="text-[11px] text-stone-400 leading-relaxed max-w-xs mx-auto">
-          یک پیامک حاوی کد تایید برای شماره{" "}
-          <span className="text-gold-400 font-bold tracking-wider" dir="ltr">
+          کد تایید ۴ رقمی برای شماره{" "}
+          <span
+            className="text-gold-400 font-bold tracking-wider font-sans"
+            dir="ltr"
+          >
             {phone}
           </span>{" "}
           ارسال گردید.
@@ -166,7 +186,7 @@ export default function OtpStep({
         {timer > 0 ? (
           <span className="text-xs text-stone-500 font-medium">
             امکان ارسال مجدد کد در:{" "}
-            <span className="text-stone-300 font-bold">
+            <span className="text-stone-300 font-bold font-sans">
               {formatTime(timer)}
             </span>
           </span>
@@ -182,12 +202,12 @@ export default function OtpStep({
         )}
       </div>
 
-      <div className="border-t border-stone-850 pt-4 mt-6 flex items-center justify-between">
+      <div className="border-t border-stone-850 pt-4 mt-4 flex items-center justify-between">
         <div className="text-right">
           <span className="text-[10px] text-stone-500 block font-bold">
             پرداخت در محل:
           </span>
-          <span className="text-sm font-black text-gold-500">
+          <span className="text-sm font-black text-gold-500 font-sans">
             {finalPrice.toLocaleString()} تومان
           </span>
         </div>
@@ -199,12 +219,12 @@ export default function OtpStep({
             className="text-stone-400 hover:text-stone-200 cursor-pointer text-xs"
             disabled={isSubmitting}
           >
-            ویرایش آدرس
+            ویرایش
           </Button>
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-bold px-5 py-2.5 rounded-xl flex items-center gap-1.5 cursor-pointer"
+            className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-bold px-5 py-2.5 rounded-xl flex items-center gap-1.5 cursor-pointer text-xs"
           >
             {isSubmitting ? (
               <>

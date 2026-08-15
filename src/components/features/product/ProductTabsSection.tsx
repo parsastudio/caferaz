@@ -5,6 +5,7 @@ import { MessageSquare, Star, Plus, Clock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import CommentDialog from "@/components/features/product/CommentDialog";
+import { WidgetErrorBoundary } from "@/components/ui/widget-error-boundary";
 import { Comment } from "@/types";
 
 export interface UIComment extends Omit<Comment, "replies"> {
@@ -77,98 +78,106 @@ export default function ProductTabsSection({
   };
 
   return (
-    <div
-      className="mt-16 border-t border-stone-800/80 pt-10 text-right"
-      dir="rtl"
-    >
-      <Tabs defaultValue="comments" className="flex flex-col w-full" dir="rtl">
-        <TabsList
-          className="bg-stone-900 border border-stone-800 p-1 mb-8 flex w-full max-w-md"
+    <WidgetErrorBoundary fallbackTitle="خطایی در نمایش بخش نظرات و توضیحات رخ داد.">
+      <div
+        className="mt-16 border-t border-stone-800/80 pt-10 text-right"
+        dir="rtl"
+      >
+        <Tabs
+          defaultValue="comments"
+          className="flex flex-col w-full"
           dir="rtl"
         >
-          <TabsTrigger
-            value="comments"
-            className="flex-1 flex items-center justify-center gap-2 cursor-pointer py-2.5"
-          >
-            <MessageSquare className="w-4 h-4" />
-            نظرات مشتریان ({optimisticComments?.length || 0})
-          </TabsTrigger>
-          <TabsTrigger
-            value="description"
-            className="flex-1 flex items-center justify-center gap-2 cursor-pointer py-2.5"
-          >
-            توضیحات تخصصی محصول
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent
-          value="comments"
-          className="space-y-6 w-full text-right"
-          dir="rtl"
-        >
-          <div
-            className="flex flex-row items-center justify-between w-full"
+          <TabsList
+            className="bg-stone-900 border border-stone-800 p-1 mb-8 flex w-full max-w-md"
             dir="rtl"
           >
-            <h3 className="text-lg font-black text-stone-200">
-              نظرات و پرسش‌های کاربران
-            </h3>
-            <Button
-              onClick={() => {
-                setReplyParentId(null);
-                setIsCommentDialogOpen(true);
-              }}
-              className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-bold cursor-pointer"
+            <TabsTrigger
+              value="comments"
+              className="flex-1 flex items-center justify-center gap-2 cursor-pointer py-2.5"
             >
-              <Plus className="w-4 h-4 ml-1.5" />
-              ثبت دیدگاه جدید
-            </Button>
-          </div>
+              <MessageSquare className="w-4 h-4" />
+              نظرات مشتریان ({optimisticComments?.length || 0})
+            </TabsTrigger>
+            <TabsTrigger
+              value="description"
+              className="flex-1 flex items-center justify-center gap-2 cursor-pointer py-2.5"
+            >
+              توضیحات تخصصی محصول
+            </TabsTrigger>
+          </TabsList>
 
-          {optimisticComments && optimisticComments.length > 0 ? (
+          <TabsContent
+            value="comments"
+            className="space-y-6 w-full text-right"
+            dir="rtl"
+          >
             <div
-              className="divide-y divide-stone-800/80 bg-stone-900/20 p-6 rounded-2xl border border-stone-900/60 text-right"
+              className="flex flex-row items-center justify-between w-full"
               dir="rtl"
             >
-              {optimisticComments.map((comment: UIComment) => (
-                <CommentNode
-                  key={comment.id}
-                  comment={comment}
-                  onReply={(parentId) => {
-                    setReplyParentId(parentId);
-                    setIsCommentDialogOpen(true);
-                  }}
-                />
-              ))}
+              <h3 className="text-lg font-black text-stone-200">
+                نظرات و پرسش‌های کاربران
+              </h3>
+              <Button
+                onClick={() => {
+                  setReplyParentId(null);
+                  setIsCommentDialogOpen(true);
+                }}
+                className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-bold cursor-pointer"
+              >
+                <Plus className="w-4 h-4 ml-1.5" />
+                ثبت دیدگاه جدید
+              </Button>
             </div>
-          ) : (
-            <div className="text-center py-12 bg-stone-900/20 rounded-2xl border border-dashed border-stone-800">
-              <p className="text-sm text-stone-500">
-                تاکنون دیدگاهی ثبت نشده است. اولین دیدگاه را شما ثبت کنید!
-              </p>
-            </div>
-          )}
-        </TabsContent>
 
-        <TabsContent
-          value="description"
-          className="bg-stone-900/20 p-6 rounded-2xl border border-stone-900/60 text-stone-300 leading-relaxed text-sm w-full text-right"
-          dir="rtl"
-        >
-          <p>{description || "توضیحات تکمیلی برای این محصول ثبت نشده است."}</p>
-        </TabsContent>
-      </Tabs>
+            {optimisticComments && optimisticComments.length > 0 ? (
+              <div
+                className="divide-y divide-stone-800/80 bg-stone-900/20 p-6 rounded-2xl border border-stone-900/60 text-right"
+                dir="rtl"
+              >
+                {optimisticComments.map((comment: UIComment) => (
+                  <CommentNode
+                    key={comment.id}
+                    comment={comment}
+                    onReply={(parentId) => {
+                      setReplyParentId(parentId);
+                      setIsCommentDialogOpen(true);
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-stone-900/20 rounded-2xl border border-dashed border-stone-800">
+                <p className="text-sm text-stone-500">
+                  تاکنون دیدگاهی ثبت نشده است. اولین دیدگاه را شما ثبت کنید!
+                </p>
+              </div>
+            )}
+          </TabsContent>
 
-      <CommentDialog
-        isOpen={isCommentDialogOpen}
-        onOpenChange={setIsCommentDialogOpen}
-        productId={productId}
-        replyParentId={replyParentId}
-        onCommentSubmitted={handleCommentSubmitted}
-        isPending={isPending}
-        startTransition={startTransition}
-      />
-    </div>
+          <TabsContent
+            value="description"
+            className="bg-stone-900/20 p-6 rounded-2xl border border-stone-900/60 text-stone-300 leading-relaxed text-sm w-full text-right"
+            dir="rtl"
+          >
+            <p>
+              {description || "توضیحات تکمیلی برای این محصول ثبت نشده است."}
+            </p>
+          </TabsContent>
+        </Tabs>
+
+        <CommentDialog
+          isOpen={isCommentDialogOpen}
+          onOpenChange={setIsCommentDialogOpen}
+          productId={productId}
+          replyParentId={replyParentId}
+          onCommentSubmitted={handleCommentSubmitted}
+          isPending={isPending}
+          startTransition={startTransition}
+        />
+      </div>
+    </WidgetErrorBoundary>
   );
 }
 

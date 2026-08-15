@@ -6,6 +6,7 @@ import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { CheckoutFormValues } from "@/domain/validations/order.schema";
 import { toEnglishDigits } from "@/lib/utils";
+import OrderSummaryCard from "@/components/features/checkout/components/OrderSummaryCard";
 
 interface UserInfoStepProps {
   onSubmit: (e: React.FormEvent) => void;
@@ -14,6 +15,12 @@ interface UserInfoStepProps {
   isLoginMode: boolean;
   onToggleLoginMode: () => void;
   isCheckingPhone?: boolean;
+  summaryData?: {
+    blend: string;
+    grind: string;
+    weightGrams: number;
+    quantity: number;
+  } | null;
 }
 
 export default function UserInfoStep({
@@ -23,6 +30,7 @@ export default function UserInfoStep({
   isLoginMode,
   onToggleLoginMode,
   isCheckingPhone,
+  summaryData,
 }: UserInfoStepProps) {
   const {
     register,
@@ -33,6 +41,15 @@ export default function UserInfoStep({
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      {summaryData && (
+        <OrderSummaryCard
+          blend={summaryData.blend}
+          grind={summaryData.grind}
+          weightGrams={summaryData.weightGrams}
+          quantity={summaryData.quantity}
+        />
+      )}
+
       {isLoginMode ? (
         <div className="space-y-4">
           <div className="text-center p-3 bg-stone-950/40 border border-stone-850 rounded-xl space-y-1">
@@ -146,7 +163,7 @@ export default function UserInfoStep({
         </>
       )}
 
-      <div className="text-center pt-2">
+      <div className="text-center pt-1">
         <button
           type="button"
           onClick={onToggleLoginMode}
@@ -164,7 +181,7 @@ export default function UserInfoStep({
           <span className="text-[10px] text-stone-500 block font-bold">
             مبلغ کل فاکتور:
           </span>
-          <span className="text-sm font-black text-gold-500">
+          <span className="text-sm font-black text-gold-500 font-sans">
             {finalPrice.toLocaleString()} تومان
           </span>
         </div>
@@ -180,7 +197,7 @@ export default function UserInfoStep({
           <Button
             type="submit"
             disabled={isCheckingPhone}
-            className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-bold px-5 py-2.5 rounded-xl cursor-pointer"
+            className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-bold px-5 py-2.5 rounded-xl cursor-pointer text-xs"
           >
             {isCheckingPhone ? "بررسی..." : "مرحله بعد"}
           </Button>

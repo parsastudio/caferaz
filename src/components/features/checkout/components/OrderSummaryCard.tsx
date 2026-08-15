@@ -1,0 +1,51 @@
+"use client";
+
+import React from "react";
+import { Coffee, Layers, Scale, Sparkles } from "lucide-react";
+
+interface OrderSummaryCardProps {
+  blend: string;
+  grind: string;
+  weightGrams: number;
+  quantity: number;
+}
+
+export default function OrderSummaryCard({
+  blend,
+  grind,
+  weightGrams,
+  quantity,
+}: OrderSummaryCardProps) {
+  return (
+    <div className="bg-stone-950/60 border border-stone-850 p-3.5 rounded-xl space-y-2.5 text-right font-sans">
+      <div className="flex items-center justify-between border-b border-stone-850/80 pb-2">
+        <span className="text-[11px] font-black text-gold-400 flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-gold-500" />
+          مشخصات قهوه انتخابی شما
+        </span>
+        <span className="text-[10px] bg-gold-500/10 text-gold-400 border border-gold-500/20 px-2 py-0.5 rounded-full font-bold">
+          {quantity} بسته
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 text-[11px] text-stone-300 font-bold">
+        <div className="flex items-center gap-1.5 truncate">
+          <Coffee className="w-3.5 h-3.5 text-stone-500 shrink-0" />
+          <span className="truncate">{blend}</span>
+        </div>
+        <div className="flex items-center gap-1.5 truncate">
+          <Layers className="w-3.5 h-3.5 text-stone-500 shrink-0" />
+          <span className="truncate">{grind}</span>
+        </div>
+        <div className="flex items-center gap-1.5 col-span-2 text-stone-400 text-[10px]">
+          <Scale className="w-3.5 h-3.5 text-stone-500 shrink-0" />
+          <span>
+            وزن هر بسته:{" "}
+            <b className="text-stone-200">{weightGrams.toLocaleString()} گرم</b>{" "}
+            (مجموعاً {((weightGrams * quantity) / 1000).toFixed(1)} کیلوگرم)
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}

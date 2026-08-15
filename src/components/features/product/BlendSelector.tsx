@@ -50,7 +50,7 @@ export default function BlendSelector({
                 <motion.div
                   layoutId="selected-blend-bg"
                   className="absolute inset-0 bg-gold-500/5 pointer-events-none"
-                  transition={{ type: "spring", stiffness: 100, damping: 15 }}
+                  transition={{ type: "spring", stiffness: 120, damping: 20 }}
                 />
               )}
             </button>
@@ -66,8 +66,9 @@ export default function BlendSelector({
           </span>
           <motion.span
             key={blendProfile.label}
-            initial={{ opacity: 0, y: -5 }}
+            initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
             className="text-[11px] font-bold text-gold-400 bg-gold-500/10 px-2.5 py-1.5 rounded-full w-fit max-w-full leading-normal"
           >
             {blendProfile.label}
@@ -81,9 +82,9 @@ export default function BlendSelector({
           >
             {blendProfile.robusta > 0 && (
               <motion.div
-                initial={{ width: 0 }}
+                initial={false}
                 animate={{ width: `${blendProfile.robusta}%` }}
-                transition={{ type: "spring", stiffness: 80, damping: 15 }}
+                transition={{ type: "spring", stiffness: 100, damping: 18 }}
                 className={`h-full bg-gradient-to-l from-stone-800 to-stone-700 flex items-center justify-center relative text-center min-w-[50px] ${
                   blendProfile.arabica === 0 ? "rounded-full" : "rounded-r-full"
                 }`}
@@ -95,9 +96,9 @@ export default function BlendSelector({
             )}
             {blendProfile.arabica > 0 && (
               <motion.div
-                initial={{ width: 0 }}
+                initial={false}
                 animate={{ width: `${blendProfile.arabica}%` }}
-                transition={{ type: "spring", stiffness: 80, damping: 15 }}
+                transition={{ type: "spring", stiffness: 100, damping: 18 }}
                 className={`h-full bg-gradient-to-r from-gold-500 to-gold-400 flex items-center justify-center relative text-center min-w-[50px] ${
                   blendProfile.robusta === 0 ? "rounded-full" : "rounded-l-full"
                 }`}
@@ -116,15 +117,15 @@ export default function BlendSelector({
                   <Zap className="w-3.5 h-3.5 text-gold-500 shrink-0" />
                   کافئین و انرژی
                 </span>
-                <span className="text-gold-400 font-black text-[10px]">
+                <span className="text-gold-400 font-black text-[10px] font-sans">
                   {blendProfile.caffeine}٪
                 </span>
               </span>
               <div className="h-2 w-full bg-stone-950 rounded-full overflow-hidden">
                 <motion.div
-                  initial={{ width: 0 }}
+                  initial={false}
                   animate={{ width: `${blendProfile.caffeine}%` }}
-                  transition={{ type: "spring", stiffness: 80, damping: 15 }}
+                  transition={{ type: "spring", stiffness: 100, damping: 18 }}
                   className="h-full bg-gold-500"
                 />
               </div>
@@ -136,15 +137,15 @@ export default function BlendSelector({
                   <Coffee className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                   غلظت و تنواری (Body)
                 </span>
-                <span className="text-stone-300 font-black text-[10px]">
+                <span className="text-stone-300 font-black text-[10px] font-sans">
                   {blendProfile.body}٪
                 </span>
               </span>
               <div className="h-2 w-full bg-stone-950 rounded-full overflow-hidden">
                 <motion.div
-                  initial={{ width: 0 }}
+                  initial={false}
                   animate={{ width: `${blendProfile.body}%` }}
-                  transition={{ type: "spring", stiffness: 80, damping: 15 }}
+                  transition={{ type: "spring", stiffness: 100, damping: 18 }}
                   className="h-full bg-stone-50"
                 />
               </div>
@@ -156,15 +157,15 @@ export default function BlendSelector({
                   <Sparkles className="w-3.5 h-3.5 text-gold-400 shrink-0" />
                   اسیدیته و عطر (Aroma)
                 </span>
-                <span className="text-gold-300 font-black text-[10px]">
+                <span className="text-gold-300 font-black text-[10px] font-sans">
                   {blendProfile.aroma}٪
                 </span>
               </span>
               <div className="h-2 w-full bg-stone-950 rounded-full overflow-hidden">
                 <motion.div
-                  initial={{ width: 0 }}
+                  initial={false}
                   animate={{ width: `${blendProfile.aroma}%` }}
-                  transition={{ type: "spring", stiffness: 80, damping: 15 }}
+                  transition={{ type: "spring", stiffness: 100, damping: 18 }}
                   className="h-full bg-gold-400"
                 />
               </div>

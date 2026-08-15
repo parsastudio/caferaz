@@ -27,6 +27,8 @@ export default function CheckoutDialog() {
     fakeTrackingCode,
     selectedWeight,
     quantity,
+    selectedBlend,
+    selectedGrind,
     methods,
     handleClose,
     handleUserInfoNext,
@@ -55,6 +57,13 @@ export default function CheckoutDialog() {
         setStep("shipping");
       }
     }
+  };
+
+  const summaryData = {
+    blend: selectedBlend,
+    grind: selectedGrind,
+    weightGrams: selectedWeight,
+    quantity,
   };
 
   return (
@@ -94,6 +103,7 @@ export default function CheckoutDialog() {
                       setIsLoginMode(!isLoginMode);
                     }}
                     isCheckingPhone={isPending}
+                    summaryData={summaryData}
                   />
                 </motion.div>
               )}
@@ -146,6 +156,7 @@ export default function CheckoutDialog() {
                     onSubmit={handleOtpVerifyAndSubmit}
                     isSubmitting={isSubmitting}
                     finalPrice={checkoutFinalPrice}
+                    summaryData={summaryData}
                   />
                 </motion.div>
               )}
