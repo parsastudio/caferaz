@@ -2,16 +2,23 @@
 
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import { createSignedToken, verifySignedToken } from "@/lib/session";
-import { sendOtpCode, verifyOtpInternal } from "@/lib/otp-service";
-import { User } from "@/types";
+import { AuthService } from "@/services/auth.service";
+import {
+  sendOtpSchema,
+  loginUserWithOtpSchema,
+  registerUserSchema,
+  quickLoginUserSchema,
+} from "@/domain/validations/auth.schema";
 
 export async function sendUserOtpAction(payload: { phone: string }) {
   try {
-    const { phone } = payload;
-    if (!phone) {
-      return { success: false, error: "شماره همراه ارسال نشده است." };
+    const parsed = sendOtpSchema.safeParse(payload);
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: parsed.error.issues[0]?.message || "شماره همراه نامعتبر است.",
+      };
     }
 
     const headersList = await headers();
@@ -23,7 +30,7 @@ export async function sendUserOtpAction(payload: { phone: string }) {
       ip = ip.split(",")[0].trim();
     }
 
-    return await sendOtpCode(phone, ip);
+    return await AuthService.sendOtp(parsed.data.phone, ip);
   } catch {
     return { success: false, error: "خطا در فرآیند ارسال کد تایید پیامکی." };
   }
@@ -35,13 +42,18 @@ export async function loginUserAction(payload: {
   otp: string;
 }) {
   try {
-    const { phone, name, otp } = payload;
-
-    if (!phone || !otp) {
-      return { success: false, error: "اطلاعات ارسالی ناقص است." };
+    const parsed = quickLoginUserSchema.safeParse(payload);
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: parsed.error.issues[0]?.message || "اطلاعات ناقص است.",
+      };
     }
 
-    const isOtpValid = await verifyOtpInternal(phone, otp);
+    const isOtpValid = await AuthService.verifyOtp(
+      parsed.data.phone,
+      parsed.data.otp,
+    );
     if (!isOtpValid) {
       return {
         success: false,
@@ -49,16 +61,10 @@ export async function loginUserAction(payload: {
       };
     }
 
-    const displayName = name.trim() || "کاربر کافه راز";
-
-    await prisma.user.upsert({
-      where: { phone: phone.trim() },
-      update: { name: displayName },
-      create: { phone: phone.trim(), name: displayName },
-    });
+    const user = await AuthService.quickLoginUser(parsed.data);
 
     const cookieStore = await cookies();
-    cookieStore.set("user_phone", createSignedToken(phone.trim()), {
+    cookieStore.set("user_phone", createSignedToken(user.phone), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -77,13 +83,18 @@ export async function loginUserWithOtpAction(payload: {
   otp: string;
 }) {
   try {
-    const { phone, otp } = payload;
-
-    if (!phone || !otp) {
-      return { success: false, error: "اطلاعات ارسالی ناقص است." };
+    const parsed = loginUserWithOtpSchema.safeParse(payload);
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: parsed.error.issues[0]?.message || "اطلاعات ناقص است.",
+      };
     }
 
-    const isOtpValid = await verifyOtpInternal(phone, otp);
+    const isOtpValid = await AuthService.verifyOtp(
+      parsed.data.phone,
+      parsed.data.otp,
+    );
     if (!isOtpValid) {
       return {
         success: false,
@@ -91,19 +102,10 @@ export async function loginUserWithOtpAction(payload: {
       };
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { phone: phone.trim() },
-    });
-    const displayName = existingUser ? existingUser.name : "کاربر کافه راز";
-
-    await prisma.user.upsert({
-      where: { phone: phone.trim() },
-      update: {},
-      create: { phone: phone.trim(), name: displayName },
-    });
+    const user = await AuthService.loginUserWithOtp(parsed.data);
 
     const cookieStore = await cookies();
-    cookieStore.set("user_phone", createSignedToken(phone.trim()), {
+    cookieStore.set("user_phone", createSignedToken(user.phone), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -124,13 +126,18 @@ export async function registerUserAction(payload: {
   otp: string;
 }) {
   try {
-    const { phone, name, address, otp } = payload;
-
-    if (!phone || !name || !address || !otp) {
-      return { success: false, error: "پر کردن تمامی فیلدها الزامی است." };
+    const parsed = registerUserSchema.safeParse(payload);
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: parsed.error.issues[0]?.message || "اطلاعات ناقص است.",
+      };
     }
 
-    const isOtpValid = await verifyOtpInternal(phone, otp);
+    const isOtpValid = await AuthService.verifyOtp(
+      parsed.data.phone,
+      parsed.data.otp,
+    );
     if (!isOtpValid) {
       return {
         success: false,
@@ -138,14 +145,10 @@ export async function registerUserAction(payload: {
       };
     }
 
-    await prisma.user.upsert({
-      where: { phone: phone.trim() },
-      update: { name, address },
-      create: { phone: phone.trim(), name, address },
-    });
+    const user = await AuthService.registerUser(parsed.data);
 
     const cookieStore = await cookies();
-    cookieStore.set("user_phone", createSignedToken(phone.trim()), {
+    cookieStore.set("user_phone", createSignedToken(user.phone), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -161,22 +164,13 @@ export async function registerUserAction(payload: {
 
 export async function checkPhoneRegisteredAction(payload: { phone: string }) {
   try {
-    const { phone } = payload;
-    const user = await prisma.user.findUnique({
-      where: { phone: phone.trim() },
-    });
+    const parsed = sendOtpSchema.safeParse(payload);
+    if (!parsed.success) {
+      return { success: false, error: "شماره همراه نامعتبر است." };
+    }
 
-    const mappedUser: User | null = user
-      ? {
-          id: user.id,
-          name: user.name,
-          phone: user.phone,
-          createdAt: user.createdAt.toISOString(),
-          address: user.address ?? undefined,
-        }
-      : null;
-
-    return { success: true, registered: !!user, user: mappedUser };
+    const user = await AuthService.getUserByPhone(parsed.data.phone);
+    return { success: true, registered: !!user, user };
   } catch {
     return { success: false, error: "خطا در بررسی شماره تماس." };
   }
@@ -195,21 +189,8 @@ export async function getCurrentUserAction() {
       return { success: true, user: null };
     }
 
-    const user = await prisma.user.findUnique({
-      where: { phone: phone.trim() },
-    });
-
-    const mappedUser: User | null = user
-      ? {
-          id: user.id,
-          name: user.name,
-          phone: user.phone,
-          createdAt: user.createdAt.toISOString(),
-          address: user.address ?? undefined,
-        }
-      : null;
-
-    return { success: true, user: mappedUser };
+    const user = await AuthService.getUserByPhone(phone);
+    return { success: true, user };
   } catch {
     return { success: false, user: null };
   }

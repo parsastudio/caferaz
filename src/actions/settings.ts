@@ -1,64 +1,43 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { checkAdminAuth } from "@/actions/auth";
-import { FAQ } from "@/components/features/landing/FAQSection";
-import { FooterConfig } from "@/types";
-import { Prisma } from "@prisma/client";
-
-export type SettingsPayload =
-  | { key: "site_subtitle"; value: string }
-  | { key: "site_faq"; value: FAQ[] }
-  | { key: "site_footer"; value: FooterConfig };
+import { SettingsService } from "@/services/settings.service";
+import {
+  updateSettingsSchema,
+  type UpdateSettingsInput,
+} from "@/domain/validations/settings.schema";
 
 export async function getSettingsAction() {
   try {
-    const siteSubtitleOpt = await prisma.option.findUnique({
-      where: { key: "site_subtitle" },
-    });
-    const siteFaqOpt = await prisma.option.findUnique({
-      where: { key: "site_faq" },
-    });
-    const siteFooterOpt = await prisma.option.findUnique({
-      where: { key: "site_footer" },
-    });
-
-    const siteSubtitle = siteSubtitleOpt
-      ? (siteSubtitleOpt.value as string)
-      : "";
-    const siteFaq = siteFaqOpt ? (siteFaqOpt.value as unknown as FAQ[]) : [];
-    const siteFooter = siteFooterOpt
-      ? (siteFooterOpt.value as unknown as FooterConfig)
-      : { phones: [], address: "", eitaa: "", website: "" };
-
+    const data = await SettingsService.getSettings();
     return {
       success: true,
-      data: {
-        siteSubtitle,
-        siteFaq,
-        siteFooter,
-      },
+      data,
     };
   } catch {
     return { success: false, error: "خطا در دریافت تنظیمات پیش‌آمد." };
   }
 }
 
-export async function updateSettingsAction(payload: SettingsPayload) {
+export async function updateSettingsAction(payload: UpdateSettingsInput) {
   try {
     const isAdmin = await checkAdminAuth();
     if (!isAdmin) {
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    const { key, value } = payload;
+    const validated = updateSettingsSchema.safeParse(payload);
+    if (!validated.success) {
+      return {
+        success: false,
+        error:
+          validated.error.issues[0]?.message ||
+          "اطلاعات تنظیمی ارسالی نامعتبر است.",
+      };
+    }
 
-    await prisma.option.upsert({
-      where: { key },
-      update: { value: value as unknown as Prisma.InputJsonValue },
-      create: { key, value: value as unknown as Prisma.InputJsonValue },
-    });
+    await SettingsService.updateSetting(validated.data);
 
     revalidatePath("/");
     revalidatePath("/admin/settings");

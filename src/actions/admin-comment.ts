@@ -1,11 +1,10 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { checkAdminAuth } from "@/actions/admin-auth";
-import { buildCommentTree } from "@/lib/comment-tree";
-import { Comment } from "@/types";
+import { Comment } from "@/domain/types";
 import { ActionResponse } from "@/types/actions";
+import { CommentService } from "@/services/comment.service";
 
 export async function getAdminCommentsAction(
   productId: string,
@@ -20,13 +19,8 @@ export async function getAdminCommentsAction(
       return { success: false, error: "شناسه محصول معتبر نیست." };
     }
 
-    const comments = await prisma.comment.findMany({
-      where: { productId },
-      orderBy: { createdAt: "desc" },
-    });
-
-    const tree = buildCommentTree(comments);
-    return { success: true, data: tree };
+    const data = await CommentService.getAllCommentsForAdmin(productId);
+    return { success: true, data };
   } catch {
     return {
       success: false,
@@ -44,10 +38,7 @@ export async function approveCommentAction(
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    await prisma.comment.update({
-      where: { id: commentId },
-      data: { status: "approved" },
-    });
+    await CommentService.updateCommentStatus(commentId, "approved");
 
     revalidatePath("/");
     revalidatePath("/admin/comments");
@@ -71,10 +62,7 @@ export async function rejectCommentAction(
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    await prisma.comment.update({
-      where: { id: commentId },
-      data: { status: "rejected" },
-    });
+    await CommentService.updateCommentStatus(commentId, "rejected");
 
     revalidatePath("/");
     revalidatePath("/admin/comments");
@@ -98,10 +86,7 @@ export async function spamCommentAction(
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    await prisma.comment.update({
-      where: { id: commentId },
-      data: { status: "spam" },
-    });
+    await CommentService.updateCommentStatus(commentId, "spam");
 
     revalidatePath("/");
     revalidatePath("/admin/comments");
@@ -126,10 +111,11 @@ export async function editCommentAction(
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    await prisma.comment.update({
-      where: { id: commentId },
-      data: { commentText },
-    });
+    if (!commentText.trim()) {
+      return { success: false, error: "متن دیدگاه نمی‌تواند خالی باشد." };
+    }
+
+    await CommentService.editCommentText(commentId, commentText);
 
     revalidatePath("/");
     revalidatePath("/admin/comments");
@@ -153,9 +139,7 @@ export async function deleteCommentAction(
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    await prisma.comment.delete({
-      where: { id: commentId },
-    });
+    await CommentService.deleteComment(commentId);
 
     revalidatePath("/");
     revalidatePath("/admin/comments");

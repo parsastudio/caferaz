@@ -1,10 +1,16 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
-import { ActionResponse } from "@/actions/comment";
+import { ActionResponse } from "@/types/actions";
 import { revalidatePath } from "next/cache";
 import { checkAdminAuth } from "@/actions/auth";
-import { ProductWithPricing } from "@/types";
+import { ProductWithPricing } from "@/domain/types";
+import { ProductService } from "@/services/product.service";
+import {
+  updateProductDetailsSchema,
+  updateProductBasicInfoSchema,
+  type UpdateProductDetailsInput,
+  type UpdateProductBasicInfoInput,
+} from "@/domain/validations/product.schema";
 
 export async function getProductAction(
   productId: string,
@@ -14,10 +20,7 @@ export async function getProductAction(
       return { success: false, error: "شناسه محصول ارسال نشده است." };
     }
 
-    const product = await prisma.product.findUnique({
-      where: { id: productId, deletedAt: null },
-      include: { pricing: true },
-    });
+    const product = await ProductService.getProductById(productId);
 
     if (!product) {
       return { success: false, error: "محصول مورد نظر یافت نشد." };
@@ -25,63 +28,32 @@ export async function getProductAction(
 
     return {
       success: true,
-      data: {
-        id: product.id,
-        name: product.name,
-        description: product.description,
-        stockGrams: product.stockGrams,
-        pricing: product.pricing
-          ? {
-              pricePerKgArabica: product.pricing.pricePerKgArabica,
-              pricePerKgRobusta: product.pricing.pricePerKgRobusta,
-            }
-          : null,
-      },
+      data: product,
     };
   } catch {
     return { success: false, error: "خطا در دریافت اطلاعات محصول رخ داد." };
   }
 }
 
-export async function updateProductDetailsAction(payload: {
-  productId: string;
-  pricePerKgArabica: number;
-  pricePerKgRobusta: number;
-  stockGrams: number;
-}): Promise<ActionResponse<boolean>> {
+export async function updateProductDetailsAction(
+  payload: UpdateProductDetailsInput,
+): Promise<ActionResponse<boolean>> {
   try {
     const isAdmin = await checkAdminAuth();
     if (!isAdmin) {
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    const { productId, pricePerKgArabica, pricePerKgRobusta, stockGrams } =
-      payload;
-
-    if (
-      !productId ||
-      pricePerKgArabica <= 0 ||
-      pricePerKgRobusta <= 0 ||
-      stockGrams < 0
-    ) {
+    const validated = updateProductDetailsSchema.safeParse(payload);
+    if (!validated.success) {
       return {
         success: false,
         error:
-          "تمامی فیلدهای مربوط به قیمت‌گذاری و موجودی باید به درستی تکمیل گردند.",
+          validated.error.issues[0]?.message || "اطلاعات ارسالی نامعتبر است.",
       };
     }
 
-    await prisma.$transaction([
-      prisma.product.update({
-        where: { id: productId },
-        data: { stockGrams },
-      }),
-      prisma.pricing.upsert({
-        where: { productId },
-        update: { pricePerKgArabica, pricePerKgRobusta },
-        create: { productId, pricePerKgArabica, pricePerKgRobusta },
-      }),
-    ]);
+    await ProductService.updateProductDetails(validated.data);
 
     revalidatePath("/");
     revalidatePath("/admin/pricing");
@@ -96,30 +68,25 @@ export async function updateProductDetailsAction(payload: {
   }
 }
 
-export async function updateProductBasicInfoAction(payload: {
-  productId: string;
-  name: string;
-  description: string;
-}): Promise<ActionResponse<boolean>> {
+export async function updateProductBasicInfoAction(
+  payload: UpdateProductBasicInfoInput,
+): Promise<ActionResponse<boolean>> {
   try {
     const isAdmin = await checkAdminAuth();
     if (!isAdmin) {
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    const { productId, name, description } = payload;
-
-    if (!productId || !name.trim() || !description.trim()) {
+    const validated = updateProductBasicInfoSchema.safeParse(payload);
+    if (!validated.success) {
       return {
         success: false,
-        error: "تکمیل نام و توضیحات کالا الزامی است.",
+        error:
+          validated.error.issues[0]?.message || "اطلاعات ارسالی نامعتبر است.",
       };
     }
 
-    await prisma.product.update({
-      where: { id: productId },
-      data: { name, description },
-    });
+    await ProductService.updateProductBasicInfo(validated.data);
 
     revalidatePath("/");
     revalidatePath("/admin/settings");

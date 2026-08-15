@@ -1,11 +1,14 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { checkAdminAuth } from "@/actions/admin-auth";
-import { buildCommentTree } from "@/lib/comment-tree";
-import { Comment } from "@/types";
+import { Comment } from "@/domain/types";
 import { ActionResponse } from "@/types/actions";
+import {
+  submitCommentSchema,
+  type SubmitCommentInput,
+} from "@/domain/validations/comment.schema";
+import { CommentService } from "@/services/comment.service";
 
 export async function getCommentsAction(
   productId: string,
@@ -15,65 +18,30 @@ export async function getCommentsAction(
       return { success: false, error: "شناسه محصول معتبر نیست." };
     }
 
-    const comments = await prisma.comment.findMany({
-      where: {
-        productId,
-        status: "approved",
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    const tree = buildCommentTree(comments);
-    return { success: true, data: tree };
+    const data = await CommentService.getApprovedComments(productId);
+    return { success: true, data };
   } catch {
     return { success: false, error: "خطا در بارگذاری دیدگاه‌ها رخ داد." };
   }
 }
 
-export async function submitCommentAction(payload: {
-  productId: string;
-  phone?: string | null;
-  firstName: string;
-  commentText: string;
-  rating: number | null;
-  parentId: string | null;
-}): Promise<ActionResponse<Comment>> {
+export async function submitCommentAction(
+  payload: SubmitCommentInput,
+): Promise<ActionResponse<Comment>> {
   try {
-    const { productId, phone, firstName, commentText, rating, parentId } =
-      payload;
-
-    if (!productId || !firstName || !commentText) {
+    const validated = submitCommentSchema.safeParse(payload);
+    if (!validated.success) {
       return {
         success: false,
-        error: "تکمیل تمامی فیلدهای ستاره‌دار الزامی است.",
+        error:
+          validated.error.issues[0]?.message || "اطلاعات ارسالی معتبر نیست.",
       };
     }
 
     const isAdmin = await checkAdminAuth();
     const status = isAdmin ? "approved" : "pending";
 
-    let userId: string | null = null;
-    if (phone) {
-      const user = await prisma.user.findUnique({
-        where: { phone: phone.trim() },
-      });
-      if (user) {
-        userId = user.id;
-      }
-    }
-
-    const newComment = await prisma.comment.create({
-      data: {
-        productId,
-        userId,
-        firstName,
-        lastName: "",
-        rating,
-        commentText,
-        status,
-        parentCommentId: parentId,
-      },
-    });
+    const data = await CommentService.submitComment(validated.data, status);
 
     revalidatePath("/");
 
@@ -82,17 +50,7 @@ export async function submitCommentAction(payload: {
       message: isAdmin
         ? "دیدگاه پشتیبان با موفقیت تایید و منتشر گردید."
         : "دیدگاه شما ثبت گردید و پس از بازبینی تایید خواهد شد.",
-      data: {
-        id: newComment.id,
-        productId: newComment.productId ?? undefined,
-        firstName: newComment.firstName ?? "",
-        lastName: newComment.lastName ?? "",
-        rating: newComment.rating,
-        commentText: newComment.commentText,
-        createdAt: newComment.createdAt.toISOString(),
-        status: newComment.status as Comment["status"],
-        replies: [],
-      },
+      data,
     };
   } catch {
     return { success: false, error: "مشکلی در ذخیره دیدگاه شما وجود دارد." };

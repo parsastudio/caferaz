@@ -1,9 +1,10 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { checkAdminAuth } from "@/actions/admin-auth";
 import { ActionResponse } from "@/types/actions";
-import { Order } from "@/types";
+import { Order } from "@/domain/types";
+import { OrderStatus } from "@/domain/validations/order.schema";
+import { OrderService } from "@/services/order.service";
 import { revalidatePath } from "next/cache";
 
 export async function getOrdersAction(): Promise<ActionResponse<Order[]>> {
@@ -13,28 +14,7 @@ export async function getOrdersAction(): Promise<ActionResponse<Order[]>> {
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    const orders = await prisma.order.findMany({
-      include: { orderItems: true },
-      orderBy: { createdAt: "desc" },
-    });
-
-    const data: Order[] = orders.map((o) => {
-      const item = o.orderItems[0];
-      return {
-        id: o.id,
-        productId: item?.productId ?? "prod_coffee_bulk_01",
-        weightGrams: item?.weightGrams ?? 250,
-        quantity: item?.quantity ?? 1,
-        grindType: item?.grindType ?? "",
-        finalPrice: o.finalPrice,
-        customerName: o.customerName,
-        customerPhone: o.customerPhone,
-        customerAddress: o.customerAddress,
-        createdAt: o.createdAt.toISOString(),
-        status: o.status as Order["status"],
-      };
-    });
-
+    const data = await OrderService.getAllOrders();
     return { success: true, data };
   } catch {
     return { success: false, error: "خطا در دریافت تاریخچه سفارش‌ها رخ داد." };
@@ -43,7 +23,7 @@ export async function getOrdersAction(): Promise<ActionResponse<Order[]>> {
 
 export async function updateOrderStatusAction(
   orderId: string,
-  status: "unreviewed" | "pending" | "completed" | "cancelled",
+  status: OrderStatus,
 ): Promise<ActionResponse<boolean>> {
   try {
     const isAdmin = await checkAdminAuth();
@@ -51,10 +31,7 @@ export async function updateOrderStatusAction(
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    await prisma.order.update({
-      where: { id: orderId },
-      data: { status },
-    });
+    await OrderService.updateOrderStatus(orderId, status);
 
     revalidatePath("/admin/orders");
     revalidatePath("/profile");
@@ -77,9 +54,7 @@ export async function deleteOrderAction(
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    await prisma.order.delete({
-      where: { id: orderId },
-    });
+    await OrderService.deleteOrder(orderId);
 
     revalidatePath("/admin/orders");
     revalidatePath("/profile");

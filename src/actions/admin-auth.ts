@@ -2,34 +2,29 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import { createSignedToken, verifySignedToken } from "@/lib/session";
-import { hashPassword, verifyPassword } from "@/lib/crypto";
+import { AuthService } from "@/services/auth.service";
+import {
+  adminLoginSchema,
+  updateAdminPasswordSchema,
+} from "@/domain/validations/auth.schema";
 
 export async function loginAdminAction(formData: FormData) {
-  const username = (formData.get("username") as string)?.trim();
-  const password = formData.get("password") as string;
-
-  if (!username || !password) {
-    return { success: false, error: "تمامی فیلدها الزامی هستند." };
-  }
-
-  const adminCredentialsOpt = await prisma.option.findUnique({
-    where: { key: "admin_credentials" },
+  const parsed = adminLoginSchema.safeParse({
+    username: formData.get("username"),
+    password: formData.get("password"),
   });
 
-  const storedCreds = adminCredentialsOpt
-    ? (adminCredentialsOpt.value as { username: string; passwordHash: string })
-    : null;
-
-  if (!storedCreds) {
-    return { success: false, error: "تنظیمات ادمین یافت نشد." };
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message || "اطلاعات ناقص است.",
+    };
   }
 
-  const isUsernameMatch = username === storedCreds.username;
-  const isPasswordMatch = verifyPassword(password, storedCreds.passwordHash);
+  const isValid = await AuthService.verifyAdminCredentials(parsed.data);
 
-  if (isUsernameMatch && isPasswordMatch) {
+  if (isValid) {
     const cookieStore = await cookies();
     cookieStore.set("admin_session", createSignedToken("admin"), {
       httpOnly: true,
@@ -62,58 +57,26 @@ export async function updateAdminPasswordAction(payload: {
   newPass: string;
 }) {
   try {
-    const { oldPass, newPass } = payload;
-
     const isAdmin = await checkAdminAuth();
     if (!isAdmin) {
       return { success: false, error: "دسترسی غیرمجاز است." };
     }
 
-    if (!oldPass || !newPass) {
-      return { success: false, error: "پر کردن تمامی فیلدها الزامی است." };
-    }
-
-    const adminCredentialsOpt = await prisma.option.findUnique({
-      where: { key: "admin_credentials" },
-    });
-
-    const storedCreds = adminCredentialsOpt
-      ? (adminCredentialsOpt.value as {
-          username: string;
-          passwordHash: string;
-        })
-      : null;
-
-    if (!storedCreds) {
-      return { success: false, error: "تنظیمات ادمین یافت نشد." };
-    }
-
-    const isOldPasswordValid = verifyPassword(
-      oldPass,
-      storedCreds.passwordHash,
-    );
-
-    if (!isOldPasswordValid) {
-      return { success: false, error: "رمز عبور فعلی نادرست است." };
-    }
-
-    if (newPass.length < 6) {
+    const parsed = updateAdminPasswordSchema.safeParse(payload);
+    if (!parsed.success) {
       return {
         success: false,
-        error: "رمز عبور جدید باید حداقل ۶ کاراکتر باشد.",
+        error: parsed.error.issues[0]?.message || "اطلاعات ارسالی نامعتبر است.",
       };
     }
 
-    const updatedCreds = {
-      username: storedCreds.username,
-      passwordHash: hashPassword(newPass),
-    };
-
-    await prisma.option.upsert({
-      where: { key: "admin_credentials" },
-      update: { value: updatedCreds },
-      create: { key: "admin_credentials", value: updatedCreds },
-    });
+    const result = await AuthService.updateAdminPassword(parsed.data);
+    if (!result.success) {
+      return {
+        success: false,
+        error: result.error || "خطا در تغییر رمز عبور رخ داد.",
+      };
+    }
 
     return {
       success: true,
