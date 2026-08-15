@@ -1,20 +1,14 @@
 "use client";
 
 import React from "react";
-import { ShoppingBag, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FormProvider } from "react-hook-form";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import UserInfoStep from "./UserInfoStep";
 import ShippingStep from "./ShippingStep";
 import OtpStep from "./OtpStep";
 import SuccessStep from "./SuccessStep";
+import CheckoutDialogHeader from "./components/CheckoutDialogHeader";
 import { useCheckoutForm } from "@/hooks/useCheckoutForm";
 
 export default function CheckoutDialog() {
@@ -51,6 +45,18 @@ export default function CheckoutDialog() {
     handleRemoveCoupon,
   } = useCheckoutForm();
 
+  const handleHeaderBack = () => {
+    setErrorMessage(null);
+    if (step === "shipping") setStep("user_info");
+    if (step === "otp") {
+      if (otpPurpose === "login") {
+        setStep("user_info");
+      } else {
+        setStep("shipping");
+      }
+    }
+  };
+
   return (
     <Dialog
       open={isOpen}
@@ -65,45 +71,7 @@ export default function CheckoutDialog() {
         className="sm:max-w-lg md:max-w-xl bg-stone-900 border border-stone-800 text-stone-100 p-0 overflow-hidden rounded-2xl text-right"
         showCloseButton={false}
       >
-        <div className="p-6 md:p-8 pb-4 md:pb-5 border-b border-stone-800/80 bg-stone-950/20 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center">
-              <ShoppingBag className="w-5 h-5" />
-            </div>
-            <div>
-              <DialogTitle className="text-base md:text-lg font-black text-stone-100">
-                {step === "success"
-                  ? "ثبت موفقیت‌آمیز سفارش"
-                  : "ثبت نهایی سفارش خرید قهوه"}
-              </DialogTitle>
-              <DialogDescription className="text-[11px] md:text-xs text-stone-400 mt-0.5">
-                {step === "user_info" && "اطلاعات خریدار"}
-                {step === "shipping" && "اطلاعات ارسال و پرداخت"}
-                {step === "otp" && "تایید شماره تماس"}
-                {step === "success" && "سفارش شما با موفقیت ثبت شد"}
-              </DialogDescription>
-            </div>
-          </div>
-
-          {step !== "user_info" && step !== "success" && (
-            <button
-              onClick={() => {
-                setErrorMessage(null);
-                if (step === "shipping") setStep("user_info");
-                if (step === "otp") {
-                  if (otpPurpose === "login") {
-                    setStep("user_info");
-                  } else {
-                    setStep("shipping");
-                  }
-                }
-              }}
-              className="text-stone-400 hover:text-stone-200 p-1.5 rounded-lg hover:bg-stone-800/40 transition-colors cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+        <CheckoutDialogHeader step={step} onBack={handleHeaderBack} />
 
         <div className="p-6 md:p-8">
           <FormProvider {...methods}>
