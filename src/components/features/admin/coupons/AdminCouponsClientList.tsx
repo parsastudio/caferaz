@@ -18,10 +18,12 @@ import CouponCreateDialog from "@/components/features/admin/coupons/CouponCreate
 
 interface AdminCouponsClientListProps {
   initialCoupons: Coupon[];
+  products?: { id: string; name: string }[];
 }
 
 export default function AdminCouponsClientList({
   initialCoupons,
+  products = [],
 }: AdminCouponsClientListProps) {
   const [coupons, setCoupons] = useState<Coupon[]>(initialCoupons);
   const [isOpen, setIsOpen] = useState(false);
@@ -135,6 +137,7 @@ export default function AdminCouponsClientList({
         onOpenChange={setIsOpen}
         onSubmit={onSubmit}
         isPending={isPending}
+        products={products}
       />
     </div>
   );

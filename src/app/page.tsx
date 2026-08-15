@@ -8,8 +8,6 @@ import FAQSection from "@/components/features/landing/FAQSection";
 import { FAQItem } from "@/domain/types";
 import { getTehranTodayString } from "@/lib/jalali-converter";
 
-export const dynamic = "force-dynamic";
-
 export default async function Page() {
   const productResult = await getMainProductAction();
 

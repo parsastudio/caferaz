@@ -70,77 +70,24 @@ export class OrderService {
       appliedCouponCode,
     } = payload;
 
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
-      include: { pricing: true },
-    });
-
-    if (!product) {
-      throw new Error("محصول مورد نظر یافت نشد.");
-    }
-
     const totalWeightNeeded = weightGrams * quantity;
-    if (product.stockGrams < totalWeightNeeded) {
-      throw new Error(
-        "موجودى فیزیکی انبار برای ثبت این مقدار سفارش کافی نیست.",
-      );
-    }
-
-    let coupon = null;
-    if (appliedCouponCode) {
-      const cleanCode = appliedCouponCode.trim().toUpperCase();
-      coupon = await prisma.coupon.findUnique({
-        where: { code: cleanCode },
-      });
-
-      if (!coupon || !coupon.isActive || coupon.deletedAt) {
-        throw new Error("کد تخفیف وارد شده معتبر نیست یا منقضی شده است.");
-      }
-
-      if (coupon.productId && coupon.productId !== productId) {
-        throw new Error("این کد تخفیف برای محصول انتخابی شما معتبر نیست.");
-      }
-
-      const usage = await prisma.couponUsage.findUnique({
-        where: {
-          couponId_phone: {
-            couponId: coupon.id,
-            phone: securePhone,
-          },
-        },
-      });
-
-      if (usage) {
-        throw new Error(
-          "تراکنش مسدود شد: این کد تخفیف قبلاً توسط شما استفاده شده است.",
-        );
-      }
-    }
-
-    const blendProfile = getBlendProfile(blend);
-    const activeCoupons = await prisma.coupon.findMany({
-      where: { deletedAt: null },
-    });
-    const couponUsages = await prisma.couponUsage.findMany();
-
-    const pricingBreakdown = calculateAdvancedPriceMetrics({
-      productId,
-      pricing: product.pricing,
-      blendProfile,
-      weightGrams,
-      quantity,
-      activeCoupons: activeCoupons.map(mapPrismaCoupon),
-      appliedUserCouponCode: appliedCouponCode,
-      userPhone: securePhone,
-      couponUsages: couponUsages.map((u) => ({
-        id: u.id,
-        couponId: u.couponId,
-        phone: u.phone,
-        usedAt: u.usedAt.toISOString(),
-      })),
-    });
 
     return await prisma.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({
+        where: { id: productId, deletedAt: null, isActive: true },
+        include: { pricing: true },
+      });
+
+      if (!product) {
+        throw new Error("محصول مورد نظر یافت نشد یا غیرفعال است.");
+      }
+
+      if (product.stockGrams < totalWeightNeeded) {
+        throw new Error(
+          "موجودى فیزیکی انبار برای ثبت این مقدار سفارش کافی نیست.",
+        );
+      }
+
       const updateResult = await tx.product.updateMany({
         where: {
           id: productId,
@@ -156,6 +103,60 @@ export class OrderService {
           "موجودى فیزیکی انبار برای ثبت این مقدار سفارش کافی نیست.",
         );
       }
+
+      let coupon = null;
+      if (appliedCouponCode) {
+        const cleanCode = appliedCouponCode.trim().toUpperCase();
+        coupon = await tx.coupon.findUnique({
+          where: { code: cleanCode },
+        });
+
+        if (!coupon || !coupon.isActive || coupon.deletedAt) {
+          throw new Error("کد تخفیف وارد شده معتبر نیست یا منقضی شده است.");
+        }
+
+        if (coupon.productId && coupon.productId !== productId) {
+          throw new Error("این کد تخفیف برای محصول انتخابی شما معتبر نیست.");
+        }
+
+        const usage = await tx.couponUsage.findUnique({
+          where: {
+            couponId_phone: {
+              couponId: coupon.id,
+              phone: securePhone,
+            },
+          },
+        });
+
+        if (usage) {
+          throw new Error(
+            "تراکنش مسدود شد: این کد تخفیف قبلاً توسط شما استفاده شده است.",
+          );
+        }
+      }
+
+      const blendProfile = getBlendProfile(blend);
+      const activeCoupons = await tx.coupon.findMany({
+        where: { deletedAt: null, isActive: true },
+      });
+      const couponUsages = await tx.couponUsage.findMany();
+
+      const pricingBreakdown = calculateAdvancedPriceMetrics({
+        productId,
+        pricing: product.pricing,
+        blendProfile,
+        weightGrams,
+        quantity,
+        activeCoupons: activeCoupons.map(mapPrismaCoupon),
+        appliedUserCouponCode: appliedCouponCode,
+        userPhone: securePhone,
+        couponUsages: couponUsages.map((u) => ({
+          id: u.id,
+          couponId: u.couponId,
+          phone: u.phone,
+          usedAt: u.usedAt.toISOString(),
+        })),
+      });
 
       const user = await tx.user.upsert({
         where: { phone: securePhone },

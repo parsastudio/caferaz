@@ -30,6 +30,16 @@ export class ProductService {
     };
   }
 
+  static async getAllActiveProducts(): Promise<{ id: string; name: string }[]> {
+    const products = await prisma.product.findMany({
+      where: { deletedAt: null, isActive: true },
+      select: { id: true, name: true },
+      orderBy: { createdAt: "asc" },
+    });
+
+    return products;
+  }
+
   static async updateProductDetails(
     input: UpdateProductDetailsInput,
   ): Promise<boolean> {

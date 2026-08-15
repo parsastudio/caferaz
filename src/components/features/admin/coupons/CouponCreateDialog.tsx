@@ -12,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { STATIC_PRODUCTS } from "@/lib/constants";
 import {
   createCouponSchema,
   type CreateCouponInput,
@@ -23,6 +22,7 @@ interface CouponCreateDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CreateCouponInput) => void;
   isPending: boolean;
+  products?: { id: string; name: string }[];
 }
 
 export default function CouponCreateDialog({
@@ -30,7 +30,10 @@ export default function CouponCreateDialog({
   onOpenChange,
   onSubmit,
   isPending,
+  products = [],
 }: CouponCreateDialogProps) {
+  const defaultProductId = products[0]?.id || "";
+
   const methods = useForm<CreateCouponInput>({
     resolver: zodResolver(
       createCouponSchema,
@@ -40,7 +43,7 @@ export default function CouponCreateDialog({
       type: "user_code",
       discountType: "percentage",
       discountValue: 10,
-      productId: "prod_coffee_bulk_01",
+      productId: defaultProductId,
       minWeightGrams: 0,
       validFrom: "",
       validTo: "",
@@ -273,7 +276,7 @@ export default function CouponCreateDialog({
                     onChange={onChange}
                     className="w-full bg-stone-950 border border-stone-800 rounded-xl pl-9 pr-3.5 py-3 text-xs text-stone-300 outline-none appearance-none cursor-pointer focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50 transition-all font-bold mb-2"
                   >
-                    {STATIC_PRODUCTS.map((p) => (
+                    {products.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
                       </option>

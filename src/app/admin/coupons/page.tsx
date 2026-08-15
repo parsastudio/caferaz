@@ -1,10 +1,12 @@
 import React from "react";
 import { getCouponsAction } from "@/actions/coupon";
+import { ProductService } from "@/services/product.service";
 import AdminCouponsClientList from "@/components/features/admin/coupons/AdminCouponsClientList";
 
 export default async function AdminCouponsPage() {
   const couponsResult = await getCouponsAction();
   const coupons = couponsResult.success ? couponsResult.data || [] : [];
+  const products = await ProductService.getAllActiveProducts();
 
   return (
     <div className="space-y-8 text-right" dir="rtl">
@@ -18,7 +20,7 @@ export default async function AdminCouponsPage() {
         </p>
       </div>
 
-      <AdminCouponsClientList initialCoupons={coupons} />
+      <AdminCouponsClientList initialCoupons={coupons} products={products} />
     </div>
   );
 }

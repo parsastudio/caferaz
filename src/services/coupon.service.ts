@@ -27,6 +27,7 @@ export class CouponService {
   static async getAllCoupons(): Promise<Coupon[]> {
     const coupons = await prisma.coupon.findMany({
       where: { deletedAt: null },
+      orderBy: { id: "desc" },
     });
     return coupons.map(mapPrismaCoupon);
   }
@@ -160,7 +161,7 @@ export class CouponService {
 
     const blendProfile = getBlendProfile(input.blend);
     const activeCouponsFromDb = await prisma.coupon.findMany({
-      where: { deletedAt: null },
+      where: { deletedAt: null, isActive: true },
     });
     const couponUsagesFromDb = await prisma.couponUsage.findMany();
 
