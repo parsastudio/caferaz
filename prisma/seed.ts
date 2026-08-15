@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
+import crypto from "crypto";
 import "dotenv/config";
 
 const connectionString = process.env.DATABASE_URL;
@@ -13,9 +14,15 @@ const pool = new pg.Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-async function main() {
-  console.log("🌱 شروع فرآیند Seeding ساختار تولیدی و بهینه کافه راز...");
+function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto
+    .pbkdf2Sync(password, salt, 600000, 64, "sha512")
+    .toString("hex");
+  return `${salt}:${hash}`;
+}
 
+async function main() {
   await prisma.otpRecord.deleteMany();
   await prisma.option.deleteMany();
   await prisma.couponUsage.deleteMany();
@@ -27,8 +34,6 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.product.deleteMany();
 
-  console.log("🗑️ تمام رکوردهای قدیمی با رعایت ساختار کلیدهای خارجی حذف شدند.");
-
   const mainProduct = await prisma.product.create({
     data: {
       id: "prod_coffee_bulk_01",
@@ -39,7 +44,6 @@ async function main() {
       isActive: true,
     },
   });
-  console.log("📦 محصول اصلی به همراه وضعیت فعال بودن ثبت شد.");
 
   await prisma.pricing.create({
     data: {
@@ -48,7 +52,6 @@ async function main() {
       pricePerKgRobusta: 1800000,
     },
   });
-  console.log("🏷️ نرخ‌های مرجع عربیکا و روبوستا در دیتابیس ذخیره شدند.");
 
   await prisma.user.createMany({
     data: [
@@ -68,7 +71,6 @@ async function main() {
       },
     ],
   });
-  console.log("👥 کاربران پیش‌فرض ثبت شدند.");
 
   await prisma.order.create({
     data: {
@@ -123,7 +125,6 @@ async function main() {
       },
     },
   });
-  console.log("🛍️ فاکتورها و جزئیات اقلام سفارش بر اساس ساختار جدید ثبت شدند.");
 
   await prisma.coupon.createMany({
     data: [
@@ -157,7 +158,6 @@ async function main() {
       },
     ],
   });
-  console.log("🎫 تخفیف‌ها و کوپن‌های جدید ثبت شدند.");
 
   const comment1 = await prisma.comment.create({
     data: {
@@ -202,10 +202,16 @@ async function main() {
       status: "approved",
     },
   });
-  console.log("💬 نظرات بهینه‌ مشتریان ثبت شدند.");
 
   await prisma.option.createMany({
     data: [
+      {
+        key: "admin_credentials",
+        value: {
+          username: "admin",
+          passwordHash: hashPassword("admin123"),
+        },
+      },
       {
         key: "site_footer",
         value: {
@@ -247,13 +253,10 @@ async function main() {
       },
     ],
   });
-  console.log("⚙️ تنظیمات و داده‌های داینامیک با موفقیت ثبت شدند.");
-  console.log("🎉 دیتابیس لوکال برای نسخه جدید توسعه و تست آماده است.");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ خطا در اجرای اسکریپت Seed دیتابیس:");
     console.error(e);
     process.exit(1);
   })

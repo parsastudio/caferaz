@@ -11,7 +11,6 @@ import {
 } from "@/actions/coupon";
 import { CreateCouponInput } from "@/domain/validations/coupon.schema";
 import { Button } from "@/components/ui/button";
-import { parseJalaliString } from "@/lib/jalali-converter";
 import CouponStats from "@/components/features/admin/coupons/CouponStats";
 import CouponCard from "@/components/features/admin/coupons/CouponCard";
 import CouponCreateDialog from "@/components/features/admin/coupons/CouponCreateDialog";
@@ -58,29 +57,12 @@ export default function AdminCouponsClientList({
 
   const onSubmit = async (data: CreateCouponInput) => {
     startTransition(async () => {
-      let miladiValidFrom: string | undefined = undefined;
-      let miladiValidTo: string | undefined = undefined;
-
-      if (data.validFrom && data.validFrom.trim() !== "") {
-        const parsed = parseJalaliString(data.validFrom);
-        if (parsed) {
-          miladiValidFrom = `${parsed.gy}-${String(parsed.gm).padStart(2, "0")}-${String(parsed.gd).padStart(2, "0")}`;
-        }
-      }
-
-      if (data.validTo && data.validTo.trim() !== "") {
-        const parsed = parseJalaliString(data.validTo);
-        if (parsed) {
-          miladiValidTo = `${parsed.gy}-${String(parsed.gm).padStart(2, "0")}-${String(parsed.gd).padStart(2, "0")}`;
-        }
-      }
-
-      const payload = {
+      const payload: CreateCouponInput = {
         ...data,
         productId: data.productId || undefined,
         minWeightGrams: data.minWeightGrams || undefined,
-        validFrom: miladiValidFrom,
-        validTo: miladiValidTo,
+        validFrom: data.validFrom?.trim() || undefined,
+        validTo: data.validTo?.trim() || undefined,
         maxDiscountAmount: data.maxDiscountAmount || undefined,
         isActive: true,
         allowStacking: data.allowStacking ?? false,

@@ -8,10 +8,11 @@ import {
   checkoutFormSchema,
   CheckoutFormValues,
 } from "@/domain/validations/order.schema";
-import { getCurrentUserAction } from "@/actions/auth";
+import { getCurrentUserAction, sendUserOtpAction } from "@/actions/auth";
 import { useCouponManager } from "@/hooks/useCouponManager";
 import { useCheckoutAuth } from "@/hooks/checkout/useCheckoutAuth";
 import { useCheckoutSubmit } from "@/hooks/checkout/useCheckoutSubmit";
+import { toEnglishDigits } from "@/lib/utils";
 
 export type Step = "user_info" | "shipping" | "otp" | "success";
 
@@ -20,6 +21,7 @@ export function useCheckoutForm() {
   const [step, setStep] = useState<Step>("user_info");
   const [isPending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
 
   const methods = useForm<CheckoutFormValues>({
     resolver: zodResolver(
@@ -106,6 +108,7 @@ export function useCheckoutForm() {
     authManager.setOtpPurpose("checkout");
     authManager.setIsLoggedInUser(false);
     setErrorMessage(null);
+    setIsSendingOtp(false);
     couponManager.resetCouponState(0, 0, 0);
     reset();
   }, [authManager, couponManager, reset]);
@@ -124,7 +127,20 @@ export function useCheckoutForm() {
     if (authManager.isLoggedInUser) {
       await submitManager.executeOrderSubmission();
     } else {
-      setStep("otp");
+      const phoneVal = toEnglishDigits(getValues("phone").trim());
+      setIsSendingOtp(true);
+      try {
+        const otpRes = await sendUserOtpAction({ phone: phoneVal });
+        if (otpRes.success) {
+          setStep("otp");
+        } else {
+          setErrorMessage(otpRes.error || "خطا در ارسال کد تایید پیامکی.");
+        }
+      } catch {
+        setErrorMessage("خطا در ارتباط با سامانه ارسال کد پیامکی.");
+      } finally {
+        setIsSendingOtp(false);
+      }
     }
   };
 
@@ -150,7 +166,9 @@ export function useCheckoutForm() {
     otpPurpose: authManager.otpPurpose,
     isLoggedInUser: authManager.isLoggedInUser,
     isSubmitting:
-      authManager.isSubmittingAuth || submitManager.isSubmittingOrder,
+      authManager.isSubmittingAuth ||
+      submitManager.isSubmittingOrder ||
+      isSendingOtp,
     errorMessage,
     setErrorMessage,
     fakeTrackingCode: submitManager.fakeTrackingCode,

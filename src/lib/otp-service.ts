@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { SmsService } from "@/lib/sms-service";
 import crypto from "crypto";
 
 export async function sendOtpCode(
@@ -75,13 +76,21 @@ export async function sendOtpCode(
     },
   });
 
+  const smsResult = await SmsService.sendOtpSms(cleanPhone, generatedCode);
+  if (!smsResult.success) {
+    return {
+      success: false,
+      error: smsResult.error || "خطا در ارسال پیامک کد تایید.",
+    };
+  }
+
   const isProd = process.env.NODE_ENV === "production";
 
   return {
     success: true,
     message: isProd
-      ? "کد تایید با موفقیت ارسال شد."
-      : `کد تایید با موفقیت ارسال شد. (کد تست ارسالی: ${generatedCode})`,
+      ? "کد تایید با موفقیت پیامک شد."
+      : `کد تایید با موفقیت ارسال شد. (کد تستی: ${generatedCode})`,
   };
 }
 
