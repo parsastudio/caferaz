@@ -53,7 +53,7 @@ export class CouponService {
       const parsed = parseJalaliString(input.validFrom);
       if (parsed) {
         validFromDate = new Date(
-          `${parsed.gy}-${String(parsed.gm).padStart(2, "0")}-${String(parsed.gd).padStart(2, "0")}`,
+          `${parsed.gy}-${String(parsed.gm).padStart(2, "0")}-${String(parsed.gd).padStart(2, "0")}T00:00:00.000Z`,
         );
       }
     }
@@ -62,7 +62,7 @@ export class CouponService {
       const parsed = parseJalaliString(input.validTo);
       if (parsed) {
         validToDate = new Date(
-          `${parsed.gy}-${String(parsed.gm).padStart(2, "0")}-${String(parsed.gd).padStart(2, "0")}`,
+          `${parsed.gy}-${String(parsed.gm).padStart(2, "0")}-${String(parsed.gd).padStart(2, "0")}T23:59:59.999Z`,
         );
       }
     }

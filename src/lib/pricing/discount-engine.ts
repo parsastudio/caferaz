@@ -11,16 +11,18 @@ export interface AdvancedPriceMetrics {
 }
 
 function isDateWithinRange(coupon: Coupon, targetDateStr: string): boolean {
-  const todayMs = new Date(targetDateStr).setHours(0, 0, 0, 0);
+  const targetDate = new Date(`${targetDateStr}T12:00:00.000Z`).getTime();
 
   if (coupon.validFrom) {
-    const fromMs = new Date(coupon.validFrom).setHours(0, 0, 0, 0);
-    if (todayMs < fromMs) return false;
+    const fromDate = new Date(coupon.validFrom);
+    fromDate.setUTCHours(0, 0, 0, 0);
+    if (targetDate < fromDate.getTime()) return false;
   }
 
   if (coupon.validTo) {
-    const toMs = new Date(coupon.validTo).setHours(23, 59, 59, 999);
-    if (todayMs > toMs) return false;
+    const toDate = new Date(coupon.validTo);
+    toDate.setUTCHours(23, 59, 59, 999);
+    if (targetDate > toDate.getTime()) return false;
   }
 
   return true;
