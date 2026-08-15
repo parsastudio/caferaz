@@ -25,7 +25,7 @@ export function useCheckoutSubmit({
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
   const [fakeTrackingCode, setFakeTrackingCode] = useState("");
 
-  const executeOrderSubmission = async (otpCode: string) => {
+  const executeOrderSubmission = async (otpCode?: string) => {
     setIsSubmittingOrder(true);
     setErrorMessage(null);
     const values = methods.getValues();

@@ -68,9 +68,7 @@ export default function CommentRow({
           </div>
           <div className="flex flex-col">
             <span className="text-xs font-bold text-stone-200 flex flex-wrap items-center gap-1.5">
-              <span>
-                {comment.firstName} {comment.lastName}
-              </span>
+              <span>{comment.firstName}</span>
               {status === "approved" && (
                 <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px] px-2 py-0.2 rounded-full font-bold">
                   منتشر شده

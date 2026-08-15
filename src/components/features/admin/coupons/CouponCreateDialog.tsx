@@ -15,15 +15,13 @@ import {
 import { STATIC_PRODUCTS } from "@/lib/constants";
 import {
   createCouponSchema,
-  type CreateCouponInput as CouponFormValues,
+  type CreateCouponInput,
 } from "@/domain/validations/coupon.schema";
-
-export type { CouponFormValues };
 
 interface CouponCreateDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: CouponFormValues) => void;
+  onSubmit: (data: CreateCouponInput) => void;
   isPending: boolean;
 }
 
@@ -33,10 +31,10 @@ export default function CouponCreateDialog({
   onSubmit,
   isPending,
 }: CouponCreateDialogProps) {
-  const methods = useForm<CouponFormValues>({
+  const methods = useForm<CreateCouponInput>({
     resolver: zodResolver(
       createCouponSchema,
-    ) as unknown as Resolver<CouponFormValues>,
+    ) as unknown as Resolver<CreateCouponInput>,
     defaultValues: {
       code: "",
       type: "user_code",

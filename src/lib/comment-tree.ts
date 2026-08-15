@@ -24,7 +24,6 @@ export function buildCommentTree(comments: PrismaCommentDb[]): Comment[] {
       id: c.id,
       productId: c.productId ?? undefined,
       firstName: c.firstName ?? "",
-      lastName: c.lastName ?? "",
       rating: c.rating,
       commentText: c.commentText,
       createdAt: c.createdAt.toISOString(),

@@ -1,15 +1,15 @@
 "use client";
 
 import React from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../ui/tabs";
-import GeneralSettings from "./settings/GeneralSettings";
-import FAQSettings from "./settings/FAQSettings";
-import { FAQ } from "@/components/features/landing/FAQSection";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import GeneralSettings from "@/components/features/admin/settings/GeneralSettings";
+import FAQSettings from "@/components/features/admin/settings/FAQSettings";
+import { FAQItem } from "@/domain/types";
 
 interface AdminSettingsClientProps {
   initialSettings: {
     siteSubtitle: string;
-    siteFaq: FAQ[];
+    siteFaq: FAQItem[];
     siteFooter: {
       phones: string[];
       address: string;

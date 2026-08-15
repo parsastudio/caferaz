@@ -30,7 +30,7 @@ export interface Comment {
   id: string;
   productId?: string;
   firstName: string;
-  lastName: string;
+  lastName?: string;
   rating: number | null;
   commentText: string;
   createdAt: string;

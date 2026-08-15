@@ -51,7 +51,7 @@ export const serverOrderSchema = z.object({
     .string()
     .min(10, "آدرس محل تحویل باید حداقل ۱۰ کاراکتر باشد.")
     .max(500, "آدرس وارد شده بیش از حد طولانی است."),
-  otp: otpCodeSchema,
+  otp: otpCodeSchema.optional(),
   appliedCouponCode: z.string().nullable().optional(),
 });
 

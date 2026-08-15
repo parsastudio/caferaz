@@ -35,6 +35,13 @@ export async function submitOrderAction(
       : validated.data.customerPhone;
 
     if (!isAuth) {
+      if (!validated.data.otp) {
+        return {
+          success: false,
+          error: "ورود کد تایید پیامکی الزامی است.",
+        };
+      }
+
       const isOtpValid = await AuthService.verifyOtp(
         securePhone,
         validated.data.otp,

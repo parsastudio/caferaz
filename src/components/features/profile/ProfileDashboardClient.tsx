@@ -18,8 +18,8 @@ import {
   CardTitle,
   CardContent,
   CardDescription,
-} from "../../ui/card";
-import { Badge } from "../../ui/badge";
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface ProfileDashboardClientProps {
   user: User | null;

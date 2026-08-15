@@ -10,3 +10,9 @@ export function toEnglishDigits(str: string): string {
     .replace(/[۰-۹]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 1776))
     .replace(/[٠-٩]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 1632));
 }
+
+export function toPersianDigits(value: string | number): string {
+  const str = String(value);
+  const persianDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
+  return str.replace(/[0-9]/g, (d) => persianDigits[parseInt(d, 10)]);
+}

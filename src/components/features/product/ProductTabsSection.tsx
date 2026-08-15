@@ -65,7 +65,6 @@ export default function ProductTabsSection({
     const newLocalComment: UIComment = {
       id: newComment.id,
       firstName: newComment.firstName,
-      lastName: "",
       rating: newComment.rating,
       commentText: newComment.commentText,
       createdAt: new Date().toISOString(),
@@ -191,7 +190,7 @@ function CommentNode({ comment, onReply }: CommentNodeProps) {
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-stone-200 text-sm flex items-center gap-2">
-              {comment.firstName} {comment.lastName}
+              {comment.firstName}
               {comment.isPending && (
                 <span className="text-[10px] bg-gold-500/10 border border-gold-500/20 text-gold-500 px-2 py-0.5 rounded-full flex items-center gap-1">
                   <Clock className="w-3 h-3" /> در انتظار تایید

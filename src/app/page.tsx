@@ -4,7 +4,8 @@ import { getCommentsAction } from "@/actions/comment";
 import { getCouponsAction } from "@/actions/coupon";
 import { prisma } from "@/lib/prisma";
 import WhyCafeRaz from "@/components/features/landing/WhyCafeRaz";
-import FAQSection, { FAQ } from "@/components/features/landing/FAQSection";
+import FAQSection from "@/components/features/landing/FAQSection";
+import { FAQItem } from "@/domain/types";
 import { getTehranTodayString } from "@/lib/jalali-converter";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ export default async function Page() {
   const commentsResult = await getCommentsAction(mainProduct.id);
   const couponsResult = await getCouponsAction();
 
-  let faqs: FAQ[] = [];
+  let faqs: FAQItem[] = [];
   let siteSubtitle = "";
 
   try {
@@ -35,13 +36,10 @@ export default async function Page() {
       where: { key: "site_subtitle" },
     });
 
-    faqs = siteFaqOpt ? (siteFaqOpt.value as unknown as FAQ[]) : [];
+    faqs = siteFaqOpt ? (siteFaqOpt.value as unknown as FAQItem[]) : [];
     siteSubtitle = siteSubtitleOpt ? (siteSubtitleOpt.value as string) : "";
   } catch (error) {
-    console.warn(
-      "⚠️ [Page] Database is offline during build time. Using fallbacks for layout configuration.",
-      error,
-    );
+    console.warn("Database connection fallback during build", error);
   }
 
   const serverTodayStr = getTehranTodayString();

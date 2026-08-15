@@ -4,7 +4,7 @@ import { STATIC_BLENDS, STATIC_GRINDS } from "@/lib/constants";
 export function useCoffeeSelection() {
   const [selectedWeight, setSelectedWeight] = useState<number>(250);
   const [isCustomWeight, setIsCustomWeight] = useState<boolean>(false);
-  const [customWeightVal, setCustomWeightVal] = useState<number>(300);
+  const [customWeightVal, setCustomWeightVal] = useState<number>(250);
   const [selectedBlend, setSelectedBlend] = useState<string>(
     STATIC_BLENDS[0].value,
   );

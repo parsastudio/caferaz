@@ -122,7 +122,7 @@ export function useCheckoutForm() {
     setErrorMessage(null);
 
     if (authManager.isLoggedInUser) {
-      await submitManager.executeOrderSubmission("1234");
+      await submitManager.executeOrderSubmission();
     } else {
       setStep("otp");
     }

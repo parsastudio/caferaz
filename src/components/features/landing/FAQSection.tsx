@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, HelpCircle } from "lucide-react";
 import { FAQItem } from "@/domain/types";
 
-export type FAQ = FAQItem;
-
 interface FAQSectionProps {
   faqs?: FAQItem[];
 }

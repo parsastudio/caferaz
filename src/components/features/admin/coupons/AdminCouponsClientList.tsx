@@ -9,11 +9,12 @@ import {
   deleteCouponAction,
   toggleCouponStatusAction,
 } from "@/actions/coupon";
+import { CreateCouponInput } from "@/domain/validations/coupon.schema";
 import { Button } from "@/components/ui/button";
 import { parseJalaliString } from "@/lib/jalali-converter";
-import CouponStats from "./CouponStats";
-import CouponCard from "./CouponCard";
-import CouponCreateDialog, { CouponFormValues } from "./CouponCreateDialog";
+import CouponStats from "@/components/features/admin/coupons/CouponStats";
+import CouponCard from "@/components/features/admin/coupons/CouponCard";
+import CouponCreateDialog from "@/components/features/admin/coupons/CouponCreateDialog";
 
 interface AdminCouponsClientListProps {
   initialCoupons: Coupon[];
@@ -53,7 +54,7 @@ export default function AdminCouponsClientList({
     });
   };
 
-  const onSubmit = async (data: CouponFormValues) => {
+  const onSubmit = async (data: CreateCouponInput) => {
     startTransition(async () => {
       let miladiValidFrom: string | undefined = undefined;
       let miladiValidTo: string | undefined = undefined;

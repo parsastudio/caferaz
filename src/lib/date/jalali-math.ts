@@ -14,7 +14,7 @@ export function toGregorian(
   return d2g(j2d(jy, jm, jd));
 }
 
-export function isLeapJalaaliYear(jy: number): boolean {
+function isLeapJalaaliYear(jy: number): boolean {
   return jalCalLeap(jy) === 0;
 }
 

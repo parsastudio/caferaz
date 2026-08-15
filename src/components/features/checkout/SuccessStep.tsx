@@ -3,7 +3,7 @@
 import React from "react";
 import { Sparkles, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Button } from "../../ui/button";
+import { Button } from "@/components/ui/button";
 
 interface SuccessStepProps {
   firstName: string;
@@ -53,7 +53,7 @@ export default function SuccessStep({
       </div>
 
       <div className="bg-stone-950/50 p-4 border border-stone-850/80 rounded-2xl max-w-sm mx-auto space-y-3 text-right">
-        <span className="text-[10px] text-stone-500 font-black block border-b border-stone-850/80 pb-2 flex items-center gap-1">
+        <span className="text-[10px] text-stone-500 font-black border-b border-stone-850/80 pb-2 flex items-center gap-1">
           <Sparkles className="w-3.5 h-3.5 text-gold-500" /> خلاصه فاکتور سفارش
         </span>
         <div className="grid grid-cols-2 gap-y-2 text-xs font-bold text-stone-300">
