@@ -64,11 +64,11 @@ export default function CommentRow({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-stone-850 flex items-center justify-center text-xs font-black text-gold-500 shrink-0">
-            {comment.firstName[0] || "ک"}
+            {comment.firstName?.[0] || "ک"}
           </div>
           <div className="flex flex-col">
             <span className="text-xs font-bold text-stone-200 flex flex-wrap items-center gap-1.5">
-              <span>{comment.firstName}</span>
+              <span>{comment.firstName || "کاربر کافه راز"}</span>
               {status === "approved" && (
                 <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px] px-2 py-0.2 rounded-full font-bold">
                   منتشر شده

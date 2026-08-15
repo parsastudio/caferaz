@@ -105,7 +105,10 @@ export class OrderService {
         throw new Error("سفارش مورد نظر یافت نشد.");
       }
 
-      if (existingOrder.status !== "cancelled") {
+      if (
+        existingOrder.status === "unreviewed" ||
+        existingOrder.status === "pending"
+      ) {
         for (const item of existingOrder.orderItems) {
           const returnGrams = item.weightGrams * item.quantity;
           await tx.product.update({
@@ -207,7 +210,6 @@ export class OrderService {
       const activeCoupons = await tx.coupon.findMany({
         where: { deletedAt: null, isActive: true },
       });
-      const couponUsages = await tx.couponUsage.findMany();
 
       const pricingBreakdown = calculateAdvancedPriceMetrics({
         productId,
@@ -218,12 +220,7 @@ export class OrderService {
         activeCoupons: activeCoupons.map(mapPrismaCoupon),
         appliedUserCouponCode: appliedCouponCode,
         userPhone: securePhone,
-        couponUsages: couponUsages.map((u) => ({
-          id: u.id,
-          couponId: u.couponId,
-          phone: u.phone,
-          usedAt: u.usedAt.toISOString(),
-        })),
+        couponUsages: [],
       });
 
       const user = await tx.user.upsert({

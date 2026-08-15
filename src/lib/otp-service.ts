@@ -84,13 +84,13 @@ export async function sendOtpCode(
     };
   }
 
-  const isProd = process.env.NODE_ENV === "production";
+  const isExplicitDev = process.env.NODE_ENV === "development";
 
   return {
     success: true,
-    message: isProd
-      ? "کد تایید با موفقیت پیامک شد."
-      : `کد تایید با موفقیت ارسال شد. (کد تستی: ${generatedCode})`,
+    message: isExplicitDev
+      ? `کد تایید با موفقیت ارسال شد. (کد تستی: ${generatedCode})`
+      : "کد تایید با موفقیت پیامک شد.",
   };
 }
 

@@ -163,7 +163,6 @@ export class CouponService {
     const activeCouponsFromDb = await prisma.coupon.findMany({
       where: { deletedAt: null, isActive: true },
     });
-    const couponUsagesFromDb = await prisma.couponUsage.findMany();
 
     const pricingBreakdown = calculateAdvancedPriceMetrics({
       productId: input.productId,
@@ -174,12 +173,7 @@ export class CouponService {
       activeCoupons: activeCouponsFromDb.map(mapPrismaCoupon),
       appliedUserCouponCode: cleanCode,
       userPhone: securePhone,
-      couponUsages: couponUsagesFromDb.map((u) => ({
-        id: u.id,
-        couponId: u.couponId,
-        phone: u.phone,
-        usedAt: u.usedAt.toISOString(),
-      })),
+      couponUsages: [],
     });
 
     if (pricingBreakdown.userCouponDiscountAmount <= 0) {

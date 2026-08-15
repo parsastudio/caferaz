@@ -63,7 +63,9 @@ export default async function GlobalStatusBar() {
     const pendingUserOrdersCount = await prisma.order.count({
       where: {
         customerPhone: user.phone,
-        status: "pending",
+        status: {
+          in: ["unreviewed", "pending"],
+        },
       },
     });
 

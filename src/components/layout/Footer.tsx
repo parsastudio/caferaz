@@ -10,7 +10,7 @@ interface FooterProps {
 }
 
 export default function Footer({ config }: FooterProps) {
-  const phones = config?.phones || [
+  const phones = config?.phones?.filter((p) => Boolean(p && p.trim())) || [
     "09002570060",
     "09002570040",
     "021-77311806",
@@ -62,27 +62,24 @@ export default function Footer({ config }: FooterProps) {
             تماس و اطلاعات ارتباطی
           </h4>
           <ul className="space-y-3.5 text-xs text-stone-400">
-            <li className="flex items-start gap-2.5">
-              <Phone className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
-              <div className="flex flex-col gap-1.5 font-sans">
-                <span className="font-sans">
-                  پشتیبانی همراه:{" "}
-                  <span dir="ltr" className="inline-block">
-                    {toPersianDigits(phones[0])}
-                  </span>{" "}
-                  |{" "}
-                  <span dir="ltr" className="inline-block">
-                    {toPersianDigits(phones[1])}
-                  </span>
-                </span>
-                <span className="font-sans">
-                  شماره ثابت:{" "}
-                  <span dir="ltr" className="inline-block">
-                    {toPersianDigits(phones[2])}
-                  </span>
-                </span>
-              </div>
-            </li>
+            {phones.length > 0 && (
+              <li className="flex items-start gap-2.5">
+                <Phone className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
+                <div className="flex flex-wrap items-center gap-2 font-sans">
+                  <span className="font-bold text-stone-300">پشتیبانی:</span>
+                  {phones.map((phoneItem, index) => (
+                    <React.Fragment key={index}>
+                      <span dir="ltr" className="inline-block font-medium">
+                        {toPersianDigits(phoneItem)}
+                      </span>
+                      {index < phones.length - 1 && (
+                        <span className="text-stone-600">|</span>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </li>
+            )}
             <li className="flex items-start gap-2.5">
               <MapPin className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
               <span className="leading-relaxed">{address}</span>
@@ -90,7 +87,7 @@ export default function Footer({ config }: FooterProps) {
           </ul>
 
           <div className="pt-4 flex items-center gap-3">
-            <div className="w-24 h-24 rounded-2xl bg-stone-900/40 border border-stone-850/80 flex flex-col items-center justify-center text-center p-2 hover:border-gold-500/20 transition-all select-none">
+            <div className="w-24 h-24 rounded-2xl bg-stone-900/40 border border-stone-855 flex flex-col items-center justify-center text-center p-2 hover:border-gold-500/20 transition-all select-none">
               <ShieldCheck className="w-7 h-7 text-gold-500 mb-1" />
               <span className="text-[9px] text-stone-200 font-black">
                 پرداخت امن
@@ -99,7 +96,7 @@ export default function Footer({ config }: FooterProps) {
                 در محل خریدار
               </span>
             </div>
-            <div className="w-24 h-24 rounded-2xl bg-stone-900/40 border border-stone-850/80 flex flex-col items-center justify-center text-center p-2 hover:border-gold-500/20 transition-all select-none">
+            <div className="w-24 h-24 rounded-2xl bg-stone-900/40 border border-stone-855 flex flex-col items-center justify-center text-center p-2 hover:border-gold-500/20 transition-all select-none">
               <Award className="w-7 h-7 text-gold-500 mb-1" />
               <span className="text-[9px] text-stone-200 font-black">
                 ضمانت اصالت

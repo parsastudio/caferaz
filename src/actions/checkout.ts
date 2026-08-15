@@ -69,6 +69,8 @@ export async function submitOrderAction(
 
     revalidatePath("/");
     revalidatePath("/profile");
+    revalidatePath("/admin");
+    revalidatePath("/admin/orders");
 
     return {
       success: true,
