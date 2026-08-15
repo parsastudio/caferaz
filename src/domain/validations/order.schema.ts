@@ -41,11 +41,8 @@ export const serverOrderSchema = z.object({
   grind: z.string().min(1, "انتخاب نوع آسیاب الزامی است."),
   customerName: z
     .string()
-    .min(3, "نام و نام خانوادگی باید حداقل ۳ کاراکتر باشد.")
-    .max(100, "نام وارد شده بیش از حد طولانی است.")
-    .refine((val) => val.trim().split(/\s+/).length >= 2, {
-      message: "لطفاً نام و نام خانوادگی کامل خود را وارد کنید.",
-    }),
+    .min(2, "نام و نام خانوادگی باید حداقل ۲ کاراکتر باشد.")
+    .max(100, "نام وارد شده بیش از حد طولانی است."),
   customerPhone: phoneSchema,
   customerAddress: z
     .string()

@@ -30,6 +30,9 @@ export function useCheckoutSubmit({
     setErrorMessage(null);
     const values = methods.getValues();
     const cleanPhone = toEnglishDigits(values.phone.trim());
+    const fullName =
+      `${values.firstName || ""} ${values.lastName || ""}`.trim() ||
+      "کاربر کافه راز";
 
     try {
       const result = await submitOrderAction({
@@ -38,7 +41,7 @@ export function useCheckoutSubmit({
         quantity: checkoutData?.quantity ?? 1,
         blend: checkoutData?.selectedBlend ?? "",
         grind: checkoutData?.selectedGrind ?? "",
-        customerName: `${values.firstName} ${values.lastName}`.trim(),
+        customerName: fullName,
         customerPhone: cleanPhone,
         customerAddress: values.shippingAddress,
         otp: otpCode,

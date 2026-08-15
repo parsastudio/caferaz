@@ -65,6 +65,7 @@ export function calculateAdvancedPriceMetrics(params: {
     (pricePerKg * params.weightGrams * params.quantity) / 1000,
   );
   const targetDateStr = params.serverTodayStr ?? getTehranTodayString();
+  const totalWeightGrams = params.weightGrams * params.quantity;
 
   const directDiscount = params.activeCoupons
     .filter(
@@ -84,7 +85,7 @@ export function calculateAdvancedPriceMetrics(params: {
         !c.deletedAt &&
         c.type === "conditional" &&
         (!c.productId || c.productId === params.productId) &&
-        (!c.minWeightGrams || params.weightGrams >= c.minWeightGrams) &&
+        (!c.minWeightGrams || totalWeightGrams >= c.minWeightGrams) &&
         isDateWithinRange(c, targetDateStr),
     )
     .reduce((max, c) => Math.max(max, calculateDiscountValue(c, basePrice)), 0);

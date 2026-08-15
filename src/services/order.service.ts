@@ -41,18 +41,86 @@ export class OrderService {
     orderId: string,
     status: OrderStatus,
   ): Promise<boolean> {
-    await prisma.order.update({
-      where: { id: orderId },
-      data: { status },
+    return await prisma.$transaction(async (tx) => {
+      const existingOrder = await tx.order.findUnique({
+        where: { id: orderId },
+        include: { orderItems: true },
+      });
+
+      if (!existingOrder) {
+        throw new Error("سفارش مورد نظر یافت نشد.");
+      }
+
+      if (existingOrder.status !== status) {
+        if (existingOrder.status !== "cancelled" && status === "cancelled") {
+          for (const item of existingOrder.orderItems) {
+            const returnGrams = item.weightGrams * item.quantity;
+            await tx.product.update({
+              where: { id: item.productId },
+              data: { stockGrams: { increment: returnGrams } },
+            });
+          }
+        } else if (
+          existingOrder.status === "cancelled" &&
+          status !== "cancelled"
+        ) {
+          for (const item of existingOrder.orderItems) {
+            const requiredGrams = item.weightGrams * item.quantity;
+            const updated = await tx.product.updateMany({
+              where: {
+                id: item.productId,
+                stockGrams: { gte: requiredGrams },
+              },
+              data: {
+                stockGrams: { decrement: requiredGrams },
+              },
+            });
+
+            if (updated.count === 0) {
+              throw new Error(
+                "موجودی انبار برای فعال‌سازی مجدد این سفارش کافی نیست.",
+              );
+            }
+          }
+        }
+
+        await tx.order.update({
+          where: { id: orderId },
+          data: { status },
+        });
+      }
+
+      return true;
     });
-    return true;
   }
 
   static async deleteOrder(orderId: string): Promise<boolean> {
-    await prisma.order.delete({
-      where: { id: orderId },
+    return await prisma.$transaction(async (tx) => {
+      const existingOrder = await tx.order.findUnique({
+        where: { id: orderId },
+        include: { orderItems: true },
+      });
+
+      if (!existingOrder) {
+        throw new Error("سفارش مورد نظر یافت نشد.");
+      }
+
+      if (existingOrder.status !== "cancelled") {
+        for (const item of existingOrder.orderItems) {
+          const returnGrams = item.weightGrams * item.quantity;
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stockGrams: { increment: returnGrams } },
+          });
+        }
+      }
+
+      await tx.order.delete({
+        where: { id: orderId },
+      });
+
+      return true;
     });
-    return true;
   }
 
   static async createOrderTransaction(
