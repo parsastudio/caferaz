@@ -79,7 +79,7 @@ export function useCommentForm({
       try {
         const result = await submitCommentAction({
           productId,
-          phone: values.phone || null,
+          phone: values.phone?.trim() || undefined,
           firstName: values.firstName,
           commentText: values.commentText,
           rating: replyParentId ? null : (values.rating ?? 5),
