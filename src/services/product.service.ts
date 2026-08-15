@@ -1,3 +1,4 @@
+import "server-only";
 import { prisma } from "@/lib/prisma";
 import { ProductWithPricing } from "@/domain/types";
 import {

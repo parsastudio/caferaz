@@ -1,3 +1,4 @@
+import "server-only";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, verifyPassword } from "@/lib/crypto";
 import { sendOtpCode, verifyOtpInternal } from "@/lib/otp-service";

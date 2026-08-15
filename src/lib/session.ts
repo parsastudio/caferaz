@@ -1,8 +1,16 @@
+import "server-only";
 import crypto from "crypto";
 
+const rawSecret = process.env.SESSION_SECRET;
+
+if (!rawSecret && process.env.NODE_ENV === "production") {
+  throw new Error(
+    "متغیر محیطی SESSION_SECRET در محیط پروداکشن تنظیم نشده است!",
+  );
+}
+
 const SESSION_SECRET =
-  process.env.SESSION_SECRET ||
-  "razcoffee_secure_fallback_secret_32_chars_long";
+  rawSecret || "razcoffee_default_dev_fallback_secret_key_32_chars";
 
 export function createSignedToken(
   payload: string,
