@@ -10,7 +10,7 @@ import {
 } from "@/lib/coffee-calculations";
 import { toEnglishDigits } from "@/lib/utils";
 import { checkAdminAuth } from "@/actions/auth";
-import { Coupon as UICoupon } from "@/types";
+import { Coupon } from "@/types";
 
 const createCouponSchema = z.object({
   code: z.string().optional(),
@@ -118,24 +118,21 @@ export async function validateCouponAction(payload: {
     });
     const couponUsagesFromDb = await prisma.couponUsage.findMany();
 
-    const mappedActiveCoupons = activeCouponsFromDb.map(mapPrismaCoupon);
-    const mappedUsages = couponUsagesFromDb.map((u) => ({
-      id: u.id,
-      couponId: u.couponId,
-      phone: u.phone,
-      usedAt: u.usedAt.toISOString(),
-    }));
-
     const pricingBreakdown = calculateAdvancedPriceMetrics({
       productId,
       pricing: productFromDb.pricing,
       blendProfile,
       weightGrams,
       quantity,
-      activeCoupons: mappedActiveCoupons,
+      activeCoupons: activeCouponsFromDb.map(mapPrismaCoupon),
       appliedUserCouponCode: cleanCode,
       userPhone: securePhone,
-      couponUsages: mappedUsages,
+      couponUsages: couponUsagesFromDb.map((u) => ({
+        id: u.id,
+        couponId: u.couponId,
+        phone: u.phone,
+        usedAt: u.usedAt.toISOString(),
+      })),
     });
 
     if (pricingBreakdown.userCouponDiscountAmount <= 0) {
@@ -305,8 +302,8 @@ export async function toggleCouponStatusAction(id: string) {
 export interface PrismaCouponDb {
   id: string;
   code: string;
-  type: "product_direct" | "conditional" | "user_code" | string;
-  discountType: "percentage" | "fixed" | string;
+  type: string;
+  discountType: string;
   discountValue: number;
   productId: string | null;
   minWeightGrams: number | null;
@@ -318,12 +315,12 @@ export interface PrismaCouponDb {
   allowStacking: boolean;
 }
 
-export function mapPrismaCoupon(c: PrismaCouponDb): UICoupon {
+export function mapPrismaCoupon(c: PrismaCouponDb): Coupon {
   return {
     id: c.id,
     code: c.code,
-    type: c.type as "product_direct" | "conditional" | "user_code",
-    discountType: c.discountType as "percentage" | "fixed",
+    type: c.type as Coupon["type"],
+    discountType: c.discountType as Coupon["discountType"],
     discountValue: c.discountValue,
     productId: c.productId ?? undefined,
     minWeightGrams: c.minWeightGrams ?? undefined,

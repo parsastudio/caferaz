@@ -11,7 +11,7 @@ import { cookies } from "next/headers";
 import { ActionResponse } from "@/actions/comment";
 import { toEnglishDigits } from "@/lib/utils";
 import { checkAdminAuth, verifyOtpInternal } from "@/actions/auth";
-import { Order as UIOrder } from "@/types";
+import { Order } from "@/types";
 import crypto from "crypto";
 import { createSignedToken } from "@/lib/session";
 import { mapPrismaCoupon } from "@/actions/coupon";
@@ -49,7 +49,7 @@ const serverOrderSchema = z.object({
   appliedCouponCode: z.string().nullable().optional(),
 });
 
-export async function getOrdersAction(): Promise<ActionResponse<UIOrder[]>> {
+export async function getOrdersAction(): Promise<ActionResponse<Order[]>> {
   try {
     const isAdmin = await checkAdminAuth();
     if (!isAdmin) {
@@ -57,13 +57,28 @@ export async function getOrdersAction(): Promise<ActionResponse<UIOrder[]>> {
     }
 
     const orders = await prisma.order.findMany({
-      include: {
-        orderItems: true,
-      },
+      include: { orderItems: true },
       orderBy: { createdAt: "desc" },
     });
 
-    return { success: true, data: orders.map(mapPrismaOrder) };
+    const data: Order[] = orders.map((o) => {
+      const item = o.orderItems[0];
+      return {
+        id: o.id,
+        productId: item?.productId ?? "prod_coffee_bulk_01",
+        weightGrams: item?.weightGrams ?? 250,
+        quantity: item?.quantity ?? 1,
+        grindType: item?.grindType ?? "",
+        finalPrice: o.finalPrice,
+        customerName: o.customerName,
+        customerPhone: o.customerPhone,
+        customerAddress: o.customerAddress,
+        createdAt: o.createdAt.toISOString(),
+        status: o.status as Order["status"],
+      };
+    });
+
+    return { success: true, data };
   } catch {
     return { success: false, error: "خطا در دریافت تاریخچه سفارش‌ها رخ داد." };
   }
@@ -132,7 +147,7 @@ export async function submitOrderAction(payload: {
   customerAddress: string;
   otp: string;
   appliedCouponCode?: string | null;
-}): Promise<ActionResponse<UIOrder>> {
+}): Promise<ActionResponse<Order>> {
   try {
     const validated = serverOrderSchema.safeParse(payload);
     if (!validated.success) {
@@ -158,12 +173,10 @@ export async function submitOrderAction(payload: {
 
     const { getCurrentUserAction } = await import("@/actions/auth");
     const currentUserRes = await getCurrentUserAction();
-    const isUserAuthenticated = currentUserRes.success && !!currentUserRes.user;
-    const securePhone = isUserAuthenticated
-      ? currentUserRes.user!.phone
-      : customerPhone;
+    const isAuth = currentUserRes.success && Boolean(currentUserRes.user);
+    const securePhone = isAuth ? currentUserRes.user!.phone : customerPhone;
 
-    if (!isUserAuthenticated) {
+    if (!isAuth) {
       const isOtpValid = await verifyOtpInternal(securePhone, otp);
       if (!isOtpValid) {
         return {
@@ -236,25 +249,21 @@ export async function submitOrderAction(payload: {
     });
     const couponUsages = await prisma.couponUsage.findMany();
 
-    const mappedCoupons = activeCoupons.map(mapPrismaCoupon);
-
-    const mappedUsages = couponUsages.map((u) => ({
-      id: u.id,
-      couponId: u.couponId,
-      phone: u.phone,
-      usedAt: u.usedAt.toISOString(),
-    }));
-
     const pricingBreakdown = calculateAdvancedPriceMetrics({
       productId,
       pricing: product.pricing,
       blendProfile,
       weightGrams,
       quantity,
-      activeCoupons: mappedCoupons,
-      appliedUserCouponCode: appliedCouponCode,
+      activeCoupons: activeCoupons.map(mapPrismaCoupon),
+      appliedUserCouponCode,
       userPhone: securePhone,
-      couponUsages: mappedUsages,
+      couponUsages: couponUsages.map((u) => ({
+        id: u.id,
+        couponId: u.couponId,
+        phone: u.phone,
+        usedAt: u.usedAt.toISOString(),
+      })),
     });
 
     const finalOrder = await prisma.$transaction(async (tx) => {
@@ -296,11 +305,11 @@ export async function submitOrderAction(payload: {
       const secureRandomId = crypto.randomInt(100000000000, 1000000000000);
       const generatedId = `ORD-${secureRandomId}`;
 
-      const createdOrder = await tx.order.create({
+      return tx.order.create({
         data: {
           id: generatedId,
           userId: user.id,
-          couponId: coupon ? coupon.id : null,
+          couponId: coupon?.id ?? null,
           finalPrice: pricingBreakdown.finalPrice,
           customerName,
           customerPhone: securePhone,
@@ -322,8 +331,6 @@ export async function submitOrderAction(payload: {
           orderItems: true,
         },
       });
-
-      return createdOrder;
     });
 
     const cookieStore = await cookies();
@@ -338,9 +345,23 @@ export async function submitOrderAction(payload: {
     revalidatePath("/");
     revalidatePath("/profile");
 
+    const firstItem = finalOrder.orderItems[0];
+
     return {
       success: true,
-      data: mapPrismaOrder(finalOrder),
+      data: {
+        id: finalOrder.id,
+        productId: firstItem?.productId ?? productId,
+        weightGrams: firstItem?.weightGrams ?? weightGrams,
+        quantity: firstItem?.quantity ?? quantity,
+        grindType: firstItem?.grindType ?? `ترکیب: ${blend} | آسیاب: ${grind}`,
+        finalPrice: finalOrder.finalPrice,
+        customerName: finalOrder.customerName,
+        customerPhone: finalOrder.customerPhone,
+        customerAddress: finalOrder.customerAddress,
+        createdAt: finalOrder.createdAt.toISOString(),
+        status: finalOrder.status as Order["status"],
+      },
     };
   } catch (error) {
     return {
@@ -351,44 +372,4 @@ export async function submitOrderAction(payload: {
           : "خطایی در فرآیند محاسبات و ثبت نهایی سفارش رخ داد.",
     };
   }
-}
-
-interface PrismaOrderDb {
-  id: string;
-  finalPrice: number;
-  customerName: string;
-  customerPhone: string;
-  customerAddress: string;
-  createdAt: Date;
-  status: "unreviewed" | "pending" | "completed" | "cancelled" | string;
-  orderItems: {
-    productId: string;
-    weightGrams: number;
-    quantity: number;
-    grindType: string;
-  }[];
-}
-
-function mapPrismaOrder(o: PrismaOrderDb): UIOrder {
-  const firstItem = o.orderItems?.[0] || {
-    productId: "prod_coffee_bulk_01",
-    weightGrams: 250,
-    quantity: 1,
-    grindType:
-      "ترکیب: ۵۰٪ روبوستا / ۵۰٪ عربیکا | آسیاب: دانه کامل (آسیاب نشده)",
-  };
-
-  return {
-    id: o.id,
-    productId: firstItem.productId,
-    weightGrams: firstItem.weightGrams,
-    quantity: firstItem.quantity,
-    grindType: firstItem.grindType,
-    finalPrice: o.finalPrice,
-    customerName: o.customerName,
-    customerPhone: o.customerPhone,
-    customerAddress: o.customerAddress,
-    createdAt: o.createdAt.toISOString(),
-    status: o.status as "unreviewed" | "pending" | "completed" | "cancelled",
-  };
 }

@@ -14,7 +14,7 @@ import {
   checkPhoneRegisteredAction,
   loginUserWithOtpAction,
 } from "@/actions/auth";
-import { validateCouponAction } from "@/actions/coupon";
+import { useCouponManager } from "@/hooks/useCouponManager";
 import { toEnglishDigits } from "@/lib/utils";
 
 export type Step = "user_info" | "shipping" | "otp" | "success";
@@ -34,26 +34,6 @@ export function useCheckoutForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fakeTrackingCode, setFakeTrackingCode] = useState("");
 
-  const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<{
-    code: string;
-    discountAmount: number;
-  } | null>(null);
-  const [couponError, setCouponError] = useState<string | null>(null);
-  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
-  const [checkoutFinalPrice, setCheckoutFinalPrice] = useState(0);
-  const [directDiscountAmount, setDirectDiscountAmount] = useState(0);
-  const [conditionalDiscountAmount, setConditionalDiscountAmount] = useState(0);
-
-  const [lastValidatedPhone, setLastValidatedPhone] = useState("");
-
-  const productId = checkoutData?.productId || "";
-  const selectedWeight = checkoutData?.selectedWeight || 0;
-  const selectedBlend = checkoutData?.selectedBlend || "";
-  const selectedGrind = checkoutData?.selectedGrind || "";
-  const quantity = checkoutData?.quantity || 1;
-  const finalPrice = checkoutData?.finalPrice || 0;
-
   const methods = useForm<CheckoutFormValues>({
     resolver: zodResolver(
       checkoutSchema,
@@ -69,19 +49,18 @@ export function useCheckoutForm() {
   });
 
   const { trigger, getValues, reset, setValue, watch } = methods;
-
   const watchedPhone = watch("phone");
 
-  useEffect(() => {
-    if (appliedCoupon) {
-      const cleanWatchedPhone = toEnglishDigits(watchedPhone?.trim() || "");
-      const isValidPhoneFormat = /^09[0-9]{9}$/.test(cleanWatchedPhone);
-
-      if (isValidPhoneFormat && cleanWatchedPhone !== lastValidatedPhone) {
-        handleRemoveCoupon();
-      }
-    }
-  }, [watchedPhone, appliedCoupon, lastValidatedPhone]);
+  const couponManager = useCouponManager({
+    productId: checkoutData?.productId ?? "",
+    selectedWeight: checkoutData?.selectedWeight ?? 0,
+    quantity: checkoutData?.quantity ?? 1,
+    selectedBlend: checkoutData?.selectedBlend ?? "",
+    baseFinalPrice: checkoutData?.finalPrice ?? 0,
+    baseDirectDiscount: checkoutData?.directDiscountAmount ?? 0,
+    baseConditionalDiscount: checkoutData?.conditionalDiscountAmount ?? 0,
+    phone: watchedPhone ?? "",
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -105,57 +84,13 @@ export function useCheckoutForm() {
 
   useEffect(() => {
     if (isOpen && checkoutData) {
-      setCheckoutFinalPrice(checkoutData.finalPrice);
-      setDirectDiscountAmount(checkoutData.directDiscountAmount);
-      setConditionalDiscountAmount(checkoutData.conditionalDiscountAmount);
-      setAppliedCoupon(null);
-      setCouponError(null);
-      setCouponCode("");
-      setLastValidatedPhone("");
+      couponManager.resetCouponState(
+        checkoutData.finalPrice,
+        checkoutData.directDiscountAmount,
+        checkoutData.conditionalDiscountAmount,
+      );
     }
   }, [isOpen, checkoutData]);
-
-  const handleApplyCoupon = async () => {
-    if (!couponCode.trim()) return;
-    setIsApplyingCoupon(true);
-    setCouponError(null);
-
-    const rawPhone = getValues("phone") || "";
-    const cleanPhone = toEnglishDigits(rawPhone.trim());
-
-    const res = await validateCouponAction({
-      code: couponCode,
-      phone: cleanPhone || null,
-      productId,
-      weightGrams: selectedWeight,
-      quantity,
-      blend: selectedBlend,
-    });
-
-    if (res.success) {
-      setAppliedCoupon({
-        code: res.data.code,
-        discountAmount: res.data.discountAmount,
-      });
-      setCheckoutFinalPrice(res.data.finalPrice);
-      setDirectDiscountAmount(res.data.directDiscountAmount);
-      setConditionalDiscountAmount(res.data.conditionalDiscountAmount);
-      setLastValidatedPhone(cleanPhone);
-    } else {
-      setCouponError(res.error);
-    }
-    setIsApplyingCoupon(false);
-  };
-
-  const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
-    setCouponCode("");
-    setCouponError(null);
-    setCheckoutFinalPrice(finalPrice);
-    setDirectDiscountAmount(checkoutData?.directDiscountAmount || 0);
-    setConditionalDiscountAmount(checkoutData?.conditionalDiscountAmount || 0);
-    setLastValidatedPhone("");
-  };
 
   const handleReset = () => {
     setStep("user_info");
@@ -163,13 +98,7 @@ export function useCheckoutForm() {
     setOtpPurpose("checkout");
     setIsLoggedInUser(false);
     setErrorMessage(null);
-    setAppliedCoupon(null);
-    setCouponCode("");
-    setCouponError(null);
-    setCheckoutFinalPrice(0);
-    setDirectDiscountAmount(0);
-    setConditionalDiscountAmount(0);
-    setLastValidatedPhone("");
+    couponManager.resetCouponState(0, 0, 0);
     reset();
   };
 
@@ -211,44 +140,49 @@ export function useCheckoutForm() {
     }
   };
 
+  const executeOrderSubmission = async (otpCode: string) => {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    const values = getValues();
+    const cleanPhone = toEnglishDigits(values.phone.trim());
+
+    try {
+      const result = await submitOrderAction({
+        productId: checkoutData?.productId ?? "",
+        weightGrams: checkoutData?.selectedWeight ?? 0,
+        quantity: checkoutData?.quantity ?? 1,
+        blend: checkoutData?.selectedBlend ?? "",
+        grind: checkoutData?.selectedGrind ?? "",
+        customerName: `${values.firstName} ${values.lastName}`.trim(),
+        customerPhone: cleanPhone,
+        customerAddress: values.shippingAddress,
+        otp: otpCode,
+        appliedCouponCode: couponManager.appliedCoupon?.code ?? null,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      setFakeTrackingCode(result.data.id);
+      setStep("success");
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error ? err.message : "خطا در پردازش اطلاعات.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleShippingNext = async (e: React.FormEvent) => {
     e.preventDefault();
     const isAddressValid = await trigger(["shippingAddress"]);
     if (!isAddressValid) return;
-
     setErrorMessage(null);
 
     if (isLoggedInUser) {
-      setIsSubmitting(true);
-      const values = getValues();
-      const cleanPhone = toEnglishDigits(values.phone.trim());
-      try {
-        const result = await submitOrderAction({
-          productId,
-          weightGrams: selectedWeight,
-          quantity,
-          blend: selectedBlend,
-          grind: selectedGrind,
-          customerName: `${values.firstName} ${values.lastName}`,
-          customerPhone: cleanPhone,
-          customerAddress: values.shippingAddress,
-          otp: "1234",
-          appliedCouponCode: appliedCoupon?.code || null,
-        });
-
-        if (!result.success) {
-          throw new Error(result.error);
-        }
-
-        setFakeTrackingCode(result.data.id);
-        setStep("success");
-      } catch (err) {
-        setErrorMessage(
-          err instanceof Error ? err.message : "خطا در برقراری ارتباط با سرور.",
-        );
-      } finally {
-        setIsSubmitting(false);
-      }
+      await executeOrderSubmission("1234");
     } else {
       setStep("otp");
     }
@@ -259,14 +193,12 @@ export function useCheckoutForm() {
     const isOtpValid = await trigger(["otp"]);
     if (!isOtpValid) return;
 
-    setIsSubmitting(true);
-    setErrorMessage(null);
-
-    const values = getValues();
-    const cleanPhone = toEnglishDigits(values.phone.trim());
-
-    try {
-      if (otpPurpose === "login") {
+    if (otpPurpose === "login") {
+      setIsSubmitting(true);
+      setErrorMessage(null);
+      const values = getValues();
+      const cleanPhone = toEnglishDigits(values.phone.trim());
+      try {
         const loginRes = await loginUserWithOtpAction({
           phone: cleanPhone,
           otp: values.otp || "",
@@ -280,33 +212,15 @@ export function useCheckoutForm() {
         } else {
           throw new Error(loginRes.error);
         }
-      } else {
-        const result = await submitOrderAction({
-          productId,
-          weightGrams: selectedWeight,
-          quantity,
-          blend: selectedBlend,
-          grind: selectedGrind,
-          customerName: `${values.firstName} ${values.lastName}`,
-          customerPhone: cleanPhone,
-          customerAddress: values.shippingAddress,
-          otp: values.otp || "",
-          appliedCouponCode: appliedCoupon?.code || null,
-        });
-
-        if (!result.success) {
-          throw new Error(result.error);
-        }
-
-        setFakeTrackingCode(result.data.id);
-        setStep("success");
+      } catch (err) {
+        setErrorMessage(
+          err instanceof Error ? err.message : "خطا در احراز هویت.",
+        );
+      } finally {
+        setIsSubmitting(false);
       }
-    } catch (err) {
-      setErrorMessage(
-        err instanceof Error ? err.message : "خطا در پردازش اطلاعات.",
-      );
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      await executeOrderSubmission(getValues("otp") || "");
     }
   };
 
@@ -323,23 +237,14 @@ export function useCheckoutForm() {
     errorMessage,
     setErrorMessage,
     fakeTrackingCode,
-    selectedWeight,
-    quantity,
+    selectedWeight: checkoutData?.selectedWeight ?? 0,
+    quantity: checkoutData?.quantity ?? 1,
     methods,
     handleClose,
     handleUserInfoNext,
     handleShippingNext,
     handleOtpVerifyAndSubmit,
-    couponCode,
-    setCouponCode,
-    appliedCoupon,
-    couponError,
-    isApplyingCoupon,
-    checkoutFinalPrice,
-    basePrice: checkoutData?.basePrice || 0,
-    directDiscountAmount,
-    conditionalDiscountAmount,
-    handleApplyCoupon,
-    handleRemoveCoupon,
+    ...couponManager,
+    basePrice: checkoutData?.basePrice ?? 0,
   };
 }

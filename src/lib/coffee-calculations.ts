@@ -12,7 +12,7 @@ export interface AdvancedPriceMetrics {
 
 export function getBlendProfile(selectedBlend: string): BlendProfile {
   const found = STATIC_BLENDS.find((b) => b.value === selectedBlend);
-  if (found && found.profile) {
+  if (found?.profile) {
     return found.profile;
   }
 
@@ -34,6 +34,32 @@ export function calculateRemainingStock(
   return Math.floor(stock / weight);
 }
 
+function isDateWithinRange(coupon: Coupon, targetDateStr: string): boolean {
+  const todayMs = new Date(targetDateStr).setHours(0, 0, 0, 0);
+
+  if (coupon.validFrom) {
+    const fromMs = new Date(coupon.validFrom).setHours(0, 0, 0, 0);
+    if (todayMs < fromMs) return false;
+  }
+
+  if (coupon.validTo) {
+    const toMs = new Date(coupon.validTo).setHours(23, 59, 59, 999);
+    if (todayMs > toMs) return false;
+  }
+
+  return true;
+}
+
+function calculateDiscountValue(coupon: Coupon, price: number): number {
+  if (coupon.discountType === "percentage") {
+    const calculated = Math.round((price * coupon.discountValue) / 100);
+    return coupon.maxDiscountAmount
+      ? Math.min(calculated, coupon.maxDiscountAmount)
+      : calculated;
+  }
+  return coupon.discountValue;
+}
+
 export function calculateAdvancedPriceMetrics(params: {
   productId: string;
   pricing: { pricePerKgArabica: number; pricePerKgRobusta: number } | null;
@@ -46,183 +72,111 @@ export function calculateAdvancedPriceMetrics(params: {
   couponUsages?: CouponUsage[];
   serverTodayStr?: string;
 }): AdvancedPriceMetrics {
-  const activePricing = params.pricing || {
+  const pricing = params.pricing ?? {
     pricePerKgArabica: 2200000,
     pricePerKgRobusta: 1800000,
   };
 
   const arabicaRatio = params.blendProfile.arabica / 100;
   const robustaRatio = params.blendProfile.robusta / 100;
-
   const pricePerKg =
-    activePricing.pricePerKgArabica * arabicaRatio +
-    activePricing.pricePerKgRobusta * robustaRatio;
+    pricing.pricePerKgArabica * arabicaRatio +
+    pricing.pricePerKgRobusta * robustaRatio;
 
   const basePrice = Math.round(
     (pricePerKg * params.weightGrams * params.quantity) / 1000,
   );
+  const targetDateStr = params.serverTodayStr ?? getTehranTodayString();
 
-  const tehranTodayStr = params.serverTodayStr || getTehranTodayString();
+  const directDiscount = params.activeCoupons
+    .filter(
+      (c) =>
+        c.isActive &&
+        !c.deletedAt &&
+        c.type === "product_direct" &&
+        (!c.productId || c.productId === params.productId) &&
+        isDateWithinRange(c, targetDateStr),
+    )
+    .reduce((max, c) => Math.max(max, calculateDiscountValue(c, basePrice)), 0);
 
-  const normalizeDateToTimestamp = (dateStr: string): number => {
-    const normalized = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
-    const [year, month, day] = normalized.split(/[-/]/).map(Number);
-    return Date.UTC(year, month - 1, day);
-  };
+  const conditionalDiscount = params.activeCoupons
+    .filter(
+      (c) =>
+        c.isActive &&
+        !c.deletedAt &&
+        c.type === "conditional" &&
+        (!c.productId || c.productId === params.productId) &&
+        (!c.minWeightGrams || params.weightGrams >= c.minWeightGrams) &&
+        isDateWithinRange(c, targetDateStr),
+    )
+    .reduce((max, c) => Math.max(max, calculateDiscountValue(c, basePrice)), 0);
 
-  const [ty, tm, td] = tehranTodayStr.split("-").map(Number);
-  const todayTimestamp = Date.UTC(ty, tm - 1, td);
+  let userCouponDiscount = 0;
+  let allowsStacking = false;
 
-  const isCouponDateValid = (coupon: Coupon): boolean => {
-    if (coupon.validFrom) {
-      const fromTimestamp = normalizeDateToTimestamp(coupon.validFrom);
-      if (todayTimestamp < fromTimestamp) return false;
-    }
-    if (coupon.validTo) {
-      const toTimestamp = normalizeDateToTimestamp(coupon.validTo);
-      if (todayTimestamp > toTimestamp) return false;
-    }
-    return true;
-  };
-
-  const getStandaloneDiscount = (
-    coupon: Coupon,
-    originalPrice: number,
-  ): number => {
-    if (coupon.discountType === "percentage") {
-      const val = Math.round((originalPrice * coupon.discountValue) / 100);
-      return coupon.maxDiscountAmount
-        ? Math.min(val, coupon.maxDiscountAmount)
-        : val;
-    } else {
-      return coupon.discountValue;
-    }
-  };
-
-  const directCoupons = params.activeCoupons.filter(
-    (c) =>
-      c.isActive &&
-      !c.deletedAt &&
-      c.type === "product_direct" &&
-      (!c.productId || c.productId === params.productId) &&
-      isCouponDateValid(c),
-  );
-
-  let directDiscountAmount = 0;
-  if (directCoupons.length > 0) {
-    directCoupons.forEach((c) => {
-      const disc = getStandaloneDiscount(c, basePrice);
-      if (disc > directDiscountAmount) {
-        directDiscountAmount = disc;
-      }
-    });
-  }
-
-  const conditionalCoupons = params.activeCoupons.filter((c) => {
-    if (!c.isActive || c.deletedAt || c.type !== "conditional") return false;
-    if (c.productId && c.productId !== params.productId) return false;
-    if (c.minWeightGrams && params.weightGrams < c.minWeightGrams) return false;
-    return isCouponDateValid(c);
-  });
-
-  let conditionalDiscountAmount = 0;
-  if (conditionalCoupons.length > 0) {
-    conditionalCoupons.forEach((c) => {
-      const disc = getStandaloneDiscount(c, basePrice);
-      if (disc > conditionalDiscountAmount) {
-        conditionalDiscountAmount = disc;
-      }
-    });
-  }
-
-  let eligibleUserCoupon: Coupon | null = null;
-  let userCouponDiscountAmount = 0;
   if (params.appliedUserCouponCode) {
-    const code = params.appliedUserCouponCode.trim().toUpperCase();
-    const userCoupon = params.activeCoupons.find(
+    const searchCode = params.appliedUserCouponCode.trim().toUpperCase();
+    const matchedCoupon = params.activeCoupons.find(
       (c) =>
         c.isActive &&
         !c.deletedAt &&
         c.type === "user_code" &&
-        c.code.toUpperCase() === code &&
+        c.code.toUpperCase() === searchCode &&
         (!c.productId || c.productId === params.productId) &&
-        isCouponDateValid(c),
+        isDateWithinRange(c, targetDateStr),
     );
 
-    if (userCoupon) {
-      let isUsageValid = true;
-      if (params.userPhone && params.couponUsages) {
-        const normalizedPhone = params.userPhone.trim();
-        const alreadyUsed = params.couponUsages.some(
-          (u) => u.couponId === userCoupon.id && u.phone === normalizedPhone,
+    if (matchedCoupon) {
+      const isAlreadyUsed =
+        params.userPhone &&
+        params.couponUsages?.some(
+          (u) =>
+            u.couponId === matchedCoupon.id &&
+            u.phone === params.userPhone?.trim(),
         );
-        if (alreadyUsed) isUsageValid = false;
-      }
 
-      if (isUsageValid) {
-        eligibleUserCoupon = userCoupon;
-        userCouponDiscountAmount = getStandaloneDiscount(userCoupon, basePrice);
+      if (!isAlreadyUsed) {
+        userCouponDiscount = calculateDiscountValue(matchedCoupon, basePrice);
+        allowsStacking = Boolean(matchedCoupon.allowStacking);
       }
     }
   }
 
-  let finalDiscount = 0;
   let finalDirect = 0;
   let finalConditional = 0;
   let finalUser = 0;
 
-  if (eligibleUserCoupon && eligibleUserCoupon.allowStacking) {
-    const autoDiscount = Math.max(
-      directDiscountAmount,
-      conditionalDiscountAmount,
-    );
-    finalDiscount = userCouponDiscountAmount + autoDiscount;
-    finalUser = userCouponDiscountAmount;
-    if (autoDiscount > 0) {
-      if (directDiscountAmount >= conditionalDiscountAmount) {
-        finalDirect = directDiscountAmount;
-      } else {
-        finalConditional = conditionalDiscountAmount;
-      }
+  if (allowsStacking) {
+    finalUser = userCouponDiscount;
+    if (directDiscount >= conditionalDiscount) {
+      finalDirect = directDiscount;
+    } else {
+      finalConditional = conditionalDiscount;
     }
   } else {
-    finalDiscount = Math.max(
-      directDiscountAmount,
-      conditionalDiscountAmount,
-      userCouponDiscountAmount,
+    const highestDiscount = Math.max(
+      directDiscount,
+      conditionalDiscount,
+      userCouponDiscount,
     );
 
-    if (
-      finalDiscount === userCouponDiscountAmount &&
-      userCouponDiscountAmount > 0
-    ) {
-      finalUser = userCouponDiscountAmount;
+    if (highestDiscount === userCouponDiscount && userCouponDiscount > 0) {
+      finalUser = userCouponDiscount;
+    } else if (highestDiscount === directDiscount && directDiscount > 0) {
+      finalDirect = directDiscount;
     } else if (
-      finalDiscount === directDiscountAmount &&
-      directDiscountAmount > 0
+      highestDiscount === conditionalDiscount &&
+      conditionalDiscount > 0
     ) {
-      finalDirect = directDiscountAmount;
-    } else if (
-      finalDiscount === conditionalDiscountAmount &&
-      conditionalDiscountAmount > 0
-    ) {
-      finalConditional = conditionalDiscountAmount;
+      finalConditional = conditionalDiscount;
     }
   }
 
-  finalDiscount = Math.min(finalDiscount, basePrice);
-  const finalPrice = basePrice - finalDiscount;
-
-  if (finalDiscount === basePrice) {
-    const totalAllocated = finalDirect + finalConditional + finalUser;
-    if (totalAllocated > 0) {
-      finalDirect = Math.round((finalDirect / totalAllocated) * basePrice);
-      finalConditional = Math.round(
-        (finalConditional / totalAllocated) * basePrice,
-      );
-      finalUser = basePrice - finalDirect - finalConditional;
-    }
-  }
+  const totalDiscount = Math.min(
+    finalDirect + finalConditional + finalUser,
+    basePrice,
+  );
+  const finalPrice = Math.max(0, basePrice - totalDiscount);
 
   return {
     basePrice,

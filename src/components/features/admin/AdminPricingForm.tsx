@@ -21,7 +21,7 @@ export default function AdminPricingForm({
   );
 
   const [stockKg, setStockKg] = useState<number>(
-    (initialProduct.stock_grams || 150000) / 1000,
+    (initialProduct.stockGrams || 150000) / 1000,
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);

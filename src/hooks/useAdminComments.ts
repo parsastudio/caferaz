@@ -110,7 +110,7 @@ export function useAdminComments(initialComments: Comment[]) {
           const updateText = (list: Comment[]): Comment[] => {
             return list.map((c) => {
               if (c.id === commentId) {
-                return { ...c, comment_text: newText };
+                return { ...c, commentText: newText };
               }
               return {
                 ...c,
@@ -179,7 +179,7 @@ export function useAdminComments(initialComments: Comment[]) {
         setReplyTargetId(null);
         return true;
       } else {
-        toast.error("خطا در ثبت پاسخ.");
+        toast.error(result.error || "خطا در ثبت پاسخ.");
         return false;
       }
     } catch {

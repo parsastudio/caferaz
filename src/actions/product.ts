@@ -4,11 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { ActionResponse } from "@/actions/comment";
 import { revalidatePath } from "next/cache";
 import { checkAdminAuth } from "@/actions/auth";
-import { ProductWithPricing as UIProduct } from "@/types";
+import { ProductWithPricing } from "@/types";
 
 export async function getProductAction(
   productId: string,
-): Promise<ActionResponse<UIProduct>> {
+): Promise<ActionResponse<ProductWithPricing>> {
   try {
     if (!productId) {
       return { success: false, error: "شناسه محصول ارسال نشده است." };
@@ -23,7 +23,21 @@ export async function getProductAction(
       return { success: false, error: "محصول مورد نظر یافت نشد." };
     }
 
-    return { success: true, data: mapPrismaProduct(product) };
+    return {
+      success: true,
+      data: {
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        stockGrams: product.stockGrams,
+        pricing: product.pricing
+          ? {
+              pricePerKgArabica: product.pricing.pricePerKgArabica,
+              pricePerKgRobusta: product.pricing.pricePerKgRobusta,
+            }
+          : null,
+      },
+    };
   } catch {
     return { success: false, error: "خطا در دریافت اطلاعات محصول رخ داد." };
   }
@@ -121,30 +135,4 @@ export async function updateProductBasicInfoAction(payload: {
       error: "خطا در ذخیره‌سازی اطلاعات پایه محصول.",
     };
   }
-}
-
-interface PrismaProductDb {
-  id: string;
-  name: string;
-  description: string;
-  stockGrams: number;
-  pricing: {
-    pricePerKgArabica: number;
-    pricePerKgRobusta: number;
-  } | null;
-}
-
-function mapPrismaProduct(p: PrismaProductDb): UIProduct {
-  return {
-    id: p.id,
-    name: p.name,
-    description: p.description,
-    stock_grams: p.stockGrams,
-    pricing: p.pricing
-      ? {
-          pricePerKgArabica: p.pricing.pricePerKgArabica,
-          pricePerKgRobusta: p.pricing.pricePerKgRobusta,
-        }
-      : null,
-  };
 }

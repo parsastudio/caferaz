@@ -2,7 +2,7 @@ export interface Product {
   id: string;
   name: string;
   description: string;
-  stock_grams: number;
+  stockGrams: number;
 }
 
 export interface ProductVariantPricing {
@@ -15,11 +15,11 @@ export interface ProductVariantPricing {
 export interface Comment {
   id: string;
   productId?: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   rating: number | null;
-  comment_text: string;
-  created_at: string;
+  commentText: string;
+  createdAt: string;
   status?: "pending" | "approved" | "rejected" | "spam";
   replies?: Comment[];
 }

@@ -5,23 +5,10 @@ import {
   calculateAdvancedPriceMetrics,
   calculateRemainingStock,
 } from "@/lib/coffee-calculations";
-import { Coupon } from "@/types";
-
-export interface ProductPricing {
-  pricePerKgArabica: number;
-  pricePerKgRobusta: number;
-}
-
-export interface CoffeeProduct {
-  id: string;
-  name: string;
-  description: string;
-  stock_grams: number;
-  pricing: ProductPricing | null;
-}
+import { Coupon, ProductWithPricing } from "@/types";
 
 export function useCoffeeProduct(
-  initialProduct: CoffeeProduct,
+  initialProduct: ProductWithPricing,
   activeCoupons: Coupon[],
   serverTodayStr?: string,
 ) {
@@ -62,8 +49,8 @@ export function useCoffeeProduct(
   ]);
 
   const remainingStockCount = useMemo(() => {
-    return calculateRemainingStock(initialProduct.stock_grams, computedWeight);
-  }, [initialProduct.stock_grams, computedWeight]);
+    return calculateRemainingStock(initialProduct.stockGrams, computedWeight);
+  }, [initialProduct.stockGrams, computedWeight]);
 
   const isOutOfStock = selection.quantity > remainingStockCount;
 

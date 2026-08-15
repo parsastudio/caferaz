@@ -99,7 +99,7 @@ export default async function AdminDashboardPage() {
               <div className="flex justify-between items-center text-xs">
                 <span className="text-stone-400">موجودی فیزیکی کل:</span>
                 <span className="font-bold text-gold-400">
-                  {(productResult.data.stock_grams / 1000).toFixed(1)} کیلوگرم
+                  {(productResult.data.stockGrams / 1000).toFixed(1)} کیلوگرم
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs">

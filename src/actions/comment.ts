@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { checkAdminAuth } from "@/actions/auth";
-import { Comment as UIComment } from "@/types";
+import { Comment } from "@/types";
 
 export type ActionResponse<T> =
   | { success: true; data: T; message?: string }
@@ -11,7 +11,7 @@ export type ActionResponse<T> =
 
 export async function getCommentsAction(
   productId: string,
-): Promise<ActionResponse<UIComment[]>> {
+): Promise<ActionResponse<Comment[]>> {
   try {
     if (!productId) {
       return { success: false, error: "شناسه محصول معتبر نیست." };
@@ -34,7 +34,7 @@ export async function getCommentsAction(
 
 export async function getAdminCommentsAction(
   productId: string,
-): Promise<ActionResponse<UIComment[]>> {
+): Promise<ActionResponse<Comment[]>> {
   try {
     const isAdmin = await checkAdminAuth();
     if (!isAdmin) {
@@ -67,7 +67,7 @@ export async function submitCommentAction(payload: {
   commentText: string;
   rating: number | null;
   parentId: string | null;
-}): Promise<ActionResponse<UIComment>> {
+}): Promise<ActionResponse<Comment>> {
   try {
     const { productId, phone, firstName, commentText, rating, parentId } =
       payload;
@@ -107,24 +107,22 @@ export async function submitCommentAction(payload: {
 
     revalidatePath("/");
 
-    const uiComment: UIComment = {
-      id: newComment.id,
-      productId: newComment.productId ?? undefined,
-      first_name: newComment.firstName ?? "",
-      last_name: newComment.lastName ?? "",
-      rating: newComment.rating,
-      comment_text: newComment.commentText,
-      created_at: newComment.createdAt.toISOString(),
-      status: newComment.status as "pending" | "approved" | "rejected" | "spam",
-      replies: [],
-    };
-
     return {
       success: true,
       message: isAdmin
         ? "دیدگاه پشتیبان با موفقیت تایید و منتشر گردید."
         : "دیدگاه شما ثبت گردید و پس از بازبینی تایید خواهد شد.",
-      data: uiComment,
+      data: {
+        id: newComment.id,
+        productId: newComment.productId ?? undefined,
+        firstName: newComment.firstName ?? "",
+        lastName: newComment.lastName ?? "",
+        rating: newComment.rating,
+        commentText: newComment.commentText,
+        createdAt: newComment.createdAt.toISOString(),
+        status: newComment.status as Comment["status"],
+        replies: [],
+      },
     };
   } catch {
     return { success: false, error: "مشکلی در ذخیره دیدگاه شما وجود دارد." };
@@ -275,32 +273,32 @@ interface PrismaCommentDb {
   rating: number | null;
   commentText: string;
   createdAt: Date;
-  status: "pending" | "approved" | "rejected" | "spam" | string;
+  status: string;
   parentCommentId: string | null;
 }
 
-function buildCommentTree(comments: PrismaCommentDb[]): UIComment[] {
+function buildCommentTree(comments: PrismaCommentDb[]): Comment[] {
   const commentMap = new Map<
     string,
-    UIComment & { parentCommentId: string | null }
+    Comment & { parentCommentId: string | null }
   >();
 
   comments.forEach((c) => {
     commentMap.set(c.id, {
       id: c.id,
       productId: c.productId ?? undefined,
-      first_name: c.firstName ?? "",
-      last_name: c.lastName ?? "",
+      firstName: c.firstName ?? "",
+      lastName: c.lastName ?? "",
       rating: c.rating,
-      comment_text: c.commentText,
-      created_at: c.createdAt.toISOString(),
-      status: c.status as "pending" | "approved" | "rejected" | "spam",
+      commentText: c.commentText,
+      createdAt: c.createdAt.toISOString(),
+      status: c.status as Comment["status"],
       replies: [],
       parentCommentId: c.parentCommentId,
     });
   });
 
-  const rootComments: UIComment[] = [];
+  const rootComments: Comment[] = [];
 
   comments.forEach((c) => {
     const mapped = commentMap.get(c.id);
@@ -317,11 +315,11 @@ function buildCommentTree(comments: PrismaCommentDb[]): UIComment[] {
     }
   });
 
-  const sortReplies = (comment: UIComment) => {
+  const sortReplies = (comment: Comment) => {
     if (comment.replies && comment.replies.length > 0) {
       comment.replies.sort(
         (a, b) =>
-          new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
       );
       comment.replies.forEach(sortReplies);
     }

@@ -63,12 +63,12 @@ export default function CommentRow({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-stone-850 flex items-center justify-center text-xs font-black text-gold-500 shrink-0">
-            {comment.first_name?.[0] || "ک"}
+            {comment.firstName[0] || "ک"}
           </div>
           <div className="flex flex-col">
             <span className="text-xs font-bold text-stone-200 flex flex-wrap items-center gap-1.5">
               <span>
-                {comment.first_name} {comment.last_name || ""}
+                {comment.firstName} {comment.lastName}
               </span>
               {status === "approved" && (
                 <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px] px-2 py-0.2 rounded-full font-bold">
@@ -95,7 +95,7 @@ export default function CommentRow({
               className="text-[10px] text-stone-500 mt-0.5"
               suppressHydrationWarning
             >
-              {new Date(comment.created_at).toLocaleDateString("fa-IR")}
+              {new Date(comment.createdAt).toLocaleDateString("fa-IR")}
             </span>
           </div>
           {comment.rating && (
@@ -110,7 +110,7 @@ export default function CommentRow({
           {status !== "approved" && (
             <button
               onClick={() => handleStatusChange(comment.id, "approved")}
-              className={`p-1.5 sm:p-2 text-emerald-400 hover:bg-emerald-500/5 rounded-xl border border-stone-800 hover:border-emerald-500/20 transition-all cursor-pointer`}
+              className="p-1.5 sm:p-2 text-emerald-400 hover:bg-emerald-500/5 rounded-xl border border-stone-800 hover:border-emerald-500/20 transition-all cursor-pointer"
               title="تایید انتشار"
             >
               {isReplyNode ? (
@@ -123,7 +123,7 @@ export default function CommentRow({
           {status !== "rejected" && (
             <button
               onClick={() => handleStatusChange(comment.id, "rejected")}
-              className={`p-1.5 sm:p-2 text-amber-500 hover:bg-amber-500/5 rounded-xl border border-stone-800 hover:border-amber-500/20 transition-all cursor-pointer`}
+              className="p-1.5 sm:p-2 text-amber-500 hover:bg-amber-500/5 rounded-xl border border-stone-800 hover:border-amber-500/20 transition-all cursor-pointer"
               title="رد انتشار"
             >
               <EyeOff className="w-3.5 h-3.5" />
@@ -132,17 +132,15 @@ export default function CommentRow({
           {status !== "spam" && (
             <button
               onClick={() => handleStatusChange(comment.id, "spam")}
-              className={`p-1.5 sm:p-2 text-red-400 hover:bg-red-500/5 rounded-xl border border-stone-800 hover:border-red-500/20 transition-all cursor-pointer`}
+              className="p-1.5 sm:p-2 text-red-400 hover:bg-red-500/5 rounded-xl border border-stone-800 hover:border-red-500/20 transition-all cursor-pointer"
               title="علامت‌گذاری به عنوان اسپم"
             >
               <ShieldAlert className="w-3.5 h-3.5" />
             </button>
           )}
           <button
-            onClick={() => {
-              setEditTargetId(comment.id);
-            }}
-            className={`p-1.5 sm:p-2 text-blue-400 hover:bg-blue-500/5 rounded-xl border border-stone-800 hover:border-blue-500/20 transition-all cursor-pointer`}
+            onClick={() => setEditTargetId(comment.id)}
+            className="p-1.5 sm:p-2 text-blue-400 hover:bg-blue-500/5 rounded-xl border border-stone-800 hover:border-blue-500/20 transition-all cursor-pointer"
             title="ویرایش"
           >
             <Edit3 className="w-3.5 h-3.5" />
@@ -158,7 +156,7 @@ export default function CommentRow({
           )}
           <button
             onClick={() => handleDelete(comment.id)}
-            className={`p-1.5 sm:p-2 text-stone-400 hover:text-red-400 hover:bg-red-500/5 rounded-xl border border-stone-800 hover:border-red-500/20 transition-all cursor-pointer`}
+            className="p-1.5 sm:p-2 text-stone-400 hover:text-red-400 hover:bg-red-500/5 rounded-xl border border-stone-800 hover:border-red-500/20 transition-all cursor-pointer"
             title="حذف دائمی"
           >
             <Trash className="w-3.5 h-3.5" />
@@ -168,7 +166,7 @@ export default function CommentRow({
 
       {editTargetId === comment.id ? (
         <CommentEditForm
-          initialText={comment.comment_text}
+          initialText={comment.commentText}
           onCancel={() => setEditTargetId(null)}
           onSave={(newText) => handleEditSubmit(comment.id, newText)}
         />
@@ -178,7 +176,7 @@ export default function CommentRow({
             isReplyNode ? "" : "pr-0 sm:pr-12"
           }`}
         >
-          {comment.comment_text}
+          {comment.commentText}
         </p>
       )}
 
@@ -234,10 +232,6 @@ function CommentEditForm({
 }: CommentEditFormProps) {
   const [text, setText] = useState(initialText);
 
-  const handleSubmit = async () => {
-    await onSave(text);
-  };
-
   return (
     <div className="mr-0 sm:mr-12 bg-stone-950/40 p-4 rounded-xl border border-stone-800 space-y-3">
       <span className="text-[10px] font-bold text-stone-400 block">
@@ -259,7 +253,7 @@ function CommentEditForm({
         </button>
         <button
           type="button"
-          onClick={handleSubmit}
+          onClick={() => onSave(text)}
           className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-black text-[10px] px-4 py-1.5 rounded-lg cursor-pointer flex items-center gap-1"
         >
           <Check className="w-3.5 h-3.5" />

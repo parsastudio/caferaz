@@ -8,9 +8,9 @@ import CommentDialog from "@/components/features/product/CommentDialog";
 import { Comment } from "@/types";
 
 export interface UIComment extends Omit<Comment, "replies"> {
-  is_pending?: boolean;
+  isPending?: boolean;
   replies?: UIComment[];
-  parent_id_temp?: string | null;
+  parentIdTemp?: string | null;
 }
 
 interface ProductTabsSectionProps {
@@ -31,10 +31,10 @@ export default function ProductTabsSection({
   const [optimisticComments, addOptimisticComment] = useOptimistic(
     initialComments,
     (state: UIComment[], newComment: UIComment) => {
-      if (newComment.parent_id_temp) {
+      if (newComment.parentIdTemp) {
         const insertReply = (list: UIComment[]): UIComment[] => {
           return list.map((c) => {
-            if (c.id === newComment.parent_id_temp) {
+            if (c.id === newComment.parentIdTemp) {
               return {
                 ...c,
                 replies: [...(c.replies || []), newComment],
@@ -57,34 +57,24 @@ export default function ProductTabsSection({
 
   const handleCommentSubmitted = (newComment: {
     id: string;
-    first_name: string;
-    comment_text: string;
+    firstName: string;
+    commentText: string;
     rating: number | null;
     parentId: string | null;
   }) => {
     const newLocalComment: UIComment = {
       id: newComment.id,
-      first_name: newComment.first_name,
-      last_name: "",
+      firstName: newComment.firstName,
+      lastName: "",
       rating: newComment.rating,
-      comment_text: newComment.comment_text,
-      created_at: new Date().toISOString(),
-      is_pending: true,
+      commentText: newComment.commentText,
+      createdAt: new Date().toISOString(),
+      isPending: true,
       replies: [],
-      parent_id_temp: newComment.parentId,
+      parentIdTemp: newComment.parentId,
     };
 
     addOptimisticComment(newLocalComment);
-  };
-
-  const openNewCommentDialog = () => {
-    setReplyParentId(null);
-    setIsCommentDialogOpen(true);
-  };
-
-  const openReplyDialog = (parentId: string) => {
-    setReplyParentId(parentId);
-    setIsCommentDialogOpen(true);
   };
 
   return (
@@ -125,7 +115,10 @@ export default function ProductTabsSection({
               نظرات و پرسش‌های کاربران
             </h3>
             <Button
-              onClick={openNewCommentDialog}
+              onClick={() => {
+                setReplyParentId(null);
+                setIsCommentDialogOpen(true);
+              }}
               className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-bold cursor-pointer"
             >
               <Plus className="w-4 h-4 ml-1.5" />
@@ -142,7 +135,10 @@ export default function ProductTabsSection({
                 <CommentNode
                   key={comment.id}
                   comment={comment}
-                  onReply={openReplyDialog}
+                  onReply={(parentId) => {
+                    setReplyParentId(parentId);
+                    setIsCommentDialogOpen(true);
+                  }}
                 />
               ))}
             </div>
@@ -191,12 +187,12 @@ function CommentNode({ comment, onReply }: CommentNodeProps) {
       >
         <div className="flex items-center gap-2.5" dir="rtl">
           <div className="w-9 h-9 rounded-full bg-stone-800 border border-stone-700/60 flex items-center justify-center text-xs font-black text-gold-500">
-            {comment.first_name?.[0] || "ک"}
+            {comment.firstName[0] || "ک"}
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-stone-200 text-sm flex items-center gap-2">
-              {comment.first_name} {comment.last_name}
-              {comment.is_pending && (
+              {comment.firstName} {comment.lastName}
+              {comment.isPending && (
                 <span className="text-[10px] bg-gold-500/10 border border-gold-500/20 text-gold-500 px-2 py-0.5 rounded-full flex items-center gap-1">
                   <Clock className="w-3 h-3" /> در انتظار تایید
                 </span>
@@ -211,7 +207,7 @@ function CommentNode({ comment, onReply }: CommentNodeProps) {
           )}
         </div>
         <span className="text-xs text-stone-500" suppressHydrationWarning>
-          {new Date(comment.created_at).toLocaleDateString("fa-IR")}
+          {new Date(comment.createdAt).toLocaleDateString("fa-IR")}
         </span>
       </div>
 
@@ -219,7 +215,7 @@ function CommentNode({ comment, onReply }: CommentNodeProps) {
         className="text-sm text-stone-300 pr-11 leading-relaxed text-right"
         dir="rtl"
       >
-        {comment.comment_text}
+        {comment.commentText}
       </p>
 
       <div className="pr-11">

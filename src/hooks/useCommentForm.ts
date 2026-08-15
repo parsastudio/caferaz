@@ -34,8 +34,8 @@ interface UseCommentFormProps {
   isOpen: boolean;
   onCommentSubmitted: (newComment: {
     id: string;
-    first_name: string;
-    comment_text: string;
+    firstName: string;
+    commentText: string;
     rating: number | null;
     parentId: string | null;
   }) => void;
@@ -81,8 +81,8 @@ export function useCommentForm({
 
     const newCommentData = {
       id: tempId,
-      first_name: values.firstName,
-      comment_text: values.commentText,
+      firstName: values.firstName,
+      commentText: values.commentText,
       rating: replyParentId ? null : (values.rating ?? 5),
       parentId: replyParentId,
     };
