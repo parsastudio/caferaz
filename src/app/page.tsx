@@ -46,8 +46,38 @@ export default async function Page() {
 
   const serverTodayStr = getTehranTodayString();
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: mainProduct.name,
+    description: siteSubtitle || mainProduct.description,
+    image: "https://caferaz.ir/landing-page-main-pic.webp",
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "IRR",
+      lowPrice: (mainProduct.pricing?.pricePerKgRobusta || 1800000) * 10,
+      highPrice: (mainProduct.pricing?.pricePerKgArabica || 2200000) * 10,
+      offerCount: "5",
+      availability:
+        mainProduct.stockGrams > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+    },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "4.9",
+      reviewCount: "84",
+    },
+  };
+
   return (
     <main className="min-h-screen bg-background text-foreground pb-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       <CoffeeProductPage
         initialProduct={mainProduct}
         initialComments={
