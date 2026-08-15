@@ -12,19 +12,25 @@ if (!rawSecret && process.env.NODE_ENV === "production") {
 const SESSION_SECRET =
   rawSecret || "razcoffee_default_dev_fallback_secret_key_32_chars";
 
-export function createSignedToken(
+export type SessionScope = "admin" | "user" | "form";
+
+export function createScopedToken(
+  scope: SessionScope,
   payload: string,
   maxAgeMs: number = 30 * 24 * 60 * 60 * 1000,
 ): string {
   const expiresAt = Date.now() + maxAgeMs;
-  const rawPayload = `${payload}|${expiresAt}`;
+  const rawPayload = `${scope}:${payload}|${expiresAt}`;
   const hmac = crypto.createHmac("sha256", SESSION_SECRET);
   hmac.update(rawPayload);
   const signature = hmac.digest("hex");
   return `${rawPayload}.${signature}`;
 }
 
-export function verifySignedToken(token: string): string | null {
+export function verifyScopedToken(
+  expectedScope: SessionScope,
+  token: string,
+): string | null {
   if (!token) return null;
   const parts = token.split(".");
   if (parts.length !== 2) return null;
@@ -48,11 +54,21 @@ export function verifySignedToken(token: string): string | null {
     const pipeIndex = rawPayload.lastIndexOf("|");
     if (pipeIndex === -1) return null;
 
-    const payload = rawPayload.substring(0, pipeIndex);
+    const fullPayload = rawPayload.substring(0, pipeIndex);
     const expiresAtStr = rawPayload.substring(pipeIndex + 1);
     const expiresAt = parseInt(expiresAtStr, 10);
 
     if (isNaN(expiresAt) || Date.now() > expiresAt) {
+      return null;
+    }
+
+    const colonIndex = fullPayload.indexOf(":");
+    if (colonIndex === -1) return null;
+
+    const scope = fullPayload.substring(0, colonIndex);
+    const payload = fullPayload.substring(colonIndex + 1);
+
+    if (scope !== expectedScope) {
       return null;
     }
 
@@ -64,7 +80,7 @@ export function verifySignedToken(token: string): string | null {
 
 export function createFormToken(purpose: string = "otp_challenge"): string {
   const timestamp = Date.now();
-  return createSignedToken(`${purpose}:${timestamp}`, 10 * 60 * 1000);
+  return createScopedToken("form", `${purpose}:${timestamp}`, 10 * 60 * 1000);
 }
 
 export function verifyFormToken(
@@ -72,7 +88,7 @@ export function verifyFormToken(
   minAgeMs: number = 1000,
   maxAgeMs: number = 10 * 60 * 1000,
 ): boolean {
-  const verified = verifySignedToken(token);
+  const verified = verifyScopedToken("form", token);
   if (!verified) return false;
 
   const colonIndex = verified.indexOf(":");

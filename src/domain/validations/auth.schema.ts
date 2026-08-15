@@ -26,10 +26,14 @@ export const updateAdminPasswordSchema = z.object({
   newPass: z.string().min(6, "رمز عبور جدید باید حداقل ۶ کاراکتر باشد."),
 });
 
+export const checkPhoneSchema = z.object({
+  phone: phoneSchema,
+});
+
 export const sendOtpSchema = z.object({
   phone: phoneSchema,
   honeypot: z.string().optional(),
-  formToken: z.string().optional(),
+  formToken: z.string().min(1, "توکن امنیتی معتبر نیست."),
 });
 
 export const loginUserWithOtpSchema = z.object({
@@ -48,6 +52,7 @@ export type AdminLoginInput = z.infer<typeof adminLoginSchema>;
 export type UpdateAdminPasswordInput = z.infer<
   typeof updateAdminPasswordSchema
 >;
+export type CheckPhoneInput = z.infer<typeof checkPhoneSchema>;
 export type SendOtpInput = z.infer<typeof sendOtpSchema>;
 export type LoginUserWithOtpInput = z.infer<typeof loginUserWithOtpSchema>;
 export type RegisterUserInput = z.infer<typeof registerUserSchema>;

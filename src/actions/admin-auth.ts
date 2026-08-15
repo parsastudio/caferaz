@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { createSignedToken, verifySignedToken } from "@/lib/session";
+import { createScopedToken, verifyScopedToken } from "@/lib/session";
 import { AuthService } from "@/services/auth.service";
 import {
   adminLoginSchema,
@@ -26,13 +26,17 @@ export async function loginAdminAction(formData: FormData) {
 
   if (isValid) {
     const cookieStore = await cookies();
-    cookieStore.set("admin_session", createSignedToken("admin"), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 60 * 60 * 24,
-      path: "/",
-    });
+    cookieStore.set(
+      "admin_session",
+      createScopedToken("admin", "admin", 60 * 60 * 24 * 1000),
+      {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 60 * 60 * 24,
+        path: "/",
+      },
+    );
     return { success: true };
   }
 
@@ -49,7 +53,7 @@ export async function checkAdminAuth(): Promise<boolean> {
   const cookieStore = await cookies();
   const session = cookieStore.get("admin_session")?.value;
   if (!session) return false;
-  return verifySignedToken(session) === "admin";
+  return verifyScopedToken("admin", session) === "admin";
 }
 
 export async function updateAdminPasswordAction(payload: {

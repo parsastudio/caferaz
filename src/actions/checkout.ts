@@ -7,7 +7,7 @@ import { AuthService } from "@/services/auth.service";
 import { OrderService } from "@/services/order.service";
 import { getCurrentUserAction } from "@/actions/user-auth";
 import { Order } from "@/domain/types";
-import { createSignedToken } from "@/lib/session";
+import { createScopedToken } from "@/lib/session";
 import {
   serverOrderSchema,
   type ServerOrderPayload,
@@ -59,7 +59,7 @@ export async function submitOrderAction(
     );
 
     const cookieStore = await cookies();
-    cookieStore.set("user_phone", createSignedToken(securePhone), {
+    cookieStore.set("user_phone", createScopedToken("user", securePhone), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",

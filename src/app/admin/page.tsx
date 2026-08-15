@@ -15,7 +15,9 @@ export default async function AdminDashboardPage() {
 
   const orders = ordersResult.success ? ordersResult.data || [] : [];
   const totalOrders = orders.length;
-  const pendingOrders = orders.filter((o) => o.status === "pending").length;
+  const pendingOrders = orders.filter(
+    (o) => o.status === "unreviewed" || o.status === "pending",
+  ).length;
 
   const totalComments = commentsResult.success
     ? commentsResult.data?.length || 0

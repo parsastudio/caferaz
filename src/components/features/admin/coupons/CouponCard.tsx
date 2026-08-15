@@ -9,7 +9,10 @@ import {
   Scale,
   DollarSign,
 } from "lucide-react";
-import { formatGregorianToJalaliString } from "@/lib/jalali-converter";
+import {
+  formatGregorianToJalaliString,
+  getTehranTodayString,
+} from "@/lib/jalali-converter";
 
 interface CouponCardProps {
   coupon: Coupon;
@@ -22,7 +25,14 @@ export default function CouponCard({
   onToggleStatus,
   onDelete,
 }: CouponCardProps) {
-  const isExpired = coupon.validTo && new Date(coupon.validTo) < new Date();
+  const tehranTodayStr = getTehranTodayString();
+  const tehranTodayTimestamp = new Date(
+    `${tehranTodayStr}T12:00:00.000Z`,
+  ).getTime();
+  const isExpired = coupon.validTo
+    ? tehranTodayTimestamp >
+      new Date(coupon.validTo).setUTCHours(23, 59, 59, 999)
+    : false;
 
   return (
     <div

@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import ProfileDashboardClient from "@/components/features/profile/ProfileDashboardClient";
-import { verifySignedToken } from "@/lib/session";
+import { verifyScopedToken } from "@/lib/session";
 
 export default async function ProfilePage() {
   const cookieStore = await cookies();
@@ -13,7 +13,7 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  const phone = verifySignedToken(signedCookie);
+  const phone = verifyScopedToken("user", signedCookie);
 
   if (!phone) {
     redirect("/login");

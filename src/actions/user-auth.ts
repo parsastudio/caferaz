@@ -3,17 +3,19 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
-  createSignedToken,
-  verifySignedToken,
+  createScopedToken,
+  verifyScopedToken,
   createFormToken,
   verifyFormToken,
 } from "@/lib/session";
 import { AuthService } from "@/services/auth.service";
 import {
   sendOtpSchema,
+  checkPhoneSchema,
   loginUserWithOtpSchema,
   registerUserSchema,
   type SendOtpInput,
+  type CheckPhoneInput,
 } from "@/domain/validations/auth.schema";
 import { ActionResponse } from "@/types/actions";
 
@@ -32,7 +34,9 @@ export async function sendUserOtpAction(payload: SendOtpInput) {
     if (!parsed.success) {
       return {
         success: false,
-        error: parsed.error.issues[0]?.message || "شماره همراه نامعتبر است.",
+        error:
+          parsed.error.issues[0]?.message ||
+          "شماره همراه یا توکن اعتبارسنجی نامعتبر است.",
       };
     }
 
@@ -43,14 +47,12 @@ export async function sendUserOtpAction(payload: SendOtpInput) {
       };
     }
 
-    if (parsed.data.formToken) {
-      const isValidTiming = verifyFormToken(parsed.data.formToken, 1000);
-      if (!isValidTiming) {
-        return {
-          success: true,
-          message: "کد تایید با موفقیت ارسال شد.",
-        };
-      }
+    const isValidTiming = verifyFormToken(parsed.data.formToken, 1000);
+    if (!isValidTiming) {
+      return {
+        success: false,
+        error: "درخواست نامعتبر یا منقضی شده است. لطفاً صفحه را رفرش فرمایید.",
+      };
     }
 
     const headersList = await headers();
@@ -95,7 +97,7 @@ export async function loginUserWithOtpAction(payload: {
     const user = await AuthService.loginUserWithOtp(parsed.data);
 
     const cookieStore = await cookies();
-    cookieStore.set("user_phone", createSignedToken(user.phone), {
+    cookieStore.set("user_phone", createScopedToken("user", user.phone), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -138,7 +140,7 @@ export async function registerUserAction(payload: {
     const user = await AuthService.registerUser(parsed.data);
 
     const cookieStore = await cookies();
-    cookieStore.set("user_phone", createSignedToken(user.phone), {
+    cookieStore.set("user_phone", createScopedToken("user", user.phone), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -152,9 +154,9 @@ export async function registerUserAction(payload: {
   }
 }
 
-export async function checkPhoneRegisteredAction(payload: { phone: string }) {
+export async function checkPhoneRegisteredAction(payload: CheckPhoneInput) {
   try {
-    const parsed = sendOtpSchema.safeParse(payload);
+    const parsed = checkPhoneSchema.safeParse(payload);
     if (!parsed.success) {
       return { success: false, error: "شماره همراه نامعتبر است." };
     }
@@ -174,7 +176,7 @@ export async function getCurrentUserAction() {
       return { success: true, user: null };
     }
 
-    const phone = verifySignedToken(signedCookie);
+    const phone = verifyScopedToken("user", signedCookie);
     if (!phone) {
       return { success: true, user: null };
     }

@@ -244,6 +244,9 @@ export class OrderService {
 
       const secureRandomId = crypto.randomInt(100000000000, 1000000000000);
       const generatedId = `ORD-${secureRandomId}`;
+      const unitPrice = Math.round(
+        pricingBreakdown.finalPrice / Math.max(1, quantity),
+      );
 
       const finalOrder = await tx.order.create({
         data: {
@@ -263,7 +266,7 @@ export class OrderService {
               blend,
               grind,
               grindType: `ترکیب: ${blend} | آسیاب: ${grind}`,
-              price: pricingBreakdown.finalPrice,
+              price: unitPrice,
             },
           },
         },

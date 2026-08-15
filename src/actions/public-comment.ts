@@ -44,6 +44,9 @@ export async function submitCommentAction(
     const data = await CommentService.submitComment(validated.data, status);
 
     revalidatePath("/");
+    if (isAdmin) {
+      revalidatePath("/admin/comments");
+    }
 
     return {
       success: true,
