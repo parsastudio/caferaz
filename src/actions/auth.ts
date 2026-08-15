@@ -16,5 +16,3 @@ export {
   getCurrentUserAction,
   logoutUserAction,
 } from "@/actions/user-auth";
-
-export { verifyOtpInternal } from "@/lib/otp-service";

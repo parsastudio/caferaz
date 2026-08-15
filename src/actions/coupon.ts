@@ -13,5 +13,3 @@ export {
   validateCouponAction,
   type ValidatedCouponResult,
 } from "@/actions/validate-coupon";
-
-export { mapPrismaCoupon, type PrismaCouponDb } from "@/lib/coupon-mappers";
