@@ -45,6 +45,8 @@ export default function CheckoutDialog() {
     conditionalDiscountAmount,
     handleApplyCoupon,
     handleRemoveCoupon,
+    formToken,
+    honeypot,
   } = useCheckoutForm();
 
   const handleHeaderBack = () => {
@@ -157,6 +159,8 @@ export default function CheckoutDialog() {
                     isSubmitting={isSubmitting}
                     finalPrice={checkoutFinalPrice}
                     summaryData={summaryData}
+                    formToken={formToken}
+                    honeypot={honeypot}
                   />
                 </motion.div>
               )}

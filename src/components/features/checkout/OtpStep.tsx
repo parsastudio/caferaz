@@ -6,7 +6,7 @@ import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { CheckoutFormValues } from "@/domain/validations/order.schema";
 import { toEnglishDigits } from "@/lib/utils";
-import { sendUserOtpAction } from "@/actions/user-auth";
+import { sendUserOtpAction, getOtpFormTokenAction } from "@/actions/user-auth";
 import OrderSummaryCard from "@/components/features/checkout/components/OrderSummaryCard";
 
 interface OtpStepProps {
@@ -21,6 +21,8 @@ interface OtpStepProps {
     weightGrams: number;
     quantity: number;
   } | null;
+  formToken?: string;
+  honeypot?: string;
 }
 
 export default function OtpStep({
@@ -30,6 +32,8 @@ export default function OtpStep({
   isSubmitting,
   finalPrice,
   summaryData,
+  formToken,
+  honeypot,
 }: OtpStepProps) {
   const {
     setValue,
@@ -103,7 +107,21 @@ export default function OtpStep({
 
   const handleResendCode = async () => {
     try {
-      const res = await sendUserOtpAction({ phone });
+      let activeToken = formToken;
+      if (!activeToken) {
+        const tokenRes = await getOtpFormTokenAction();
+        if (tokenRes.success && tokenRes.data) {
+          activeToken = tokenRes.data;
+        }
+      }
+      if (!activeToken) {
+        return;
+      }
+      const res = await sendUserOtpAction({
+        phone,
+        formToken: activeToken,
+        honeypot,
+      });
       if (res.success) {
         const cleared = ["", "", "", ""];
         setOtpDigits(cleared);

@@ -187,5 +187,7 @@ export function useCheckoutForm() {
     handleOtpVerifyAndSubmit,
     ...couponManager,
     basePrice: checkoutData?.basePrice ?? 0,
+    formToken: authManager.formToken,
+    honeypot: authManager.honeypot,
   };
 }
