@@ -10,8 +10,6 @@ import {
 } from "@/domain/validations/coupon.schema";
 import { CouponService } from "@/services/coupon.service";
 
-export { createCouponSchema, type CreateCouponInput };
-
 export async function getCouponsAction(): Promise<ActionResponse<Coupon[]>> {
   try {
     const data = await CouponService.getAllCoupons();

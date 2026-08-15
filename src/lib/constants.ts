@@ -25,11 +25,6 @@ export interface CoffeeGrind {
   desc: string;
 }
 
-export interface StaticProduct {
-  id: string;
-  name: string;
-}
-
 export const STATIC_USPS: USP[] = [
   {
     id: "usp_1",
@@ -144,12 +139,5 @@ export const STATIC_GRINDS: CoffeeGrind[] = [
   {
     value: "آسیاب فرنچ پرس (فرانسه)",
     desc: "آسیاب درشت، مناسب برای قهوه‌ساز فرنچ پرس",
-  },
-];
-
-export const STATIC_PRODUCTS: StaticProduct[] = [
-  {
-    id: "prod_coffee_bulk_01",
-    name: "قهوه فله میکس ویژه اسپرسو",
   },
 ];

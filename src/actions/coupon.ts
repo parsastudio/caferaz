@@ -5,8 +5,6 @@ export {
   createCouponAction,
   deleteCouponAction,
   toggleCouponStatusAction,
-  createCouponSchema,
-  type CreateCouponInput,
 } from "@/actions/admin-coupon";
 
 export {

@@ -63,7 +63,6 @@ export function useCheckoutSubmit({
   return {
     isSubmittingOrder,
     fakeTrackingCode,
-    setFakeTrackingCode,
     executeOrderSubmission,
   };
 }

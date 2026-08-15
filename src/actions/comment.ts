@@ -13,5 +13,3 @@ export {
   editCommentAction,
   deleteCommentAction,
 } from "@/actions/admin-comment";
-
-export type { ActionResponse } from "@/types/actions";

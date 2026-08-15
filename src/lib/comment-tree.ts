@@ -1,6 +1,6 @@
 import { Comment } from "@/types";
 
-export interface PrismaCommentDb {
+interface PrismaCommentDb {
   id: string;
   productId: string | null;
   userId: string | null;

@@ -46,6 +46,5 @@ export type AdminLoginInput = z.infer<typeof adminLoginSchema>;
 export type UpdateAdminPasswordInput = z.infer<
   typeof updateAdminPasswordSchema
 >;
-export type SendOtpInput = z.infer<typeof sendOtpSchema>;
 export type LoginUserWithOtpInput = z.infer<typeof loginUserWithOtpSchema>;
 export type RegisterUserInput = z.infer<typeof registerUserSchema>;

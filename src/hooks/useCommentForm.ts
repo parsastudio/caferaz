@@ -9,8 +9,6 @@ import {
   type CommentFormValues,
 } from "@/domain/validations/comment.schema";
 
-export type { CommentFormValues };
-
 interface UseCommentFormProps {
   productId: string;
   replyParentId: string | null;

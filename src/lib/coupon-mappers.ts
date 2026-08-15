@@ -1,6 +1,6 @@
 import { Coupon } from "@/types";
 
-export interface PrismaCouponDb {
+interface PrismaCouponDb {
   id: string;
   code: string;
   type: string;

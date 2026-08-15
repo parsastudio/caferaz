@@ -44,4 +44,3 @@ export const editCommentSchema = z.object({
 export type CommentStatus = z.infer<typeof commentStatusSchema>;
 export type CommentFormValues = z.infer<typeof commentFormSchema>;
 export type SubmitCommentInput = z.infer<typeof submitCommentSchema>;
-export type EditCommentInput = z.infer<typeof editCommentSchema>;

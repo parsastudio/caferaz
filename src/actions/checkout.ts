@@ -13,8 +13,6 @@ import {
   type ServerOrderPayload,
 } from "@/domain/validations/order.schema";
 
-export { serverOrderSchema, type ServerOrderPayload };
-
 export async function submitOrderAction(
   payload: ServerOrderPayload,
 ): Promise<ActionResponse<Order>> {

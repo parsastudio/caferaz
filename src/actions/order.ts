@@ -6,8 +6,4 @@ export {
   deleteOrderAction,
 } from "@/actions/admin-order";
 
-export {
-  submitOrderAction,
-  serverOrderSchema,
-  type ServerOrderPayload,
-} from "@/actions/checkout";
+export { submitOrderAction } from "@/actions/checkout";
