@@ -2,11 +2,11 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { FAQ } from "@/components/features/landing/FAQSection";
+import { FAQItem } from "@/domain/types";
 
 interface FAQFormProps {
-  initialFAQ?: FAQ | null;
-  onSubmit: (faq: FAQ) => void;
+  initialFAQ?: FAQItem | null;
+  onSubmit: (faq: FAQItem) => void;
   onCancel: () => void;
 }
 
@@ -44,7 +44,7 @@ export default function FAQForm({
           type="text"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          className="w-full bg-stone-950 border border-stone-850 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-right font-medium"
+          className="w-full bg-stone-950 border border-stone-855 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-right font-medium"
           placeholder="مثال: روش اصولی دم‌آوری قهوه چیست؟"
         />
       </div>
@@ -57,7 +57,7 @@ export default function FAQForm({
           rows={4}
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
-          className="w-full bg-stone-950 border border-stone-850 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-right resize-none leading-relaxed font-medium"
+          className="w-full bg-stone-950 border border-stone-855 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-right resize-none leading-relaxed font-medium"
           placeholder="پاسخ دقیق، روشن و مختصر را بنویسید..."
         />
       </div>

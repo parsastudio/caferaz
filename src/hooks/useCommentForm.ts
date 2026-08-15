@@ -1,32 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { submitCommentAction } from "@/actions/comment";
+import {
+  commentFormSchema,
+  type CommentFormValues,
+} from "@/domain/validations/comment.schema";
 
-export const commentSchema = z.object({
-  firstName: z
-    .string()
-    .min(1, "لطفاً نام خود را وارد کنید")
-    .min(2, "نام باید حداقل ۲ حرف باشد")
-    .max(50, "نام بیش از حد طولانی است"),
-  phone: z
-    .string()
-    .optional()
-    .refine((val) => !val || /^09[0-9]{9}$/.test(val), {
-      message: "لطفاً یک شماره موبایل معتبر (مانند ۰۹۱۲۳۴۵۶۷۸۹) وارد کنید",
-    }),
-  rating: z.number().min(1).max(5).nullable().optional(),
-  commentText: z
-    .string()
-    .min(1, "لطفاً متن دیدگاه خود را وارد کنید")
-    .min(5, "دیدگاه باید حداقل ۵ کاراکتر باشد")
-    .max(1000, "دیدگاه بیش از حد طولانی است"),
-});
-
-export type CommentFormValues = z.infer<typeof commentSchema>;
+export type { CommentFormValues };
 
 interface UseCommentFormProps {
   productId: string;
@@ -62,7 +45,9 @@ export function useCommentForm({
   }
 
   const methods = useForm<CommentFormValues>({
-    resolver: zodResolver(commentSchema),
+    resolver: zodResolver(
+      commentFormSchema,
+    ) as unknown as Resolver<CommentFormValues>,
     defaultValues: {
       firstName: "",
       phone: "",

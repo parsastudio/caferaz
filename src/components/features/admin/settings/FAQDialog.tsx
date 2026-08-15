@@ -9,14 +9,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { HelpCircle } from "lucide-react";
-import { FAQ } from "@/components/features/landing/FAQSection";
+import { FAQItem } from "@/domain/types";
 import FAQForm from "@/components/features/admin/settings/FAQForm";
 
 interface FAQDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (faq: FAQ) => void;
-  initialFAQ?: FAQ | null;
+  onSubmit: (faq: FAQItem) => void;
+  initialFAQ?: FAQItem | null;
 }
 
 export default function FAQDialog({

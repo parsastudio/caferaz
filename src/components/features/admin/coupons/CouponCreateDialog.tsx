@@ -3,7 +3,6 @@
 import React from "react";
 import { useForm, Controller, Resolver, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Sparkles, Scale, Calendar, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,84 +13,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { STATIC_PRODUCTS } from "@/lib/constants";
-import { isValidJalaaliDate } from "@/lib/jalali-converter";
+import {
+  createCouponSchema,
+  type CreateCouponInput as CouponFormValues,
+} from "@/domain/validations/coupon.schema";
 
-const schema = z
-  .object({
-    code: z.string().optional(),
-    type: z.enum(["product_direct", "conditional", "user_code"]),
-    discountType: z.enum(["percentage", "fixed"]),
-    discountValue: z.number().min(1, "مقدار تخفیف باید بزرگتر از صفر باشد"),
-    productId: z.string().optional(),
-    minWeightGrams: z.number().optional(),
-    validFrom: z
-      .string()
-      .optional()
-      .refine(
-        (val) => {
-          if (!val || val.trim() === "") return true;
-          const match = val.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
-          if (!match) return false;
-          const y = parseInt(match[1], 10);
-          const m = parseInt(match[2], 10);
-          const d = parseInt(match[3], 10);
-          return isValidJalaaliDate(y, m, d);
-        },
-        {
-          message:
-            "مقدار روزهای ماه یا فرمت تاریخ شروع شمسی نامعتبر است (YYYY/MM/DD)",
-        },
-      ),
-    validTo: z
-      .string()
-      .optional()
-      .refine(
-        (val) => {
-          if (!val || val.trim() === "") return true;
-          const match = val.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
-          if (!match) return false;
-          const y = parseInt(match[1], 10);
-          const m = parseInt(match[2], 10);
-          const d = parseInt(match[3], 10);
-          return isValidJalaaliDate(y, m, d);
-        },
-        {
-          message:
-            "مقدار روزهای ماه یا فرمت تاریخ انقضا شمسی نامعتبر است (YYYY/MM/DD)",
-        },
-      ),
-    maxDiscountAmount: z.number().optional(),
-    allowStacking: z.boolean().optional().default(false),
-  })
-  .refine(
-    (data) => {
-      if (
-        data.type === "user_code" &&
-        (!data.code || data.code.trim().length < 2)
-      ) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message:
-        "ورود کردن کد تخفیف برای کوپن‌های دستی کاربر الزامی است (حداقل ۲ کاراکتر)",
-      path: ["code"],
-    },
-  );
-
-export type CouponFormValues = {
-  code?: string;
-  type: "product_direct" | "conditional" | "user_code";
-  discountType: "percentage" | "fixed";
-  discountValue: number;
-  productId?: string;
-  minWeightGrams?: number;
-  validFrom?: string;
-  validTo?: string;
-  maxDiscountAmount?: number;
-  allowStacking?: boolean;
-};
+export type { CouponFormValues };
 
 interface CouponCreateDialogProps {
   isOpen: boolean;
@@ -107,7 +34,9 @@ export default function CouponCreateDialog({
   isPending,
 }: CouponCreateDialogProps) {
   const methods = useForm<CouponFormValues>({
-    resolver: zodResolver(schema) as unknown as Resolver<CouponFormValues>,
+    resolver: zodResolver(
+      createCouponSchema,
+    ) as unknown as Resolver<CouponFormValues>,
     defaultValues: {
       code: "",
       type: "user_code",

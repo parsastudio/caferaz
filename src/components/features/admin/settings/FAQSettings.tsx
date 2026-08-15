@@ -5,20 +5,20 @@ import { HelpCircle, Plus, Trash, Edit3, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { updateSettingsAction } from "@/actions/settings";
-import { FAQ } from "@/components/features/landing/FAQSection";
+import { FAQItem } from "@/domain/types";
 import FAQDialog from "./FAQDialog";
 
 interface FAQSettingsProps {
-  initialFaqs: FAQ[];
+  initialFaqs: FAQItem[];
 }
 
 export default function FAQSettings({ initialFaqs }: FAQSettingsProps) {
-  const [faqs, setFaqs] = useState<FAQ[]>(initialFaqs);
+  const [faqs, setFaqs] = useState<FAQItem[]>(initialFaqs);
   const [isPending, startTransition] = useTransition();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
+  const [editingFAQ, setEditingFAQ] = useState<FAQItem | null>(null);
 
   const handleAddClick = () => {
     setEditingIndex(null);
@@ -39,8 +39,8 @@ export default function FAQSettings({ initialFaqs }: FAQSettingsProps) {
     saveFAQList(updated);
   };
 
-  const handleDialogSubmit = (faq: FAQ) => {
-    let updated: FAQ[];
+  const handleDialogSubmit = (faq: FAQItem) => {
+    let updated: FAQItem[];
     if (editingIndex !== null) {
       updated = faqs.map((f, i) => (i === editingIndex ? faq : f));
     } else {
@@ -51,7 +51,7 @@ export default function FAQSettings({ initialFaqs }: FAQSettingsProps) {
     saveFAQList(updated);
   };
 
-  const saveFAQList = (updatedList: FAQ[]) => {
+  const saveFAQList = (updatedList: FAQItem[]) => {
     startTransition(async () => {
       const res = await updateSettingsAction({
         key: "site_faq",

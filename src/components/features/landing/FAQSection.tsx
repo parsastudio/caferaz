@@ -3,14 +3,12 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, HelpCircle } from "lucide-react";
+import { FAQItem } from "@/domain/types";
 
-export interface FAQ {
-  question: string;
-  answer: string;
-}
+export type FAQ = FAQItem;
 
 interface FAQSectionProps {
-  faqs?: FAQ[];
+  faqs?: FAQItem[];
 }
 
 export default function FAQSection({ faqs = [] }: FAQSectionProps) {
