@@ -256,7 +256,7 @@ export async function submitOrderAction(payload: {
       weightGrams,
       quantity,
       activeCoupons: activeCoupons.map(mapPrismaCoupon),
-      appliedUserCouponCode,
+      appliedUserCouponCode: appliedCouponCode,
       userPhone: securePhone,
       couponUsages: couponUsages.map((u) => ({
         id: u.id,

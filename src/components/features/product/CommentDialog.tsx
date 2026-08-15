@@ -20,8 +20,8 @@ interface CommentDialogProps {
   replyParentId: string | null;
   onCommentSubmitted: (newComment: {
     id: string;
-    first_name: string;
-    comment_text: string;
+    firstName: string;
+    commentText: string;
     rating: number | null;
     parentId: string | null;
   }) => void;

@@ -153,7 +153,7 @@ export function useAdminComments(initialComments: Comment[]) {
         parentId,
       });
 
-      if (result.success && result.data) {
+      if (result.success) {
         const newReply = result.data;
         setComments((prev) => {
           const addReplyToParent = (list: Comment[]): Comment[] => {

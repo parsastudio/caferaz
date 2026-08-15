@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useCoffeeProduct, CoffeeProduct } from "@/hooks/useCoffeeProduct";
+import { useCoffeeProduct } from "@/hooks/useCoffeeProduct";
 import ProductVisuals from "./ProductVisuals";
 import WeightSelector from "./WeightSelector";
 import BlendSelector from "./BlendSelector";
@@ -11,15 +11,15 @@ import PriceSummary from "./PriceSummary";
 import CheckoutDialog from "../checkout/CheckoutDialog";
 import ProductTabsSection, { UIComment } from "./ProductTabsSection";
 import { useCheckout } from "@/context/CheckoutContext";
-import { Coupon } from "@/types";
+import { Coupon, ProductWithPricing } from "@/types";
 import { STATIC_BLENDS, STATIC_GRINDS } from "@/lib/constants";
 
 interface CoffeeProductPageProps {
-  initialProduct: CoffeeProduct;
+  initialProduct: ProductWithPricing;
   initialComments: UIComment[];
   activeCoupons: Coupon[];
   siteSubtitle?: string;
-  serverTodayStr?: string; // پراپ سراسری برچسب زمانی هماهنگ با سرور
+  serverTodayStr?: string;
 }
 
 export default function CoffeeProductPage({
