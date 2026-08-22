@@ -84,7 +84,8 @@ export default function AdminFaqClient({ initialFaqs }: AdminFaqClientProps) {
         toast.success(res.message || "تغییرات ذخیره شد.");
         return true;
       } else {
-        toast.error(res.error || "خطا در ثبت تغییرات.");
+        const errorMsg = !res.success ? res.error : "خطا در ثبت تغییرات.";
+        toast.error(errorMsg);
         return false;
       }
     } else {
@@ -98,7 +99,8 @@ export default function AdminFaqClient({ initialFaqs }: AdminFaqClientProps) {
         toast.success(res.message || "سوال جدید اضافه شد.");
         return true;
       } else {
-        toast.error(res.error || "خطا در افزودن سوال.");
+        const errorMsg = !res.success ? res.error : "خطا در افزودن سوال.";
+        toast.error(errorMsg);
         return false;
       }
     }

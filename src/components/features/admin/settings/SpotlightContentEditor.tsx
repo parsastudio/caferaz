@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition, useMemo } from "react";
-import { Search, X, Check, Loader2, Type, Sparkles } from "lucide-react";
+import { Search, X, Check, Loader2, Type } from "lucide-react";
 import { toast } from "sonner";
 import { updateSingleContentKeyAction } from "@/actions/content";
 import { SiteContent } from "@/domain/validations/content.schema";
@@ -251,7 +251,7 @@ export default function SpotlightContentEditor({
                         className={`w-full bg-stone-950 border rounded-xl p-3 text-xs sm:text-sm text-stone-100 outline-none resize-none leading-relaxed transition-all font-medium ${
                           isDirty
                             ? "border-gold-500/50 focus:border-gold-500 focus:ring-1 focus:ring-gold-500"
-                            : "border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500"
+                            : "border-stone-800 focus:border-gold-500 focus:ring-gold-500"
                         }`}
                       />
                     ) : (
@@ -264,7 +264,7 @@ export default function SpotlightContentEditor({
                         className={`w-full bg-stone-950 border rounded-xl px-4 py-2.5 text-xs sm:text-sm text-stone-100 outline-none transition-all font-medium ${
                           isDirty
                             ? "border-gold-500/50 focus:border-gold-500 focus:ring-1 focus:ring-gold-500"
-                            : "border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500"
+                            : "border-stone-800 focus:border-gold-500 focus:ring-gold-500"
                         }`}
                       />
                     )}

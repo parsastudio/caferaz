@@ -2,7 +2,7 @@
 
 import React from "react";
 import { FAQItem } from "@/domain/validations/faq.schema";
-import { Edit3, Trash2, HelpCircle } from "lucide-react";
+import { Edit3, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface FaqCardProps {

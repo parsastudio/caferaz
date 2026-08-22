@@ -1,11 +1,11 @@
 import { OrderStatus } from "@/domain/validations/order.schema";
 import { CommentStatus } from "@/domain/validations/comment.schema";
 import { CouponType, DiscountType } from "@/domain/validations/coupon.schema";
-import { FooterConfig, FAQItem } from "@/domain/validations/settings.schema";
+import { FooterConfig } from "@/domain/validations/settings.schema";
+import { FAQItem } from "@/domain/validations/faq.schema";
 import {
   SiteContent,
   SiteUspItem,
-  SiteFaqItem,
   SiteBlendItem,
   SiteGrindItem,
 } from "@/domain/validations/content.schema";
@@ -19,7 +19,6 @@ export type {
   FAQItem,
   SiteContent,
   SiteUspItem,
-  SiteFaqItem,
   SiteBlendItem,
   SiteGrindItem,
 };
