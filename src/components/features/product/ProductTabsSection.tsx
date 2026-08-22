@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import CommentDialog from "@/components/features/product/CommentDialog";
 import { WidgetErrorBoundary } from "@/components/ui/widget-error-boundary";
 import { Comment } from "@/types";
+import { useSiteContent } from "@/context/ContentContext";
 
 export interface UIComment extends Omit<Comment, "replies"> {
   isPending?: boolean;
@@ -25,6 +26,7 @@ export default function ProductTabsSection({
   description,
   initialComments,
 }: ProductTabsSectionProps) {
+  const { product } = useSiteContent();
   const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
   const [replyParentId, setReplyParentId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -78,7 +80,7 @@ export default function ProductTabsSection({
   };
 
   return (
-    <WidgetErrorBoundary fallbackTitle="خطایی در نمایش بخش نظرات و توضیحات رخ داد.">
+    <WidgetErrorBoundary fallbackTitle={product.noDescriptionText}>
       <div
         className="mt-16 border-t border-stone-800/80 pt-10 text-right"
         dir="rtl"
@@ -97,13 +99,13 @@ export default function ProductTabsSection({
               className="flex-1 flex items-center justify-center gap-2 cursor-pointer py-2.5"
             >
               <MessageSquare className="w-4 h-4" />
-              نظرات مشتریان ({optimisticComments?.length || 0})
+              {product.commentsTabLabel} ({optimisticComments?.length || 0})
             </TabsTrigger>
             <TabsTrigger
               value="description"
               className="flex-1 flex items-center justify-center gap-2 cursor-pointer py-2.5"
             >
-              توضیحات تخصصی محصول
+              {product.descriptionTabLabel}
             </TabsTrigger>
           </TabsList>
 
@@ -117,7 +119,7 @@ export default function ProductTabsSection({
               dir="rtl"
             >
               <h3 className="text-lg font-black text-stone-200">
-                نظرات و پرسش‌های کاربران
+                {product.commentsSectionTitle}
               </h3>
               <Button
                 onClick={() => {
@@ -127,7 +129,7 @@ export default function ProductTabsSection({
                 className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-bold cursor-pointer"
               >
                 <Plus className="w-4 h-4 ml-1.5" />
-                ثبت دیدگاه جدید
+                {product.newCommentButton}
               </Button>
             </div>
 
@@ -140,6 +142,8 @@ export default function ProductTabsSection({
                   <CommentNode
                     key={comment.id}
                     comment={comment}
+                    pendingBadgeText={product.pendingCommentBadge}
+                    replyButtonText={product.replyButtonText}
                     onReply={(parentId) => {
                       setReplyParentId(parentId);
                       setIsCommentDialogOpen(true);
@@ -150,7 +154,7 @@ export default function ProductTabsSection({
             ) : (
               <div className="text-center py-12 bg-stone-900/20 rounded-2xl border border-dashed border-stone-800">
                 <p className="text-sm text-stone-500">
-                  تاکنون دیدگاهی ثبت نشده است. اولین دیدگاه را شما ثبت کنید!
+                  {product.emptyCommentsText}
                 </p>
               </div>
             )}
@@ -161,9 +165,7 @@ export default function ProductTabsSection({
             className="bg-stone-900/20 p-6 rounded-2xl border border-stone-900/60 text-stone-300 leading-relaxed text-sm w-full text-right"
             dir="rtl"
           >
-            <p>
-              {description || "توضیحات تکمیلی برای این محصول ثبت نشده است."}
-            </p>
+            <p>{description || product.noDescriptionText}</p>
           </TabsContent>
         </Tabs>
 
@@ -183,10 +185,17 @@ export default function ProductTabsSection({
 
 interface CommentNodeProps {
   comment: UIComment;
+  pendingBadgeText: string;
+  replyButtonText: string;
   onReply: (parentId: string) => void;
 }
 
-function CommentNode({ comment, onReply }: CommentNodeProps) {
+function CommentNode({
+  comment,
+  pendingBadgeText,
+  replyButtonText,
+  onReply,
+}: CommentNodeProps) {
   return (
     <div className="py-5 space-y-3 text-right" dir="rtl">
       <div
@@ -202,7 +211,7 @@ function CommentNode({ comment, onReply }: CommentNodeProps) {
               {comment.firstName}
               {comment.isPending && (
                 <span className="text-[10px] bg-gold-500/10 border border-gold-500/20 text-gold-500 px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <Clock className="w-3 h-3" /> در انتظار تایید
+                  <Clock className="w-3 h-3" /> {pendingBadgeText}
                 </span>
               )}
             </span>
@@ -232,14 +241,20 @@ function CommentNode({ comment, onReply }: CommentNodeProps) {
           onClick={() => onReply(comment.id)}
           className="text-xs text-gold-500 hover:text-gold-400 hover:underline transition-colors font-bold cursor-pointer"
         >
-          پاسخ به این نظر
+          {replyButtonText}
         </button>
       </div>
 
       {comment.replies && comment.replies.length > 0 && (
         <div className="mr-9 pr-4 border-r border-stone-800/80 space-y-3 mt-4">
           {comment.replies.map((reply: UIComment) => (
-            <CommentNode key={reply.id} comment={reply} onReply={onReply} />
+            <CommentNode
+              key={reply.id}
+              comment={reply}
+              pendingBadgeText={pendingBadgeText}
+              replyButtonText={replyButtonText}
+              onReply={onReply}
+            />
           ))}
         </div>
       )}

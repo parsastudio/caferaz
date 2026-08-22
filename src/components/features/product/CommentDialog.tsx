@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useCommentForm } from "@/hooks/useCommentForm";
+import { useSiteContent } from "@/context/ContentContext";
 
 interface CommentDialogProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ export default function CommentDialog({
   isPending,
   startTransition,
 }: CommentDialogProps) {
+  const { product } = useSiteContent();
   const { methods, commentMessage, setCommentMessage, commentError, onSubmit } =
     useCommentForm({
       productId,
@@ -63,10 +65,12 @@ export default function CommentDialog({
         <DialogHeader className="space-y-2 text-right">
           <DialogTitle className="text-lg md:text-xl font-bold text-gold-500 flex items-center gap-2">
             <MessageSquare className="w-5 h-5 md:w-6 md:h-6" />
-            {replyParentId ? "ثبت پاسخ به دیدگاه" : "ثبت دیدگاه جدید"}
+            {replyParentId
+              ? product.replyCommentModalTitle
+              : product.newCommentModalTitle}
           </DialogTitle>
           <DialogDescription className="text-xs md:text-sm text-stone-400">
-            دیدگاه‌ها پس از تایید مدیر بر روی وبسایت نمایش داده می‌شوند.
+            {product.commentModalDesc}
           </DialogDescription>
         </DialogHeader>
 
@@ -76,7 +80,7 @@ export default function CommentDialog({
               ✓
             </div>
             <p className="text-sm font-bold text-emerald-400">
-              {commentMessage}
+              {commentMessage || product.commentSuccessNotice}
             </p>
             <Button
               onClick={() => {
@@ -85,7 +89,7 @@ export default function CommentDialog({
               }}
               className="w-full bg-stone-800 hover:bg-stone-700 text-stone-100 font-bold py-2.5 rounded-xl cursor-pointer"
             >
-              متوجه شدم
+              {product.commentSuccessDismiss}
             </Button>
           </div>
         ) : (
@@ -96,7 +100,8 @@ export default function CommentDialog({
           >
             <div className="space-y-1.5 text-right">
               <label className="text-xs md:text-sm font-bold text-stone-300">
-                نام شما <span className="text-red-500">*</span>
+                {product.commentNameLabel}{" "}
+                <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -107,7 +112,7 @@ export default function CommentDialog({
                     ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
                     : "border-stone-800 focus:border-gold-500 focus:ring-gold-500"
                 }`}
-                placeholder="مثال: مریم"
+                placeholder={product.commentNamePlaceholder}
               />
               {errors.firstName && (
                 <p className="text-[10px] text-destructive font-bold mt-1">
@@ -118,7 +123,7 @@ export default function CommentDialog({
 
             <div className="space-y-1.5 text-right">
               <label className="text-xs md:text-sm font-bold text-stone-300">
-                شماره موبایل (اختیاری)
+                {product.commentPhoneLabel}
               </label>
               <input
                 type="tel"
@@ -130,7 +135,7 @@ export default function CommentDialog({
                     : "border-stone-800 focus:border-gold-500 focus:ring-gold-500"
                 }`}
                 dir="ltr"
-                placeholder="09123456789"
+                placeholder={product.commentPhonePlaceholder}
               />
               {errors.phone && (
                 <p className="text-[10px] text-destructive font-bold mt-1">
@@ -142,7 +147,7 @@ export default function CommentDialog({
             {!replyParentId && (
               <div className="space-y-1.5 text-right bg-stone-950/40 p-4 rounded-xl border border-stone-800/50">
                 <label className="text-xs md:text-sm font-bold text-stone-300 block mb-2">
-                  امتیاز شما به کیفیت قهوه:
+                  {product.commentRatingLabel}
                 </label>
                 <Controller
                   name="rating"
@@ -174,7 +179,8 @@ export default function CommentDialog({
 
             <div className="space-y-1.5 text-right">
               <label className="text-xs md:text-sm font-bold text-stone-300">
-                متن دیدگاه <span className="text-red-500">*</span>
+                {product.commentTextLabel}{" "}
+                <span className="text-red-500">*</span>
               </label>
               <textarea
                 rows={4}
@@ -185,7 +191,7 @@ export default function CommentDialog({
                     ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
                     : "border-stone-800 focus:border-gold-500 focus:ring-gold-500"
                 }`}
-                placeholder="دیدگاه خود را اینجا یادداشت کنید..."
+                placeholder={product.commentTextPlaceholder}
               />
               {errors.commentText && (
                 <p className="text-[10px] text-destructive font-bold mt-1">
@@ -208,7 +214,7 @@ export default function CommentDialog({
                 disabled={isPending}
                 className="text-stone-400 hover:text-stone-200 cursor-pointer"
               >
-                انصراف
+                {product.commentCancelButton}
               </Button>
               <Button
                 type="submit"
@@ -218,10 +224,10 @@ export default function CommentDialog({
                 {isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    در حال ثبت...
+                    {product.commentSubmittingButton}
                   </>
                 ) : (
-                  "ارسال دیدگاه"
+                  product.commentSubmitButton
                 )}
               </Button>
             </div>

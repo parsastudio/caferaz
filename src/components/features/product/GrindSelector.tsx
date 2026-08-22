@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { STATIC_GRINDS, CoffeeGrind } from "@/lib/constants";
+import { CoffeeGrind } from "@/lib/constants";
+import { useSiteContent } from "@/context/ContentContext";
 
 interface GrindSelectorProps {
   selectedGrind: string;
@@ -12,18 +13,21 @@ interface GrindSelectorProps {
 export default function GrindSelector({
   selectedGrind,
   setSelectedGrind,
-  grinds = STATIC_GRINDS,
+  grinds,
 }: GrindSelectorProps) {
+  const { product } = useSiteContent();
+  const activeGrinds = grinds && grinds.length > 0 ? grinds : product.grinds;
+
   return (
     <div className="space-y-3.5">
       <label className="text-sm font-black text-stone-300 flex items-center gap-2">
         <span className="w-5 h-5 rounded-md bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center text-xs font-black">
           ۳
         </span>
-        نوع آسیاب دانه قهوه:
+        {product.grindStepTitle}
       </label>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {grinds.map((grind) => (
+        {activeGrinds.map((grind) => (
           <button
             key={grind.value}
             type="button"

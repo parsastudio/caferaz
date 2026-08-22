@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Check } from "lucide-react";
+import { useSiteContent } from "@/context/ContentContext";
 
 interface WeightSelectorProps {
   selectedWeight: number;
@@ -30,13 +31,15 @@ export default function WeightSelector({
   setCustomWeightVal,
   setQuantity,
 }: WeightSelectorProps) {
+  const { product } = useSiteContent();
+
   return (
     <div className="space-y-3.5">
       <label className="text-sm font-black text-stone-300 flex items-center gap-2">
         <span className="w-5 h-5 rounded-md bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center text-xs font-black">
           ۱
         </span>
-        انتخاب وزن بسته‌بندی:
+        {product.weightStepTitle}
       </label>
       <div className="flex flex-wrap gap-2.5">
         {presetWeights.map((w) => (
@@ -73,7 +76,7 @@ export default function WeightSelector({
               : "border-stone-800/80 bg-stone-900/30 hover:border-stone-700 text-stone-400 hover:text-stone-200"
           }`}
         >
-          اندازه دلخواه
+          {product.customWeightLabel}
           {isCustomWeight && <Check className="w-4 h-4 text-gold-500" />}
         </button>
       </div>
@@ -81,7 +84,7 @@ export default function WeightSelector({
       {isCustomWeight && (
         <div className="mt-3 p-4 bg-stone-900/40 rounded-2xl border border-stone-800/80 space-y-2.5 animate-in fade-in slide-in-from-top-1 duration-200">
           <label className="text-xs font-bold text-stone-400 block">
-            وزن مورد نظر خود را به گرم (حداقل ۲۵۰ گرم) وارد کنید:
+            {product.customWeightInputLabel}
           </label>
           <div className="flex items-center gap-3">
             <input
@@ -101,9 +104,12 @@ export default function WeightSelector({
               }}
               className="bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-4 py-2.5 text-sm text-stone-100 outline-none w-32 text-center font-bold"
             />
-            <span className="text-sm font-bold text-stone-300">گرم</span>
+            <span className="text-sm font-bold text-stone-300">
+              {product.customWeightUnit}
+            </span>
             <span className="text-xs text-stone-500 mr-auto">
-              (معادل {(customWeightVal / 1000).toFixed(2)} کیلوگرم)
+              ({product.customWeightEquiv} {(customWeightVal / 1000).toFixed(2)}{" "}
+              کیلوگرم)
             </span>
           </div>
         </div>

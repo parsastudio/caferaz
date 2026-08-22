@@ -4,6 +4,7 @@ import React from "react";
 import { ShoppingBag, ArrowLeft } from "lucide-react";
 import { DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Step } from "@/hooks/useCheckoutForm";
+import { useSiteContent } from "@/context/ContentContext";
 
 interface CheckoutDialogHeaderProps {
   step: Step;
@@ -14,6 +15,8 @@ export default function CheckoutDialogHeader({
   step,
   onBack,
 }: CheckoutDialogHeaderProps) {
+  const { checkout } = useSiteContent();
+
   return (
     <div className="p-6 md:p-8 pb-4 md:pb-5 border-b border-stone-800/80 bg-stone-950/20 flex items-center justify-between">
       <div className="flex items-center gap-2.5">
@@ -23,14 +26,14 @@ export default function CheckoutDialogHeader({
         <div>
           <DialogTitle className="text-base md:text-lg font-black text-stone-100">
             {step === "success"
-              ? "ثبت موفقیت‌آمیز سفارش"
-              : "ثبت نهایی سفارش خرید قهوه"}
+              ? checkout.modalSuccessTitle
+              : checkout.modalTitle}
           </DialogTitle>
           <DialogDescription className="text-[11px] md:text-xs text-stone-400 mt-0.5">
-            {step === "user_info" && "اطلاعات خریدار"}
-            {step === "shipping" && "اطلاعات ارسال و پرداخت"}
-            {step === "otp" && "تایید شماره تماس"}
-            {step === "success" && "سفارش شما با موفقیت ثبت شد"}
+            {step === "user_info" && checkout.userInfoStepDesc}
+            {step === "shipping" && checkout.shippingStepDesc}
+            {step === "otp" && checkout.otpStepDesc}
+            {step === "success" && checkout.successStepDesc}
           </DialogDescription>
         </div>
       </div>

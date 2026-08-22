@@ -8,6 +8,7 @@ import { CheckoutFormValues } from "@/domain/validations/order.schema";
 import { toEnglishDigits } from "@/lib/utils";
 import { sendUserOtpAction, getOtpFormTokenAction } from "@/actions/user-auth";
 import OrderSummaryCard from "@/components/features/checkout/components/OrderSummaryCard";
+import { useSiteContent } from "@/context/ContentContext";
 
 interface OtpStepProps {
   phone: string;
@@ -35,6 +36,7 @@ export default function OtpStep({
   formToken,
   honeypot,
 }: OtpStepProps) {
+  const { checkout } = useSiteContent();
   const {
     setValue,
     formState: { errors },
@@ -156,17 +158,16 @@ export default function OtpStep({
           <Smartphone className="w-5 h-5" />
         </div>
         <p className="text-xs font-black text-stone-200">
-          کد تایید پیامک‌شده را وارد کنید
+          {checkout.otpModalHeading}
         </p>
         <p className="text-[11px] text-stone-400 leading-relaxed max-w-xs mx-auto">
-          کد تایید ۴ رقمی برای شماره{" "}
+          {checkout.otpNoticePrefix}{" "}
           <span
             className="text-gold-400 font-bold tracking-wider font-sans"
             dir="ltr"
           >
             {phone}
-          </span>{" "}
-          ارسال گردید.
+          </span>
         </p>
       </div>
 
@@ -203,7 +204,7 @@ export default function OtpStep({
       <div className="text-center">
         {timer > 0 ? (
           <span className="text-xs text-stone-500 font-medium">
-            امکان ارسال مجدد کد در:{" "}
+            {checkout.resendCountdownPrefix}{" "}
             <span className="text-stone-300 font-bold font-sans">
               {formatTime(timer)}
             </span>
@@ -215,7 +216,7 @@ export default function OtpStep({
             onClick={handleResendCode}
             className="text-xs text-gold-500 hover:text-gold-400 font-bold hover:underline cursor-pointer"
           >
-            ارسال مجدد کد تایید
+            {checkout.resendButtonText}
           </button>
         )}
       </div>
@@ -223,7 +224,7 @@ export default function OtpStep({
       <div className="border-t border-stone-850 pt-4 mt-4 flex items-center justify-between">
         <div className="text-right">
           <span className="text-[10px] text-stone-500 block font-bold">
-            پرداخت در محل:
+            {checkout.payableAmountPrefix}
           </span>
           <span className="text-sm font-black text-gold-500 font-sans">
             {finalPrice.toLocaleString()} تومان
@@ -237,7 +238,7 @@ export default function OtpStep({
             className="text-stone-400 hover:text-stone-200 cursor-pointer text-xs"
             disabled={isSubmitting}
           >
-            ویرایش
+            {checkout.editDetailsButton}
           </Button>
           <Button
             type="submit"
@@ -247,10 +248,10 @@ export default function OtpStep({
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                درحال بررسی...
+                {checkout.verifyingButton}
               </>
             ) : (
-              "تایید نهایی و ثبت"
+              checkout.verifyAndSubmitButton
             )}
           </Button>
         </div>

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CheckoutFormValues } from "@/domain/validations/order.schema";
 import { toEnglishDigits } from "@/lib/utils";
 import OrderSummaryCard from "@/components/features/checkout/components/OrderSummaryCard";
+import { useSiteContent } from "@/context/ContentContext";
 
 interface UserInfoStepProps {
   onSubmit: (e: React.FormEvent) => void;
@@ -32,6 +33,7 @@ export default function UserInfoStep({
   isCheckingPhone,
   summaryData,
 }: UserInfoStepProps) {
+  const { checkout } = useSiteContent();
   const {
     register,
     formState: { errors },
@@ -54,16 +56,16 @@ export default function UserInfoStep({
         <div className="space-y-4">
           <div className="text-center p-3 bg-stone-950/40 border border-stone-850 rounded-xl space-y-1">
             <p className="text-xs text-stone-300 font-bold">
-              ورود سریع به حساب کاربری
+              {checkout.quickLoginBoxTitle}
             </p>
             <p className="text-[10px] text-stone-400">
-              کافیست شماره همراه خود را برای ورود سریع وارد کنید.
+              {checkout.quickLoginBoxDesc}
             </p>
           </div>
           <div className="space-y-1.5 text-right">
             <label className="text-xs font-bold text-stone-300 flex items-center gap-1">
               <Phone className="w-3.5 h-3.5 text-stone-500" />
-              شماره موبایل <span className="text-red-500">*</span>
+              {checkout.phoneLabel} <span className="text-red-500">*</span>
             </label>
             <input
               type="tel"
@@ -78,7 +80,7 @@ export default function UserInfoStep({
                   : "border-stone-800/80 focus:border-gold-500 focus:ring-gold-500"
               }`}
               dir="ltr"
-              placeholder="09123456789"
+              placeholder={checkout.phonePlaceholder}
             />
             {errors.phone && (
               <p className="text-[10px] text-destructive font-bold mt-1">
@@ -93,7 +95,8 @@ export default function UserInfoStep({
             <div className="space-y-1.5 text-right">
               <label className="text-xs font-bold text-stone-300 flex items-center gap-1">
                 <User className="w-3.5 h-3.5 text-stone-500" />
-                نام <span className="text-red-500">*</span>
+                {checkout.firstNameLabel}{" "}
+                <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -103,7 +106,7 @@ export default function UserInfoStep({
                     ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
                     : "border-stone-800/80 focus:border-gold-500 focus:ring-gold-500"
                 }`}
-                placeholder="مثال: رضا"
+                placeholder={checkout.firstNamePlaceholder}
               />
               {errors.firstName && (
                 <p className="text-[10px] text-destructive font-bold mt-1">
@@ -114,7 +117,7 @@ export default function UserInfoStep({
             <div className="space-y-1.5 text-right">
               <label className="text-xs font-bold text-stone-300 flex items-center gap-1">
                 <User className="w-3.5 h-3.5 text-stone-500" />
-                نام خانوادگی <span className="text-red-500">*</span>
+                {checkout.lastNameLabel} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -124,7 +127,7 @@ export default function UserInfoStep({
                     ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
                     : "border-stone-800/80 focus:border-gold-500 focus:ring-gold-500"
                 }`}
-                placeholder="مثال: کریمی"
+                placeholder={checkout.lastNamePlaceholder}
               />
               {errors.lastName && (
                 <p className="text-[10px] text-destructive font-bold mt-1">
@@ -137,7 +140,7 @@ export default function UserInfoStep({
           <div className="space-y-1.5 text-right">
             <label className="text-xs font-bold text-stone-300 flex items-center gap-1">
               <Phone className="w-3.5 h-3.5 text-stone-500" />
-              شماره موبایل <span className="text-red-500">*</span>
+              {checkout.phoneLabel} <span className="text-red-500">*</span>
             </label>
             <input
               type="tel"
@@ -152,7 +155,7 @@ export default function UserInfoStep({
                   : "border-stone-800/80 focus:border-gold-500 focus:ring-gold-500"
               }`}
               dir="ltr"
-              placeholder="09123456789"
+              placeholder={checkout.phonePlaceholder}
             />
             {errors.phone && (
               <p className="text-[10px] text-destructive font-bold mt-1">
@@ -171,15 +174,15 @@ export default function UserInfoStep({
         >
           <KeyRound className="w-3.5 h-3.5" />
           {isLoginMode
-            ? "ایجاد حساب کاربری جدید (ثبت‌نام)"
-            : "از قبل اکانت دارید؟ برای ورود سریع کلیک کنید"}
+            ? checkout.switchToRegisterText
+            : checkout.switchToLoginText}
         </button>
       </div>
 
       <div className="border-t border-stone-850 pt-4 mt-4 flex justify-between items-center">
         <div className="text-right">
           <span className="text-[10px] text-stone-500 block font-bold">
-            مبلغ کل فاکتور:
+            {checkout.totalInvoiceAmountLabel}
           </span>
           <span className="text-sm font-black text-gold-500 font-sans">
             {finalPrice.toLocaleString()} تومان
@@ -192,14 +195,16 @@ export default function UserInfoStep({
             onClick={onClose}
             className="text-stone-400 hover:text-stone-200 cursor-pointer text-xs"
           >
-            انصراف
+            {checkout.cancelButton}
           </Button>
           <Button
             type="submit"
             disabled={isCheckingPhone}
             className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-bold px-5 py-2.5 rounded-xl cursor-pointer text-xs"
           >
-            {isCheckingPhone ? "بررسی..." : "مرحله بعد"}
+            {isCheckingPhone
+              ? checkout.checkingButton
+              : checkout.nextStepButton}
           </Button>
         </div>
       </div>

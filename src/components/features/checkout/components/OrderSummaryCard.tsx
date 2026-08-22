@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Coffee, Layers, Scale, Sparkles } from "lucide-react";
+import { useSiteContent } from "@/context/ContentContext";
 
 interface OrderSummaryCardProps {
   blend: string;
@@ -16,15 +17,17 @@ export default function OrderSummaryCard({
   weightGrams,
   quantity,
 }: OrderSummaryCardProps) {
+  const { checkout } = useSiteContent();
+
   return (
     <div className="bg-stone-950/60 border border-stone-850 p-3.5 rounded-xl space-y-2.5 text-right font-sans">
       <div className="flex items-center justify-between border-b border-stone-850/80 pb-2">
         <span className="text-[11px] font-black text-gold-400 flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-gold-500" />
-          مشخصات قهوه انتخابی شما
+          {checkout.summaryHeading}
         </span>
         <span className="text-[10px] bg-gold-500/10 text-gold-400 border border-gold-500/20 px-2 py-0.5 rounded-full font-bold">
-          {quantity} بسته
+          {quantity} {checkout.packageCountUnit}
         </span>
       </div>
 
@@ -40,9 +43,11 @@ export default function OrderSummaryCard({
         <div className="flex items-center gap-1.5 col-span-2 text-stone-400 text-[10px]">
           <Scale className="w-3.5 h-3.5 text-stone-500 shrink-0" />
           <span>
-            وزن هر بسته:{" "}
-            <b className="text-stone-200">{weightGrams.toLocaleString()} گرم</b>{" "}
-            (مجموعاً {((weightGrams * quantity) / 1000).toFixed(1)} کیلوگرم)
+            {checkout.totalWeightLabel}{" "}
+            <b className="text-stone-200">
+              {weightGrams.toLocaleString()} {checkout.packageWeightUnit}
+            </b>{" "}
+            ({((weightGrams * quantity) / 1000).toFixed(1)} کیلوگرم)
           </span>
         </div>
       </div>

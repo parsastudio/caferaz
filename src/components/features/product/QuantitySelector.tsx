@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Flame } from "lucide-react";
+import { useSiteContent } from "@/context/ContentContext";
 
 interface QuantitySelectorProps {
   quantity: number;
@@ -14,16 +15,18 @@ export default function QuantitySelector({
   setQuantity,
   remainingStockCount,
 }: QuantitySelectorProps) {
+  const { product } = useSiteContent();
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-stone-900/30 rounded-2xl border border-stone-800/80">
       <div className="space-y-1">
         <span className="text-xs font-black text-stone-300 block">
-          ۴. تعداد بسته‌های مورد نیاز:
+          ۴. {product.quantityStepTitle}
         </span>
         {remainingStockCount > 0 && remainingStockCount <= 5 && (
           <span className="text-xs text-red-400 font-bold flex items-center gap-1.5">
-            <Flame className="w-4 h-4 fill-red-500 text-red-500" /> تنها{" "}
-            {remainingStockCount} بسته دیگر در انبار باقی مانده است!
+            <Flame className="w-4 h-4 fill-red-500 text-red-500" />
+            {product.stockWarningText}
           </span>
         )}
       </div>

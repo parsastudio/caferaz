@@ -3,7 +3,8 @@
 import React, { memo } from "react";
 import { Percent, Zap, Coffee, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { STATIC_BLENDS, CoffeeBlend, BlendProfile } from "@/lib/constants";
+import { CoffeeBlend, BlendProfile } from "@/lib/constants";
+import { useSiteContent } from "@/context/ContentContext";
 
 interface BlendSelectorProps {
   selectedBlend: string;
@@ -16,18 +17,21 @@ function BlendSelectorComponent({
   selectedBlend,
   setSelectedBlend,
   blendProfile,
-  blends = STATIC_BLENDS,
+  blends,
 }: BlendSelectorProps) {
+  const { product } = useSiteContent();
+  const activeBlends = blends && blends.length > 0 ? blends : product.blends;
+
   return (
     <div className="space-y-4">
       <label className="text-sm font-black text-stone-300 flex items-center gap-2">
         <span className="w-5 h-5 rounded-md bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center text-xs font-black">
           ۲
         </span>
-        درصد ترکیب دانه‌ها (بلند):
+        {product.blendStepTitle}
       </label>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {blends.map((blend) => {
+        {activeBlends.map((blend) => {
           const isSelected = selectedBlend === blend.value;
           return (
             <button
@@ -62,7 +66,7 @@ function BlendSelectorComponent({
         <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
             <Percent className="w-4 h-4 text-gold-500 shrink-0" />
-            شناسنامه طعمی و ویژگی‌های ترکیب
+            {product.blendProfileTitle}
           </span>
           <motion.span
             key={blendProfile.label}
@@ -90,7 +94,7 @@ function BlendSelectorComponent({
                 }`}
               >
                 <span className="text-[9px] font-black text-stone-300 px-1 truncate select-none">
-                  {blendProfile.robusta}٪ روبوستا
+                  {blendProfile.robusta}٪ {product.robustaLabel}
                 </span>
               </motion.div>
             )}
@@ -104,7 +108,7 @@ function BlendSelectorComponent({
                 }`}
               >
                 <span className="text-[9px] font-black text-stone-950 px-1 truncate select-none">
-                  {blendProfile.arabica}٪ عربیکا
+                  {blendProfile.arabica}٪ {product.arabicaLabel}
                 </span>
               </motion.div>
             )}
@@ -115,7 +119,7 @@ function BlendSelectorComponent({
               <span className="text-[10px] text-stone-400 font-bold flex items-center justify-between gap-1">
                 <span className="flex items-center gap-1">
                   <Zap className="w-3.5 h-3.5 text-gold-500 shrink-0" />
-                  کافئین و انرژی
+                  {product.caffeineLabel}
                 </span>
                 <span className="text-gold-400 font-black text-[10px] font-sans">
                   {blendProfile.caffeine}٪
@@ -135,7 +139,7 @@ function BlendSelectorComponent({
               <span className="text-[10px] text-stone-400 font-bold flex items-center justify-between gap-1">
                 <span className="flex items-center gap-1">
                   <Coffee className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                  غلظت و تنواری (Body)
+                  {product.bodyLabel}
                 </span>
                 <span className="text-stone-300 font-black text-[10px] font-sans">
                   {blendProfile.body}٪
@@ -155,7 +159,7 @@ function BlendSelectorComponent({
               <span className="text-[10px] text-stone-400 font-bold flex items-center justify-between gap-1">
                 <span className="flex items-center gap-1">
                   <Sparkles className="w-3.5 h-3.5 text-gold-400 shrink-0" />
-                  اسیدیته و عطر (Aroma)
+                  {product.aromaLabel}
                 </span>
                 <span className="text-gold-300 font-black text-[10px] font-sans">
                   {blendProfile.aroma}٪

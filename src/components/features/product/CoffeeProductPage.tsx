@@ -15,7 +15,6 @@ import ProductTabsSection, {
 } from "@/components/features/product/ProductTabsSection";
 import { useCheckout } from "@/context/CheckoutContext";
 import { Coupon, ProductWithPricing } from "@/types";
-import { STATIC_BLENDS, STATIC_GRINDS } from "@/lib/constants";
 
 interface CoffeeProductPageProps {
   initialProduct: ProductWithPricing;
@@ -99,13 +98,11 @@ export default function CoffeeProductPage({
             selectedBlend={selectedBlend}
             setSelectedBlend={setSelectedBlend}
             blendProfile={blendProfile}
-            blends={STATIC_BLENDS}
           />
 
           <GrindSelector
             selectedGrind={selectedGrind}
             setSelectedGrind={setSelectedGrind}
-            grinds={STATIC_GRINDS}
           />
 
           <QuantitySelector

@@ -3,12 +3,14 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { Star, Flame, Truck, ShieldCheck } from "lucide-react";
+import { useSiteContent } from "@/context/ContentContext";
 
 interface ProductVisualsProps {
   productName: string;
 }
 
 export default function ProductVisuals({ productName }: ProductVisualsProps) {
+  const { hero } = useSiteContent();
   const [imgError, setImgError] = useState(false);
 
   return (
@@ -16,7 +18,7 @@ export default function ProductVisuals({ productName }: ProductVisualsProps) {
       <div className="relative aspect-square rounded-3xl overflow-hidden bg-stone-900 border border-stone-800 shadow-2xl">
         <div className="absolute top-4 right-4 z-10 bg-stone-950/85 border border-stone-800 text-gold-500 px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 backdrop-blur-md">
           <Star className="w-4 h-4 fill-gold-500 text-gold-500" />
-          <span>۴.۹ از ۵ (از میان ۸۴ رای مشتریان)</span>
+          <span>{hero.ratingText}</span>
         </div>
 
         {!imgError ? (
@@ -36,7 +38,7 @@ export default function ProductVisuals({ productName }: ProductVisualsProps) {
               {productName}
             </span>
             <span className="text-xs text-stone-500">
-              تصویر پیش‌فرض بسته‌بندی فله کافه راز
+              {hero.fallbackVisualText}
             </span>
           </div>
         )}
@@ -46,19 +48,19 @@ export default function ProductVisuals({ productName }: ProductVisualsProps) {
         <div className="flex flex-col items-center justify-center p-1.5">
           <Truck className="w-5 h-5 text-gold-500 mb-1.5" />
           <span className="text-[11px] font-bold text-stone-300">
-            ارسال سریع و مطمئن
+            {hero.fastShippingText}
           </span>
         </div>
         <div className="flex flex-col items-center justify-center p-1.5 border-x border-stone-800">
           <ShieldCheck className="w-5 h-5 text-emerald-500 mb-1.5" />
           <span className="text-[11px] font-bold text-stone-300">
-            تضمین کیفیت دانه
+            {hero.qualityGuaranteeText}
           </span>
         </div>
         <div className="flex flex-col items-center justify-center p-1.5">
           <ShieldCheck className="w-5 h-5 text-orange-500 mb-1.5" />
           <span className="text-[11px] font-bold text-stone-300">
-            بسته‌بندی استاندارد و پلمپ
+            {hero.sealedPackageText}
           </span>
         </div>
       </div>

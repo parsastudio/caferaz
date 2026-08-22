@@ -4,6 +4,7 @@ import React, { memo } from "react";
 import { ShoppingBag, Percent, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { useSiteContent } from "@/context/ContentContext";
 
 interface PriceSummaryProps {
   basePrice: number;
@@ -18,6 +19,7 @@ function PriceSummaryComponent({
   isOutOfStock,
   onCheckout,
 }: PriceSummaryProps) {
+  const { product } = useSiteContent();
   const hasDiscount = finalPrice < basePrice;
   const discountPercent = hasDiscount
     ? Math.round(((basePrice - finalPrice) / basePrice) * 100)
@@ -31,10 +33,10 @@ function PriceSummaryComponent({
         <div className="space-y-0.5 text-right">
           <span className="text-xs font-bold text-stone-400 flex items-center gap-1">
             <Sparkles className="w-3.5 h-3.5 text-gold-500" />
-            مبلغ قابل پرداخت نهایی:
+            {product.pricePayableLabel}
           </span>
           <span className="text-[10px] text-stone-500 font-medium block">
-            همراه با ارسال رایگان و پرداخت در محل
+            {product.freeShippingSubLabel}
           </span>
         </div>
 
@@ -42,11 +44,11 @@ function PriceSummaryComponent({
           {hasDiscount && (
             <div className="flex items-center gap-2">
               <span className="text-xs text-stone-500 line-through font-sans">
-                {basePrice.toLocaleString()} تومان
+                {basePrice.toLocaleString()} {product.currency}
               </span>
               <span className="text-[10px] bg-red-500/10 border border-red-500/20 text-red-400 px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5">
                 <Percent className="w-2.5 h-2.5" />
-                {discountPercent}٪ تخفیف
+                {discountPercent}٪ {product.discountBadge}
               </span>
             </div>
           )}
@@ -57,7 +59,9 @@ function PriceSummaryComponent({
             className="text-2xl lg:text-3xl font-black text-gold-500 font-sans tracking-tight"
           >
             {finalPrice.toLocaleString()}{" "}
-            <span className="text-sm font-bold text-stone-400">تومان</span>
+            <span className="text-sm font-bold text-stone-400">
+              {product.currency}
+            </span>
           </motion.div>
         </div>
       </div>
@@ -69,9 +73,7 @@ function PriceSummaryComponent({
         variant={isOutOfStock ? "secondary" : "default"}
       >
         <ShoppingBag className="w-5 h-5 ml-2" />
-        {isOutOfStock
-          ? "موجودی انبار برای این وزن و تعداد کافی نیست"
-          : "ثبت سفارش و تسویه حساب"}
+        {isOutOfStock ? product.outOfStockButton : product.orderCheckoutButton}
       </Button>
     </div>
   );
