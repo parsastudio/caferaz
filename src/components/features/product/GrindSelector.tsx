@@ -1,22 +1,18 @@
 "use client";
 
 import React from "react";
-import { CoffeeGrind } from "@/lib/constants";
 import { useSiteContent } from "@/context/ContentContext";
 
 interface GrindSelectorProps {
   selectedGrind: string;
   setSelectedGrind: (grind: string) => void;
-  grinds?: CoffeeGrind[];
 }
 
 export default function GrindSelector({
   selectedGrind,
   setSelectedGrind,
-  grinds,
 }: GrindSelectorProps) {
   const { product } = useSiteContent();
-  const activeGrinds = grinds && grinds.length > 0 ? grinds : product.grinds;
 
   return (
     <div className="space-y-3.5">
@@ -27,7 +23,7 @@ export default function GrindSelector({
         {product.grindStepTitle}
       </label>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {activeGrinds.map((grind) => (
+        {product.grinds.map((grind) => (
           <button
             key={grind.value}
             type="button"

@@ -2,7 +2,6 @@ import {
   SiteContent,
   siteContentSchema,
 } from "@/domain/validations/content.schema";
-import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
 
 function isPlainObject(item: unknown): item is Record<string, unknown> {
   return Boolean(
@@ -41,8 +40,4 @@ export function deepMergeContent(
 
   const parsed = siteContentSchema.safeParse(result);
   return parsed.success ? parsed.data : fallback;
-}
-
-export function getOfflineContent(): SiteContent {
-  return DEFAULT_SITE_CONTENT;
 }

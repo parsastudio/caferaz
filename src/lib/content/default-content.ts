@@ -56,7 +56,6 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     currency: "تومان",
     orderCheckoutButton: "ثبت سفارش و تسویه حساب",
     outOfStockButton: "موجودی انبار برای این وزن و تعداد کافی نیست",
-    outOfStockSummary: "ناموجود",
     mobileQuickOrderButton: "ثبت فوری سفارش",
     mobileOutOfStockButton: "ناموجود",
     commentsTabLabel: "نظرات مشتریان",
@@ -293,7 +292,6 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     loginCta: "دریافت کد ورود سریع",
     registerCta: "ثبت‌نام و دریافت کد تایید",
     processingText: "در حال پردازش...",
-    quickLoginHint: "کافیست شماره همراه خود را برای ورود سریع وارد کنید.",
     registeredHint: "این شماره از قبل ثبت شده است. به بخش ورود منتقل شدید.",
     unregisteredHint:
       "شماره همراه شما ثبت نشده است. لطفاً فرم ثبت‌نام زیر را تکمیل فرمایید.",

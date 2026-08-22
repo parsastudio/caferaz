@@ -1,7 +1,6 @@
 import { OrderStatus } from "@/domain/validations/order.schema";
 import { CommentStatus } from "@/domain/validations/comment.schema";
 import { CouponType, DiscountType } from "@/domain/validations/coupon.schema";
-import { FooterConfig } from "@/domain/validations/settings.schema";
 import { FAQItem } from "@/domain/validations/faq.schema";
 import {
   SiteContent,
@@ -15,7 +14,6 @@ export type {
   CommentStatus,
   CouponType,
   DiscountType,
-  FooterConfig,
   FAQItem,
   SiteContent,
   SiteUspItem,

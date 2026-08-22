@@ -51,19 +51,6 @@ export class ContentService {
     return true;
   }
 
-  static async updateSection<K extends keyof SiteContent>(
-    section: K,
-    data: SiteContent[K],
-  ): Promise<boolean> {
-    const current = await this.getSiteContent();
-    const updated = {
-      ...current,
-      [section]: data,
-    };
-
-    return await this.updateSiteContent(updated);
-  }
-
   static async updateSingleKey(
     path: string,
     newValue: string,

@@ -3,24 +3,21 @@
 import React, { memo } from "react";
 import { Percent, Zap, Coffee, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { CoffeeBlend, BlendProfile } from "@/lib/constants";
+import { BlendProfile } from "@/lib/constants";
 import { useSiteContent } from "@/context/ContentContext";
 
 interface BlendSelectorProps {
   selectedBlend: string;
   setSelectedBlend: (blend: string) => void;
   blendProfile: BlendProfile;
-  blends?: CoffeeBlend[];
 }
 
 function BlendSelectorComponent({
   selectedBlend,
   setSelectedBlend,
   blendProfile,
-  blends,
 }: BlendSelectorProps) {
   const { product } = useSiteContent();
-  const activeBlends = blends && blends.length > 0 ? blends : product.blends;
 
   return (
     <div className="space-y-4">
@@ -31,7 +28,7 @@ function BlendSelectorComponent({
         {product.blendStepTitle}
       </label>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {activeBlends.map((blend) => {
+        {product.blends.map((blend) => {
           const isSelected = selectedBlend === blend.value;
           return (
             <button

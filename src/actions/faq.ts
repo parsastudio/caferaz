@@ -12,15 +12,6 @@ import {
 } from "@/domain/validations/faq.schema";
 import { ActionResponse } from "@/types/actions";
 
-export async function getFaqsAction(): Promise<ActionResponse<FAQItem[]>> {
-  try {
-    const data = await FaqService.getAllFaqs();
-    return { success: true, data };
-  } catch {
-    return { success: false, error: "خطا در بارگذاری سوالات متداول." };
-  }
-}
-
 export async function createFaqAction(
   payload: CreateFaqInput,
 ): Promise<ActionResponse<FAQItem>> {
