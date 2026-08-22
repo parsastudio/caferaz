@@ -217,24 +217,6 @@ async function main() {
         key: "site_content",
         value: DEFAULT_SITE_CONTENT,
       },
-      {
-        key: "site_footer",
-        value: {
-          phones: ["09002570060", "09002570040", "021-77311806"],
-          address: "تهران، کافه راز",
-          eitaa: "https://eitaa.com/razcoffee",
-          website: "https://caferaz.ir",
-        },
-      },
-      {
-        key: "site_faq",
-        value: DEFAULT_SITE_CONTENT.faq.items,
-      },
-      {
-        key: "site_subtitle",
-        value:
-          "عرضه مستقیم انواع میکس‌های قهوه فله با عطر مطلوب، قیمت بسیار اقتصادی و ارسال سریع به سراسر کشور.",
-      },
     ],
   });
 }

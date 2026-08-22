@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition, useMemo } from "react";
-import { Search, X, Check, Loader2 } from "lucide-react";
+import { Search, X, Check, Loader2, Sparkles, Type } from "lucide-react";
 import { toast } from "sonner";
 import { updateSingleContentKeyAction } from "@/actions/content";
 import { SiteContent } from "@/domain/validations/content.schema";
@@ -62,12 +62,15 @@ export default function SpotlightContentEditor({
     return list;
   }, [initialContent, product]);
 
+  const cleanQuery = searchQuery.trim();
+  const isSearchActive = cleanQuery.length >= 3;
+
   const filteredItems = useMemo(() => {
-    const rawQuery = searchQuery.trim().toLowerCase();
-    if (!rawQuery) {
-      return allItems;
+    if (!isSearchActive) {
+      return [];
     }
 
+    const rawQuery = cleanQuery.toLowerCase();
     const normalizedQuery = toEnglishDigits(rawQuery);
 
     return allItems.filter((item) => {
@@ -82,7 +85,7 @@ export default function SpotlightContentEditor({
         pathStr.includes(normalizedQuery)
       );
     });
-  }, [allItems, searchQuery, values]);
+  }, [allItems, cleanQuery, isSearchActive, values]);
 
   const handleValueChange = (path: string, newVal: string) => {
     setValues((prev) => ({
@@ -134,9 +137,11 @@ export default function SpotlightContentEditor({
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-auto">
-            <span className="text-xs font-bold text-stone-400 bg-stone-950 px-3 py-1.5 rounded-xl border border-stone-850 font-sans">
-              {filteredItems.length} مورد یافت شد
-            </span>
+            {isSearchActive && (
+              <span className="text-xs font-bold text-stone-400 bg-stone-950 px-3 py-1.5 rounded-xl border border-stone-850 font-sans animate-in fade-in duration-150">
+                {filteredItems.length} مورد یافت شد
+              </span>
+            )}
           </div>
         </div>
 
@@ -145,7 +150,7 @@ export default function SpotlightContentEditor({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="کلمه یا متن مورد نظر برای تغییر را بنویسید (مثال: ۰۹۰۰۲۵۷۰۰۶۰، ارسال سریع، ایتا...)"
+            placeholder="حداقل ۳ حرف بنویسید (مثال: ۰۹۰۰، ارسال سریع، ایتا، پشتیبانی...)"
             className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-2xl pr-11 pl-11 py-3.5 text-xs sm:text-sm text-stone-100 outline-none transition-all font-medium placeholder:text-stone-600"
           />
           <Search className="w-5 h-5 text-stone-500 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -162,8 +167,21 @@ export default function SpotlightContentEditor({
       </div>
 
       <div className="space-y-4">
-        {filteredItems.length === 0 ? (
-          <div className="text-center py-16 border border-dashed border-stone-850 bg-stone-900/10 rounded-2xl space-y-2">
+        {!isSearchActive ? (
+          <div className="text-center py-16 border border-dashed border-stone-850/80 bg-stone-900/10 rounded-3xl p-8 space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center mx-auto">
+              <Type className="w-6 h-6" />
+            </div>
+            <p className="text-sm font-bold text-stone-300">
+              برای جستجو و ویرایش، حداقل ۳ حرف در باکس بالا وارد کنید.
+            </p>
+            <p className="text-xs text-stone-500 max-w-sm mx-auto leading-relaxed">
+              می‌توانید کلمات مندرج در صفحه اصلی، شماره‌های تماس، سوالات متداول
+              یا نام و توضیحات محصول را جستجو کنید.
+            </p>
+          </div>
+        ) : filteredItems.length === 0 ? (
+          <div className="text-center py-16 border border-dashed border-stone-850 bg-stone-900/10 rounded-3xl p-8 space-y-2">
             <p className="text-xs text-stone-400 font-bold">
               متنی مطابق با عبارت «{searchQuery}» پیدا نشد.
             </p>
@@ -179,7 +197,7 @@ export default function SpotlightContentEditor({
             return (
               <div
                 key={item.path}
-                className="bg-stone-900/30 border border-stone-850 hover:border-stone-800 p-4 sm:p-5 rounded-2xl transition-all space-y-3"
+                className="bg-stone-900/30 border border-stone-850 hover:border-stone-800 p-4 sm:p-5 rounded-2xl transition-all space-y-3 animate-in fade-in duration-150"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-850/80 pb-2.5">
                   <span

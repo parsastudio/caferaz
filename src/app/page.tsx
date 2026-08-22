@@ -4,7 +4,6 @@ import ProductPageSkeleton from "@/components/features/product/ProductPageSkelet
 import { getMainProductAction } from "@/actions/product";
 import { getCommentsAction } from "@/actions/public-comment";
 import { getCouponsAction } from "@/actions/admin-coupon";
-import { prisma } from "@/lib/prisma";
 import WhyCafeRaz from "@/components/features/landing/WhyCafeRaz";
 import FAQSection from "@/components/features/landing/FAQSection";
 import { FAQItem } from "@/domain/types";
@@ -28,18 +27,12 @@ export default async function Page() {
   const couponsResult = await getCouponsAction();
 
   let faqs: FAQItem[] = DEFAULT_SITE_CONTENT.faq.items;
-  let siteSubtitle = "";
+  let siteSubtitle = DEFAULT_SITE_CONTENT.layout.brandSubtitle;
 
   try {
     const siteContent = await ContentService.getSiteContent();
     faqs = siteContent.faq.items;
-
-    const siteSubtitleOpt = await prisma.option.findUnique({
-      where: { key: "site_subtitle" },
-    });
-    siteSubtitle = siteSubtitleOpt
-      ? (siteSubtitleOpt.value as string)
-      : siteContent.layout.brandSubtitle;
+    siteSubtitle = siteContent.layout.brandSubtitle;
   } catch (error) {
     console.warn("Database connection fallback during build", error);
   }
