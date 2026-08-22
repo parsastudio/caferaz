@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import ProfileDashboardClient from "@/components/features/profile/ProfileDashboardClient";
 import { verifyScopedToken } from "@/lib/session";
 import { ContentProvider } from "@/context/ContentContext";
+import { ContentService } from "@/services/content.service";
 import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
 
 export default async function ProfilePage() {
@@ -19,6 +20,13 @@ export default async function ProfilePage() {
 
   if (!phone) {
     redirect("/login");
+  }
+
+  let siteContent = DEFAULT_SITE_CONTENT;
+  try {
+    siteContent = await ContentService.getSiteContent();
+  } catch (err) {
+    console.warn("Content service fallback in profile", err);
   }
 
   const userDb = await prisma.user.findUnique({
@@ -60,7 +68,7 @@ export default async function ProfilePage() {
   });
 
   return (
-    <ContentProvider content={DEFAULT_SITE_CONTENT}>
+    <ContentProvider content={siteContent}>
       <main className="min-h-screen bg-stone-950 text-stone-100 py-12 px-4">
         <div className="max-w-4xl mx-auto">
           <ProfileDashboardClient user={user} initialOrders={orders} />

@@ -6,6 +6,7 @@ import {
   UpdateSettingsInput,
 } from "@/domain/validations/settings.schema";
 import { Prisma } from "@prisma/client";
+import { ContentService } from "@/services/content.service";
 
 export class SettingsService {
   static async getSettings(): Promise<{
@@ -13,11 +14,10 @@ export class SettingsService {
     siteFaq: FAQItem[];
     siteFooter: FooterConfig;
   }> {
+    const siteContent = await ContentService.getSiteContent();
+
     const siteSubtitleOpt = await prisma.option.findUnique({
       where: { key: "site_subtitle" },
-    });
-    const siteFaqOpt = await prisma.option.findUnique({
-      where: { key: "site_faq" },
     });
     const siteFooterOpt = await prisma.option.findUnique({
       where: { key: "site_footer" },
@@ -25,17 +25,20 @@ export class SettingsService {
 
     const siteSubtitle = siteSubtitleOpt
       ? (siteSubtitleOpt.value as string)
-      : "";
-    const siteFaq = siteFaqOpt
-      ? (siteFaqOpt.value as unknown as FAQItem[])
-      : [];
+      : siteContent.layout.brandSubtitle;
+
     const siteFooter = siteFooterOpt
       ? (siteFooterOpt.value as unknown as FooterConfig)
-      : { phones: [], address: "", eitaa: "", website: "" };
+      : {
+          phones: ["09002570060", "09002570040", "021-77311806"],
+          address: "تهران، کافه راز",
+          eitaa: "https://eitaa.com/razcoffee",
+          website: "https://caferaz.ir",
+        };
 
     return {
       siteSubtitle,
-      siteFaq,
+      siteFaq: siteContent.faq.items,
       siteFooter,
     };
   }
@@ -49,6 +52,16 @@ export class SettingsService {
         value: input.value as unknown as Prisma.InputJsonValue,
       },
     });
+
+    if (input.key === "site_faq") {
+      await ContentService.updateSection("faq", {
+        badge: "پاسخ به ابهامات شما",
+        title: "سوالات متداول مشتریان",
+        description:
+          "پاسخ به رایج‌ترین پرسش‌های ثبت سفارش، نوع ارسال و فرآیند دم‌آوری قهوه‌های کافه راز.",
+        items: input.value as FAQItem[],
+      });
+    }
 
     return true;
   }

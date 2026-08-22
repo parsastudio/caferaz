@@ -3,6 +3,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 import crypto from "crypto";
 import "dotenv/config";
+import { DEFAULT_SITE_CONTENT } from "../src/lib/content/default-content";
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -213,6 +214,10 @@ async function main() {
         },
       },
       {
+        key: "site_content",
+        value: DEFAULT_SITE_CONTENT,
+      },
+      {
         key: "site_footer",
         value: {
           phones: ["09002570060", "09002570040", "021-77311806"],
@@ -223,28 +228,7 @@ async function main() {
       },
       {
         key: "site_faq",
-        value: [
-          {
-            question: "مدت زمان ارسال سفارش‌ها چقدر است؟",
-            answer:
-              "سفارشات ثبت‌شده بلافاصله وارد فرآیند آماده‌سازی و بسته‌بندی شده و ظرف مدت ۲۴ الی ۷۲ ساعت کاری از طریق پیک یا پست پیشتاز تحویل می‌گردند.",
-          },
-          {
-            question: "چگونه می‌توانم ترکیب قهوه اختصاصی خودم را سفارش دهم؟",
-            answer:
-              "در بخش خرید بالای همین صفحه می‌توانید نسبت‌های متفاوتی از دانه عربیکا و روبوستا را بر اساس ذائقه خود انتخاب کنید و ویژگی‌های ترکیب را فوراً بسنجید.",
-          },
-          {
-            question: "آیا پرداخت در محل فعال است؟",
-            answer:
-              "بله، به منظور افزایش امنیت و جلب اطمینان کامل شما، امکان پرداخت فاکتور پس از دریافت کالا درب منزل یا محل کار در سراسر کشور فراهم شده است.",
-          },
-          {
-            question: "تفاوت میان درجات مختلف آسیاب چیست؟",
-            answer:
-              "هر روش دم‌آوری نیازمند میزان درشتی یا نرمی مشخصی از پودر قهوه است. ما بر اساس انتخاب دستگاه شما (اسپرسوساز، موکاپات، فرانسه یا قهوه ترک) دانه‌ها را آسیاب می‌کنیم.",
-          },
-        ],
+        value: DEFAULT_SITE_CONTENT.faq.items,
       },
       {
         key: "site_subtitle",

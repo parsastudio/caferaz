@@ -9,6 +9,7 @@ import GlobalStatusBar from "@/components/layout/GlobalStatusBar";
 import RouteProgressBar from "@/components/layout/RouteProgressBar";
 import { prisma } from "@/lib/prisma";
 import { Suspense } from "react";
+import { ContentService } from "@/services/content.service";
 import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
 
 const vazirMatn = localFont({
@@ -27,8 +28,11 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   let footerData: FooterConfig | null = null;
+  let siteContent = DEFAULT_SITE_CONTENT;
 
   try {
+    siteContent = await ContentService.getSiteContent();
+
     const footerOpt = await prisma.option.findUnique({
       where: { key: "site_footer" },
     });
@@ -61,7 +65,7 @@ export default async function RootLayout({
         className="min-h-full flex flex-col bg-background text-foreground"
         dir="rtl"
       >
-        <ContentProvider content={DEFAULT_SITE_CONTENT}>
+        <ContentProvider content={siteContent}>
           <CheckoutProvider>
             <Suspense fallback={null}>
               <RouteProgressBar />

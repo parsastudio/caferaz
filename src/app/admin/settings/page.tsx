@@ -1,11 +1,13 @@
 import React from "react";
 import { getSettingsAction } from "@/actions/settings";
 import { getMainProductAction } from "@/actions/product";
+import { ContentService } from "@/services/content.service";
 import AdminSettingsClient from "@/components/features/admin/AdminSettingsClient";
 
 export default async function AdminSettingsPage() {
   const result = await getSettingsAction();
   const productResult = await getMainProductAction();
+  const siteContent = await ContentService.getSiteContent();
 
   const productId =
     productResult.success && productResult.data ? productResult.data.id : "";
@@ -23,14 +25,16 @@ export default async function AdminSettingsPage() {
           productId,
           productName,
           productDescription,
+          siteContent,
         }
       : {
           siteSubtitle: "",
-          siteFaq: [],
+          siteFaq: siteContent.faq.items,
           siteFooter: { phones: [], address: "", eitaa: "", website: "" },
           productId,
           productName,
           productDescription,
+          siteContent,
         };
 
   return (
@@ -40,8 +44,8 @@ export default async function AdminSettingsPage() {
           تنظیمات عمومی و متون پویا
         </h1>
         <p className="text-xs text-stone-400 mt-1">
-          پیکربندی هوشمند و پویای تمام بخش‌های لندینگ، اطلاعات تماس فوتر و
-          سوالات متداول
+          پیکربندی هوشمند و پویای تمام بخش‌های لندینگ، اطلاعات تماس فوتر، متون
+          هیرو و سوالات متداول
         </p>
       </div>
 

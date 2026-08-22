@@ -9,6 +9,8 @@ import WhyCafeRaz from "@/components/features/landing/WhyCafeRaz";
 import FAQSection from "@/components/features/landing/FAQSection";
 import { FAQItem } from "@/domain/types";
 import { getTehranTodayString } from "@/lib/jalali-converter";
+import { ContentService } from "@/services/content.service";
+import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
 
 export default async function Page() {
   const productResult = await getMainProductAction();
@@ -25,19 +27,19 @@ export default async function Page() {
   const commentsResult = await getCommentsAction(mainProduct.id);
   const couponsResult = await getCouponsAction();
 
-  let faqs: FAQItem[] = [];
+  let faqs: FAQItem[] = DEFAULT_SITE_CONTENT.faq.items;
   let siteSubtitle = "";
 
   try {
-    const siteFaqOpt = await prisma.option.findUnique({
-      where: { key: "site_faq" },
-    });
+    const siteContent = await ContentService.getSiteContent();
+    faqs = siteContent.faq.items;
+
     const siteSubtitleOpt = await prisma.option.findUnique({
       where: { key: "site_subtitle" },
     });
-
-    faqs = siteFaqOpt ? (siteFaqOpt.value as unknown as FAQItem[]) : [];
-    siteSubtitle = siteSubtitleOpt ? (siteSubtitleOpt.value as string) : "";
+    siteSubtitle = siteSubtitleOpt
+      ? (siteSubtitleOpt.value as string)
+      : siteContent.layout.brandSubtitle;
   } catch (error) {
     console.warn("Database connection fallback during build", error);
   }
