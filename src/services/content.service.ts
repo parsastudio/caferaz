@@ -6,6 +6,7 @@ import {
 } from "@/domain/validations/content.schema";
 import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
 import { deepMergeContent } from "@/lib/content/site-content";
+import { setNestedValue } from "@/lib/content/content-flattener";
 import { Prisma } from "@prisma/client";
 
 export class ContentService {
@@ -61,5 +62,18 @@ export class ContentService {
     };
 
     return await this.updateSiteContent(updated);
+  }
+
+  static async updateSingleKey(
+    path: string,
+    newValue: string,
+  ): Promise<boolean> {
+    const current = await this.getSiteContent();
+    const updatedObj = setNestedValue(
+      current as unknown as Record<string, unknown>,
+      path,
+      newValue,
+    );
+    return await this.updateSiteContent(updatedObj as unknown as SiteContent);
   }
 }

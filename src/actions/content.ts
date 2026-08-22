@@ -62,3 +62,37 @@ export async function updateSiteContentSectionAction<
     };
   }
 }
+
+export async function updateSingleContentKeyAction(
+  path: string,
+  newValue: string,
+): Promise<ActionResponse<boolean>> {
+  try {
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin) {
+      return { success: false, error: "دسترسی غیرمجاز." };
+    }
+
+    if (!path.trim()) {
+      return { success: false, error: "مسیر فیلد معتبر نیست." };
+    }
+
+    await ContentService.updateSingleKey(path.trim(), newValue);
+
+    revalidatePath("/");
+    revalidatePath("/profile");
+    revalidatePath("/login");
+    revalidatePath("/admin/settings");
+
+    return {
+      success: true,
+      data: true,
+      message: "تغییر متن با موفقیت در سیستم اعمال شد.",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "خطا در به‌روزرسانی متن.",
+    };
+  }
+}

@@ -26,7 +26,7 @@ const menuItems = [
   },
   {
     path: "/admin/pricing",
-    label: "تغییر قیمت‌ها",
+    label: "تغییر قیمت و موجودی",
     emoji: "🏷️",
   },
   {
@@ -36,8 +36,8 @@ const menuItems = [
   },
   {
     path: "/admin/settings",
-    label: "تنظیمات عمومی سایت",
-    emoji: "⚙️",
+    label: "ویرایش متون سایت",
+    emoji: "🔍",
   },
   {
     path: "/admin/change-password",
