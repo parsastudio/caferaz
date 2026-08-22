@@ -1,8 +1,11 @@
 import React from "react";
 import Link from "next/link";
 import { Coffee, Home } from "lucide-react";
+import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
 
 export default function NotFound() {
+  const { error } = DEFAULT_SITE_CONTENT;
+
   return (
     <div
       className="min-h-screen bg-stone-950 flex flex-col justify-center items-center p-6 text-center"
@@ -13,14 +16,13 @@ export default function NotFound() {
       </div>
 
       <span className="text-sm font-black text-gold-500 tracking-widest uppercase mb-2">
-        خطای ۴۰۴
+        {error.notFoundCode}
       </span>
       <h1 className="text-2xl md:text-3xl font-black text-stone-100 mb-3">
-        صفحه مورد نظر شما پیدا نشد!
+        {error.notFoundTitle}
       </h1>
       <p className="text-xs md:text-sm text-stone-400 max-w-sm leading-relaxed mb-8">
-        آدرسی که به دنبال آن هستید تغییر یافته یا به طور کلی از فروشگاه کافه راز
-        حذف شده است.
+        {error.notFoundDesc}
       </p>
 
       <Link
@@ -28,7 +30,7 @@ export default function NotFound() {
         className="bg-gold-500 hover:bg-gold-600 active:scale-95 text-stone-950 font-black px-6 py-3 rounded-xl text-xs flex items-center gap-2 transition-all shadow-lg shadow-gold-500/10 cursor-pointer"
       >
         <Home className="w-4 h-4" />
-        <span>بازگشت به صفحه اصلی</span>
+        <span>{error.notFoundHomeBtn}</span>
       </Link>
     </div>
   );

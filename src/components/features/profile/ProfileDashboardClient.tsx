@@ -20,6 +20,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useSiteContent } from "@/context/ContentContext";
 
 interface ProfileDashboardClientProps {
   user: User | null;
@@ -30,6 +31,7 @@ export default function ProfileDashboardClient({
   user,
   initialOrders,
 }: ProfileDashboardClientProps) {
+  const { profile: pCopy } = useSiteContent();
   const [orders] = useState<Order[]>(initialOrders);
   const [isPending, startTransition] = useTransition();
 
@@ -51,18 +53,19 @@ export default function ProfileDashboardClient({
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl font-black text-stone-100">
-                سلام {user?.name || "کاربر گرامی"}، خوش آمدید
+                {pCopy.greetingPrefix} {user?.name || pCopy.defaultUserName}
               </h1>
               <Badge className="bg-gold-500/10 text-gold-400 border-gold-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                پنل کاربری راز
+                {pCopy.userPanelBadge}
               </Badge>
             </div>
             <p
               className="text-xs text-stone-400 font-medium font-sans"
               dir="rtl"
             >
-              شماره همراه: <span className="font-sans">{user?.phone}</span> |
-              تاریخ پیوستن:{" "}
+              {pCopy.phoneLabel}{" "}
+              <span className="font-sans">{user?.phone}</span> |{" "}
+              {pCopy.joinDateLabel}{" "}
               <span className="font-sans" suppressHydrationWarning>
                 {user
                   ? new Date(user.createdAt).toLocaleDateString("fa-IR")
@@ -82,7 +85,7 @@ export default function ProfileDashboardClient({
           ) : (
             <LogOut className="w-4 h-4" />
           )}
-          <span>خروج از حساب</span>
+          <span>{pCopy.logoutButton}</span>
         </button>
       </div>
 
@@ -95,13 +98,13 @@ export default function ProfileDashboardClient({
             <CardHeader className="pb-4">
               <CardTitle className="text-base font-black text-stone-100 flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-gold-500 animate-pulse" />
-                وضعیت سفارش جاری:{" "}
+                {pCopy.activeOrderTitle}{" "}
                 <span className="font-sans text-gold-500">
                   {latestOrder.id}
                 </span>
               </CardTitle>
               <CardDescription className="text-xs text-stone-400">
-                فرآیند آماده‌سازی بر اساس ترکیب دانه‌ قهوه انتخابی شما
+                {pCopy.activeOrderSubtitle}
               </CardDescription>
             </CardHeader>
 
@@ -118,20 +121,18 @@ export default function ProfileDashboardClient({
                   <div className="space-y-1">
                     <span className="text-xs font-black text-gold-400 block">
                       {latestOrder.status === "unreviewed"
-                        ? "سفارش شما ثبت شده و در انتظار تایید مدیریت است"
-                        : "سفارش شما در حال آماده‌سازی است"}
+                        ? pCopy.activeOrderUnreviewed
+                        : pCopy.activeOrderPending}
                     </span>
                     <p className="text-[11px] text-stone-300 leading-relaxed max-w-2xl">
-                      سفارش شما در صف آماده‌سازی کارگاه کافه راز قرار دارد و به
-                      زودی جهت هماهنگی ارسال با شما تماس خواهیم گرفت. از شکیبایی
-                      شما سپاسگزاریم.
+                      {pCopy.activeOrderDesc}
                     </p>
                   </div>
                 </div>
 
                 <div className="bg-gold-500/10 border border-gold-500/20 px-4 py-2.5 rounded-xl flex items-center gap-2 text-gold-400 text-xs font-black self-end md:self-auto shrink-0">
                   <PhoneCall className="w-4 h-4 animate-pulse" />
-                  تماس هماهنگی به زودی
+                  {pCopy.coordinationCallBadge}
                 </div>
               </motion.div>
             </CardContent>
@@ -142,7 +143,7 @@ export default function ProfileDashboardClient({
         <div className="flex items-center gap-2">
           <ShoppingBag className="w-5 h-5 text-gold-500" />
           <h2 className="text-base font-black text-stone-200">
-            تاریخچه فاکتورها ({orders.length})
+            {pCopy.invoiceHistoryTitle} ({orders.length})
           </h2>
         </div>
 
@@ -151,7 +152,7 @@ export default function ProfileDashboardClient({
             {orders.map((order) => (
               <div
                 key={order.id}
-                className="bg-stone-900/20 border border-stone-850 p-5 rounded-2xl space-y-4 text-right"
+                className="bg-stone-900/20 border border-stone-855 p-5 rounded-2xl space-y-4 text-right"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-850 pb-3">
                   <div className="flex items-center gap-3 flex-wrap">
@@ -169,22 +170,22 @@ export default function ProfileDashboardClient({
                   <div className="flex items-center gap-2">
                     {order.status === "completed" && (
                       <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                        تکمیل و تسویه شده
+                        {pCopy.statusCompleted}
                       </Badge>
                     )}
                     {order.status === "pending" && (
                       <Badge className="bg-gold-500/10 text-gold-500 border-gold-500/20 text-[10px] font-bold px-2.5 py-0.5 rounded-full animate-pulse">
-                        در حال آماده‌سازی
+                        {pCopy.statusPending}
                       </Badge>
                     )}
                     {order.status === "unreviewed" && (
                       <Badge className="bg-red-500/10 text-red-400 border-red-500/20 text-[10px] font-bold px-2.5 py-0.5 rounded-full animate-pulse">
-                        در انتظار بررسی
+                        {pCopy.statusUnreviewed}
                       </Badge>
                     )}
                     {order.status === "cancelled" && (
                       <Badge className="bg-stone-500/10 text-stone-400 border-stone-500/20 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                        لغو شده
+                        {pCopy.statusCancelled}
                       </Badge>
                     )}
                   </div>
@@ -193,13 +194,13 @@ export default function ProfileDashboardClient({
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-bold text-stone-300">
                   <div className="space-y-1">
                     <span className="text-[10px] text-stone-500 block">
-                      مشخصات فنی و ترکیب:
+                      {pCopy.invoiceBlendSpecs}
                     </span>
                     <p className="text-stone-200">{order.grindType}</p>
                   </div>
                   <div className="space-y-1">
                     <span className="text-[10px] text-stone-500 block">
-                      بسته‌بندی و تعداد:
+                      {pCopy.invoicePackagingSpecs}
                     </span>
                     <p className="text-stone-200 font-sans">
                       {order.weightGrams} گرم (تعداد: {order.quantity} بسته)
@@ -207,7 +208,7 @@ export default function ProfileDashboardClient({
                   </div>
                   <div className="space-y-1">
                     <span className="text-[10px] text-stone-500 block">
-                      کل مبلغ فاکتور:
+                      {pCopy.invoiceTotalPrice}
                     </span>
                     <p className="text-gold-500 font-black text-sm font-sans">
                       {order.finalPrice.toLocaleString()} تومان
@@ -218,7 +219,7 @@ export default function ProfileDashboardClient({
                 <div className="flex items-start gap-1.5 bg-stone-950/40 p-3 rounded-xl border border-stone-900">
                   <MapPin className="w-4 h-4 text-stone-500 shrink-0 mt-0.5" />
                   <span className="text-[10px] text-stone-400 leading-relaxed font-medium">
-                    آدرس ارسال: {order.customerAddress}
+                    {pCopy.invoiceDeliveryAddress} {order.customerAddress}
                   </span>
                 </div>
               </div>
@@ -226,9 +227,7 @@ export default function ProfileDashboardClient({
           </div>
         ) : (
           <div className="text-center py-12 border border-dashed border-stone-850 rounded-2xl bg-stone-900/10">
-            <p className="text-xs text-stone-500">
-              تاکنون فاکتوری برای این حساب کاربری ثبت نشده است.
-            </p>
+            <p className="text-xs text-stone-500">{pCopy.emptyHistoryText}</p>
           </div>
         )}
       </div>

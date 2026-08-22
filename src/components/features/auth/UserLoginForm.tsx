@@ -21,8 +21,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import OtpInput from "@/components/ui/otp-input";
 import { toEnglishDigits } from "@/lib/utils";
+import { useSiteContent } from "@/context/ContentContext";
 
 export default function UserLoginForm() {
+  const { auth: authCopy } = useSiteContent();
   const router = useRouter();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [step, setStep] = useState<"phone_or_details" | "otp">(
@@ -65,14 +67,12 @@ export default function UserLoginForm() {
       if (checkRes.success) {
         if (mode === "login" && !checkRes.registered) {
           setMode("register");
-          setError(
-            "شماره همراه شما ثبت نشده است. لطفاً فرم ثبت‌نام زیر را تکمیل فرمایید.",
-          );
+          setError(authCopy.unregisteredHint);
           return;
         }
         if (mode === "register" && checkRes.registered) {
           setMode("login");
-          setError("این شماره از قبل ثبت شده است. به بخش ورود منتقل شدید.");
+          setError(authCopy.registeredHint);
           return;
         }
 
@@ -149,7 +149,7 @@ export default function UserLoginForm() {
                   : "text-stone-400 hover:text-stone-200"
               }`}
             >
-              ورود سریع
+              {authCopy.loginTab}
             </button>
             <button
               type="button"
@@ -163,7 +163,7 @@ export default function UserLoginForm() {
                   : "text-stone-400 hover:text-stone-200"
               }`}
             >
-              ثبت‌نام جدید
+              {authCopy.registerTab}
             </button>
           </div>
 
@@ -192,13 +192,13 @@ export default function UserLoginForm() {
           <div className="space-y-1.5 text-right">
             <label className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
               <Smartphone className="w-3.5 h-3.5 text-stone-500" />
-              شماره تلفن همراه <span className="text-red-500">*</span>
+              {authCopy.phoneLabel} <span className="text-red-500">*</span>
             </label>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(toEnglishDigits(e.target.value))}
-              placeholder="09123456789"
+              placeholder={authCopy.phonePlaceholder}
               className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-left font-sans"
               dir="ltr"
               required
@@ -211,13 +211,13 @@ export default function UserLoginForm() {
               <div className="space-y-1.5 text-right animate-in fade-in duration-200">
                 <label className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
                   <User className="w-3.5 h-3.5 text-stone-500" />
-                  نام و نام خانوادگی <span className="text-red-500">*</span>
+                  {authCopy.nameLabel} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="مثال: مریم فتاحی"
+                  placeholder={authCopy.namePlaceholder}
                   className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-right"
                   required
                   disabled={isPending}
@@ -227,13 +227,14 @@ export default function UserLoginForm() {
               <div className="space-y-1.5 text-right animate-in fade-in duration-200">
                 <label className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-stone-500" />
-                  آدرس تحویل <span className="text-red-500">*</span>
+                  {authCopy.addressLabel}{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   rows={2}
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="خیابان، کوچه، پلاک..."
+                  placeholder={authCopy.addressPlaceholder}
                   className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-right resize-none"
                   required
                   disabled={isPending}
@@ -256,13 +257,11 @@ export default function UserLoginForm() {
             {isPending ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                در حال پردازش...
+                {authCopy.processingText}
               </>
             ) : (
               <>
-                {mode === "login"
-                  ? "دریافت کد ورود سریع"
-                  : "ثبت‌نام و دریافت کد تایید"}
+                {mode === "login" ? authCopy.loginCta : authCopy.registerCta}
                 <ArrowRight className="w-4 h-4 rotate-180" />
               </>
             )}
@@ -279,18 +278,17 @@ export default function UserLoginForm() {
         >
           <div className="text-center bg-stone-950/40 p-3 border border-stone-850 rounded-xl">
             <p className="text-[11px] text-stone-400 leading-relaxed">
-              کد تایید ۴ رقمی پیامکی به شماره{" "}
+              {authCopy.otpNoticePrefix}{" "}
               <span className="text-gold-400 font-bold font-sans" dir="ltr">
                 {phone}
-              </span>{" "}
-              ارسال گردید.
+              </span>
             </p>
           </div>
 
           <div className="space-y-1.5 text-right">
             <label className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
               <MessageSquare className="w-3.5 h-3.5 text-stone-500" />
-              کد تایید پیامکی <span className="text-red-500">*</span>
+              {authCopy.otpLabel} <span className="text-red-500">*</span>
             </label>
             <OtpInput
               value={otp}
@@ -318,7 +316,7 @@ export default function UserLoginForm() {
               className="text-stone-400 hover:text-stone-200 cursor-pointer text-xs"
               disabled={isPending}
             >
-              اصلاح مشخصات
+              {authCopy.fixDetailsButton}
             </Button>
             <Button
               type="submit"
@@ -328,10 +326,10 @@ export default function UserLoginForm() {
               {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  در حال بررسی...
+                  {authCopy.verifyingText}
                 </>
               ) : (
-                "ورود نهایی به پیشخوان"
+                authCopy.loginFinalCta
               )}
             </Button>
           </div>

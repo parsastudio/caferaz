@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import { AlertTriangle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
 
 export default function GlobalError({
   error,
@@ -15,6 +16,8 @@ export default function GlobalError({
     console.error("Global Application Error:", error);
   }, [error]);
 
+  const { error: errCopy } = DEFAULT_SITE_CONTENT;
+
   return (
     <div
       className="min-h-screen bg-stone-950 flex flex-col justify-center items-center p-6 text-center"
@@ -25,10 +28,10 @@ export default function GlobalError({
       </div>
 
       <h1 className="text-xl font-black text-stone-100 mb-2">
-        متأسفانه خطایی در پردازش رخ داد
+        {errCopy.errorTitle}
       </h1>
       <p className="text-xs text-stone-400 max-w-sm leading-relaxed mb-6">
-        ارتباط با سرویس موقتاً با اختلال مواجه شد. لطفاً دوباره تلاش فرمایید.
+        {errCopy.errorDesc}
       </p>
 
       <Button
@@ -36,7 +39,7 @@ export default function GlobalError({
         className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-black px-6 py-2.5 rounded-xl text-xs flex items-center gap-2 cursor-pointer"
       >
         <RotateCcw className="w-4 h-4" />
-        <span>تلاش مجدد</span>
+        <span>{errCopy.errorRetryBtn}</span>
       </Button>
     </div>
   );

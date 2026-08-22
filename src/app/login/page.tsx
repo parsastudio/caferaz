@@ -1,8 +1,11 @@
 import React, { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import UserLoginForm from "@/components/features/auth/UserLoginForm";
+import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
 
 export default function UserLoginPage() {
+  const { auth } = DEFAULT_SITE_CONTENT;
+
   return (
     <div
       className="min-h-screen bg-stone-950 flex flex-col justify-center items-center p-4 relative overflow-hidden"
@@ -18,11 +21,9 @@ export default function UserLoginPage() {
           </div>
           <div className="space-y-1">
             <h1 className="text-xl font-black text-stone-100">
-              ورود به پنل کاربری
+              {auth.loginTitle}
             </h1>
-            <p className="text-[11px] text-stone-400">
-              جهت پیگیری آنلاین سفارشات مشخصات خود را وارد کنید
-            </p>
+            <p className="text-[11px] text-stone-400">{auth.loginSubtitle}</p>
           </div>
         </div>
 

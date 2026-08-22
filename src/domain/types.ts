@@ -2,6 +2,13 @@ import { OrderStatus } from "@/domain/validations/order.schema";
 import { CommentStatus } from "@/domain/validations/comment.schema";
 import { CouponType, DiscountType } from "@/domain/validations/coupon.schema";
 import { FooterConfig, FAQItem } from "@/domain/validations/settings.schema";
+import {
+  SiteContent,
+  SiteUspItem,
+  SiteFaqItem,
+  SiteBlendItem,
+  SiteGrindItem,
+} from "@/domain/validations/content.schema";
 
 export type {
   OrderStatus,
@@ -10,6 +17,11 @@ export type {
   DiscountType,
   FooterConfig,
   FAQItem,
+  SiteContent,
+  SiteUspItem,
+  SiteFaqItem,
+  SiteBlendItem,
+  SiteGrindItem,
 };
 
 export interface Product {

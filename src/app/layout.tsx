@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { CheckoutProvider } from "@/context/CheckoutContext";
+import { ContentProvider } from "@/context/ContentContext";
 import Footer from "@/components/layout/Footer";
 import { FooterConfig } from "@/types";
 import GlobalStatusBar from "@/components/layout/GlobalStatusBar";
 import RouteProgressBar from "@/components/layout/RouteProgressBar";
 import { prisma } from "@/lib/prisma";
 import { Suspense } from "react";
+import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
 
 const vazirMatn = localFont({
   src: "../../public/Vazirmatn.woff2",
@@ -46,10 +48,7 @@ export default async function RootLayout({
       };
     }
   } catch (error) {
-    console.warn(
-      "⚠️ [RootLayout] Database is offline during build time. Skipping layout query. Live connection will resume at runtime.",
-      error,
-    );
+    console.warn("Database connection fallback during build", error);
   }
 
   return (
@@ -62,14 +61,16 @@ export default async function RootLayout({
         className="min-h-full flex flex-col bg-background text-foreground"
         dir="rtl"
       >
-        <CheckoutProvider>
-          <Suspense fallback={null}>
-            <RouteProgressBar />
-          </Suspense>
-          <GlobalStatusBar />
-          <div className="flex-grow">{children}</div>
-          <Footer config={footerData} />
-        </CheckoutProvider>
+        <ContentProvider content={DEFAULT_SITE_CONTENT}>
+          <CheckoutProvider>
+            <Suspense fallback={null}>
+              <RouteProgressBar />
+            </Suspense>
+            <GlobalStatusBar />
+            <div className="flex-grow">{children}</div>
+            <Footer config={footerData} />
+          </CheckoutProvider>
+        </ContentProvider>
       </body>
     </html>
   );

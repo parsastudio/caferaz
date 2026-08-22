@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import ProfileDashboardClient from "@/components/features/profile/ProfileDashboardClient";
 import { verifyScopedToken } from "@/lib/session";
+import { ContentProvider } from "@/context/ContentContext";
+import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
 
 export default async function ProfilePage() {
   const cookieStore = await cookies();
@@ -58,10 +60,12 @@ export default async function ProfilePage() {
   });
 
   return (
-    <main className="min-h-screen bg-stone-950 text-stone-100 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        <ProfileDashboardClient user={user} initialOrders={orders} />
-      </div>
-    </main>
+    <ContentProvider content={DEFAULT_SITE_CONTENT}>
+      <main className="min-h-screen bg-stone-950 text-stone-100 py-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <ProfileDashboardClient user={user} initialOrders={orders} />
+        </div>
+      </main>
+    </ContentProvider>
   );
 }

@@ -4,12 +4,15 @@ import React from "react";
 import { Phone, MapPin, Send, ShieldCheck, Award } from "lucide-react";
 import { FooterConfig } from "@/types";
 import { toPersianDigits } from "@/lib/utils";
+import { useSiteContent } from "@/context/ContentContext";
 
 interface FooterProps {
   config?: FooterConfig | null;
 }
 
 export default function Footer({ config }: FooterProps) {
+  const { layout } = useSiteContent();
+
   const phones = config?.phones?.filter((p) => Boolean(p && p.trim())) || [
     "09002570060",
     "09002570040",
@@ -31,17 +34,15 @@ export default function Footer({ config }: FooterProps) {
             </div>
             <div>
               <span className="text-md font-black text-stone-100 tracking-tight block">
-                کافه راز
+                {layout.brandName}
               </span>
               <span className="text-[10px] text-gold-500 font-bold block mt-0.5">
-                عرضه مستقیم و پخش عمده قهوه فله باکیفیت
+                {layout.brandSubtitle}
               </span>
             </div>
           </div>
           <p className="text-xs text-stone-400 leading-relaxed max-w-sm">
-            کافه راز یک فروشگاه مستقیم برای خرید قهوه فله باکیفیت و
-            مقرون‌به‌صرفه است. ما با حذف واسطه‌ها، انواع میکس‌های قهوه را با
-            قیمت بسیار منصفانه، کیفیت مناسب و ارسال سریع به دست شما می‌رسانیم.
+            {layout.footerAbout}
           </p>
           <div className="flex items-center gap-3">
             <a
@@ -49,24 +50,26 @@ export default function Footer({ config }: FooterProps) {
               target="_blank"
               rel="nofollow"
               className="px-4 py-2 rounded-xl bg-stone-900 border border-stone-850 hover:border-gold-500/40 hover:text-gold-500 flex items-center gap-2 transition-all cursor-pointer text-xs font-bold"
-              title="کانال رسمی ایتا کافه راز"
+              title={layout.eitaaButton}
             >
               <Send className="w-4 h-4 text-gold-500" />
-              <span>کانال رسمی ایتا</span>
+              <span>{layout.eitaaButton}</span>
             </a>
           </div>
         </div>
 
         <div className="md:col-span-6 space-y-4">
           <h4 className="text-xs font-black text-stone-200 tracking-wider">
-            تماس و اطلاعات ارتباطی
+            {layout.contactHeading}
           </h4>
           <ul className="space-y-3.5 text-xs text-stone-400">
             {phones.length > 0 && (
               <li className="flex items-start gap-2.5">
                 <Phone className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
                 <div className="flex flex-wrap items-center gap-2 font-sans">
-                  <span className="font-bold text-stone-300">پشتیبانی:</span>
+                  <span className="font-bold text-stone-300">
+                    {layout.phonesLabel}
+                  </span>
                   {phones.map((phoneItem, index) => (
                     <React.Fragment key={index}>
                       <span dir="ltr" className="inline-block font-medium">
@@ -90,19 +93,19 @@ export default function Footer({ config }: FooterProps) {
             <div className="w-24 h-24 rounded-2xl bg-stone-900/40 border border-stone-855 flex flex-col items-center justify-center text-center p-2 hover:border-gold-500/20 transition-all select-none">
               <ShieldCheck className="w-7 h-7 text-gold-500 mb-1" />
               <span className="text-[9px] text-stone-200 font-black">
-                پرداخت امن
+                {layout.securePaymentTitle}
               </span>
               <span className="text-[8px] text-stone-500 mt-0.5">
-                در محل خریدار
+                {layout.securePaymentSub}
               </span>
             </div>
             <div className="w-24 h-24 rounded-2xl bg-stone-900/40 border border-stone-855 flex flex-col items-center justify-center text-center p-2 hover:border-gold-500/20 transition-all select-none">
               <Award className="w-7 h-7 text-gold-500 mb-1" />
               <span className="text-[9px] text-stone-200 font-black">
-                ضمانت اصالت
+                {layout.originalQualityTitle}
               </span>
               <span className="text-[8px] text-stone-500 mt-0.5">
-                ۱۰۰٪ دانه باکیفیت
+                {layout.originalQualitySub}
               </span>
             </div>
           </div>
@@ -111,8 +114,7 @@ export default function Footer({ config }: FooterProps) {
 
       <div className="max-w-7xl mx-auto border-t border-stone-900/80 mt-10 pt-6 text-center">
         <p className="text-[10px] text-stone-600 leading-normal font-sans">
-          کلیه حقوق این وب‌سایت متعلق به مجموعه کافه راز می‌باشد. ©{" "}
-          {new Date().getFullYear()}
+          {layout.copyrightText} {new Date().getFullYear()}
         </p>
       </div>
     </footer>

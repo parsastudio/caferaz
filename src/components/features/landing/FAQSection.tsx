@@ -4,15 +4,19 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, HelpCircle } from "lucide-react";
 import { FAQItem } from "@/domain/types";
+import { useSiteContent } from "@/context/ContentContext";
 
 interface FAQSectionProps {
   faqs?: FAQItem[];
 }
 
-export default function FAQSection({ faqs = [] }: FAQSectionProps) {
+export default function FAQSection({ faqs }: FAQSectionProps) {
+  const { faq: faqContent } = useSiteContent();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  if (!faqs || faqs.length === 0) return null;
+  const displayFaqs = faqs && faqs.length > 0 ? faqs : faqContent.items;
+
+  if (!displayFaqs || displayFaqs.length === 0) return null;
 
   const toggleAccordion = (index: number) => {
     setActiveIndex(activeIndex === index ? null : index);
@@ -26,19 +30,18 @@ export default function FAQSection({ faqs = [] }: FAQSectionProps) {
     >
       <div className="text-center mb-12">
         <span className="text-[10px] bg-gold-500/10 border border-gold-500/20 text-gold-400 px-3 py-1 rounded-full font-black tracking-widest uppercase">
-          پاسخ به ابهامات شما
+          {faqContent.badge}
         </span>
         <h2 className="text-xl md:text-3xl font-black text-stone-100 mt-3">
-          سوالات متداول مشتریان
+          {faqContent.title}
         </h2>
         <p className="text-xs md:text-sm text-stone-400 leading-relaxed mt-2">
-          پاسخ به رایج‌ترین پرسش‌های ثبت سفارش، نوع ارسال و فرآیند دم‌آوری
-          قهوه‌های کافه راز.
+          {faqContent.description}
         </p>
       </div>
 
       <div className="space-y-3">
-        {faqs.map((faq, index) => {
+        {displayFaqs.map((faq, index) => {
           const isOpen = activeIndex === index;
 
           return (

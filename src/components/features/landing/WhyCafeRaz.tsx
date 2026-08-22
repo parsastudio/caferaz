@@ -9,7 +9,7 @@ import {
   HelpCircle,
   LucideIcon,
 } from "lucide-react";
-import { STATIC_USPS } from "@/lib/constants";
+import { useSiteContent } from "@/context/ContentContext";
 
 const iconRegistry: Record<string, LucideIcon> = {
   Coins,
@@ -19,6 +19,8 @@ const iconRegistry: Record<string, LucideIcon> = {
 };
 
 export default function WhyCafeRaz() {
+  const { whyUs } = useSiteContent();
+
   return (
     <section
       className="w-full max-w-7xl mx-auto px-4 py-16 text-right"
@@ -26,19 +28,18 @@ export default function WhyCafeRaz() {
     >
       <div className="text-center md:text-right max-w-2xl mb-12">
         <span className="text-[10px] bg-gold-500/10 border border-gold-500/20 text-gold-400 px-3 py-1 rounded-full font-black tracking-widest uppercase">
-          ارزش خرید بالا و تحویل سریع
+          {whyUs.badge}
         </span>
         <h2 className="text-xl md:text-3xl font-black text-stone-100 mt-3">
-          چرا خرید از کافه راز؟
+          {whyUs.title}
         </h2>
         <p className="text-xs md:text-sm text-stone-400 leading-relaxed mt-2">
-          ما با کوتاه‌کردن مسیر عرضه و تمرکز روی کیفیت و قیمت منصفانه، لذت
-          نوشیدن یک فنجان قهوه خوش‌طعم و اقتصادی را برای شما فراهم کرده‌ایم.
+          {whyUs.description}
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {STATIC_USPS.map((usp) => {
+        {whyUs.items.map((usp) => {
           const IconComponent = iconRegistry[usp.icon] || HelpCircle;
 
           return (

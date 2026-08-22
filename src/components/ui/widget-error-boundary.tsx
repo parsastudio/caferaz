@@ -3,6 +3,7 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { AlertCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
 
 interface Props {
   children: ReactNode;
@@ -38,7 +39,8 @@ export class WidgetErrorBoundary extends Component<Props, State> {
             <AlertCircle className="w-5 h-5" />
           </div>
           <p className="text-xs font-bold text-stone-300">
-            {this.props.fallbackTitle || "خطایی در بارگذاری این بخش رخ داد."}
+            {this.props.fallbackTitle ||
+              DEFAULT_SITE_CONTENT.error.widgetErrorDefault}
           </p>
           <Button
             size="sm"
@@ -47,7 +49,7 @@ export class WidgetErrorBoundary extends Component<Props, State> {
             className="text-xs cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5 ml-1.5" />
-            تلاش مجدد
+            {DEFAULT_SITE_CONTENT.error.widgetErrorRetry}
           </Button>
         </div>
       );
