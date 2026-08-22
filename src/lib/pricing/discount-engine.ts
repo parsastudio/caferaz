@@ -1,6 +1,6 @@
 import { getTehranTodayString } from "@/lib/date/formatters";
 import { Coupon, CouponUsage } from "@/types";
-import { BlendProfile } from "@/lib/constants";
+import { BlendProfile, DEFAULT_PRODUCT_PRICING } from "@/lib/constants";
 
 export interface AdvancedPriceMetrics {
   basePrice: number;
@@ -50,10 +50,7 @@ export function calculateAdvancedPriceMetrics(params: {
   couponUsages?: CouponUsage[];
   serverTodayStr?: string;
 }): AdvancedPriceMetrics {
-  const pricing = params.pricing ?? {
-    pricePerKgArabica: 2200000,
-    pricePerKgRobusta: 1800000,
-  };
+  const pricing = params.pricing ?? DEFAULT_PRODUCT_PRICING;
 
   const arabicaRatio = params.blendProfile.arabica / 100;
   const robustaRatio = params.blendProfile.robusta / 100;

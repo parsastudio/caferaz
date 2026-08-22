@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isValidJalaaliDate } from "@/lib/jalali-converter";
+import { parseJalaliString } from "@/lib/jalali-converter";
 
 export const couponTypeSchema = z.enum([
   "product_direct",
@@ -11,12 +11,7 @@ export const discountTypeSchema = z.enum(["percentage", "fixed"]);
 
 const jalaliDateValidator = (val?: string) => {
   if (!val || val.trim() === "") return true;
-  const match = val.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
-  if (!match) return false;
-  const y = parseInt(match[1], 10);
-  const m = parseInt(match[2], 10);
-  const d = parseInt(match[3], 10);
-  return isValidJalaaliDate(y, m, d);
+  return parseJalaliString(val) !== null;
 };
 
 export const createCouponSchema = z

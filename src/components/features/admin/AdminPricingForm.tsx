@@ -6,6 +6,7 @@ import { ProductWithPricing } from "@/types";
 import { toast } from "sonner";
 import { Loader2, Coffee } from "lucide-react";
 import { toEnglishDigits, toPersianDigits } from "@/lib/utils";
+import { DEFAULT_PRODUCT_PRICING, DEFAULT_STOCK_GRAMS } from "@/lib/constants";
 
 interface AdminPricingFormProps {
   initialProduct: ProductWithPricing;
@@ -15,14 +16,16 @@ export default function AdminPricingForm({
   initialProduct,
 }: AdminPricingFormProps) {
   const [arabicaRaw, setArabicaRaw] = useState<number>(
-    initialProduct.pricing?.pricePerKgArabica || 2200000,
+    initialProduct.pricing?.pricePerKgArabica ||
+      DEFAULT_PRODUCT_PRICING.pricePerKgArabica,
   );
   const [robustaRaw, setRobustaRaw] = useState<number>(
-    initialProduct.pricing?.pricePerKgRobusta || 1800000,
+    initialProduct.pricing?.pricePerKgRobusta ||
+      DEFAULT_PRODUCT_PRICING.pricePerKgRobusta,
   );
 
   const [stockKg, setStockKg] = useState<number>(
-    (initialProduct.stockGrams || 150000) / 1000,
+    (initialProduct.stockGrams || DEFAULT_STOCK_GRAMS) / 1000,
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);

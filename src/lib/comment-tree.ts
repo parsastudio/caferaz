@@ -63,3 +63,61 @@ export function buildCommentTree(comments: PrismaCommentDb[]): Comment[] {
 
   return rootComments;
 }
+
+export function insertCommentReply<T extends { id: string; replies?: T[] }>(
+  tree: T[],
+  parentId: string,
+  reply: T,
+): T[] {
+  return tree.map((node) => {
+    if (node.id === parentId) {
+      return {
+        ...node,
+        replies: [...(node.replies || []), reply],
+      };
+    }
+    if (node.replies && node.replies.length > 0) {
+      return {
+        ...node,
+        replies: insertCommentReply(node.replies, parentId, reply),
+      };
+    }
+    return node;
+  });
+}
+
+export function updateCommentInTree<T extends { id: string; replies?: T[] }>(
+  tree: T[],
+  id: string,
+  updater: (node: T) => T,
+): T[] {
+  return tree.map((node) => {
+    if (node.id === id) {
+      return updater(node);
+    }
+    if (node.replies && node.replies.length > 0) {
+      return {
+        ...node,
+        replies: updateCommentInTree(node.replies, id, updater),
+      };
+    }
+    return node;
+  });
+}
+
+export function removeCommentFromTree<T extends { id: string; replies?: T[] }>(
+  tree: T[],
+  id: string,
+): T[] {
+  return tree
+    .filter((node) => node.id !== id)
+    .map((node) => {
+      if (node.replies && node.replies.length > 0) {
+        return {
+          ...node,
+          replies: removeCommentFromTree(node.replies, id),
+        };
+      }
+      return node;
+    });
+}

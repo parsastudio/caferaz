@@ -12,29 +12,57 @@ import {
 import { mapPrismaCoupon } from "@/lib/coupon-mappers";
 import crypto from "crypto";
 
+interface PrismaOrderWithItems {
+  id: string;
+  finalPrice: number;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  createdAt: Date;
+  status: string;
+  orderItems: {
+    productId: string;
+    weightGrams: number;
+    quantity: number;
+    grindType: string;
+  }[];
+}
+
 export class OrderService {
+  static mapOrderWithItems(o: PrismaOrderWithItems): Order {
+    const item = o.orderItems[0];
+    return {
+      id: o.id,
+      productId: item?.productId ?? "",
+      weightGrams: item?.weightGrams ?? 0,
+      quantity: item?.quantity ?? 1,
+      grindType: item?.grindType ?? "",
+      finalPrice: o.finalPrice,
+      customerName: o.customerName,
+      customerPhone: o.customerPhone,
+      customerAddress: o.customerAddress,
+      createdAt: o.createdAt.toISOString(),
+      status: o.status as OrderStatus,
+    };
+  }
+
   static async getAllOrders(): Promise<Order[]> {
     const orders = await prisma.order.findMany({
       include: { orderItems: true },
       orderBy: { createdAt: "desc" },
     });
 
-    return orders.map((o) => {
-      const item = o.orderItems[0];
-      return {
-        id: o.id,
-        productId: item?.productId ?? "",
-        weightGrams: item?.weightGrams ?? 0,
-        quantity: item?.quantity ?? 1,
-        grindType: item?.grindType ?? "",
-        finalPrice: o.finalPrice,
-        customerName: o.customerName,
-        customerPhone: o.customerPhone,
-        customerAddress: o.customerAddress,
-        createdAt: o.createdAt.toISOString(),
-        status: o.status as OrderStatus,
-      };
+    return orders.map(this.mapOrderWithItems);
+  }
+
+  static async getUserOrders(phone: string): Promise<Order[]> {
+    const orders = await prisma.order.findMany({
+      where: { customerPhone: phone.trim() },
+      include: { orderItems: true },
+      orderBy: { createdAt: "desc" },
     });
+
+    return orders.map(this.mapOrderWithItems);
   }
 
   static async updateOrderStatus(
@@ -275,20 +303,7 @@ export class OrderService {
         },
       });
 
-      const firstItem = finalOrder.orderItems[0];
-      return {
-        id: finalOrder.id,
-        productId: firstItem?.productId ?? productId,
-        weightGrams: firstItem?.weightGrams ?? weightGrams,
-        quantity: firstItem?.quantity ?? quantity,
-        grindType: firstItem?.grindType ?? `ترکیب: ${blend} | آسیاب: ${grind}`,
-        finalPrice: finalOrder.finalPrice,
-        customerName: finalOrder.customerName,
-        customerPhone: finalOrder.customerPhone,
-        customerAddress: finalOrder.customerAddress,
-        createdAt: finalOrder.createdAt.toISOString(),
-        status: finalOrder.status as OrderStatus,
-      };
+      return this.mapOrderWithItems(finalOrder);
     });
   }
 }

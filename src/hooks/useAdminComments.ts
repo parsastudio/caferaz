@@ -11,6 +11,11 @@ import {
   spamCommentAction,
   editCommentAction,
 } from "@/actions/admin-comment";
+import {
+  insertCommentReply,
+  updateCommentInTree,
+  removeCommentFromTree,
+} from "@/lib/comment-tree";
 
 export function useAdminComments(initialComments: Comment[]) {
   const [comments, setComments] = useState<Comment[]>(initialComments);
@@ -35,17 +40,7 @@ export function useAdminComments(initialComments: Comment[]) {
     try {
       const result = await deleteCommentAction(commentId);
       if (result.success) {
-        setComments((prev) => {
-          const filterNode = (list: Comment[]): Comment[] => {
-            return list
-              .filter((c) => c.id !== commentId)
-              .map((c) => ({
-                ...c,
-                replies: c.replies ? filterNode(c.replies) : [],
-              }));
-          };
-          return filterNode(prev);
-        });
+        setComments((prev) => removeCommentFromTree(prev, commentId));
         toast.success("دیدگاه با موفقیت حذف شد.");
       } else {
         toast.error(result.error || "خطا در حذف دیدگاه.");
@@ -71,20 +66,12 @@ export function useAdminComments(initialComments: Comment[]) {
 
       if (result.success) {
         toast.success(result.message || "وضعیت دیدگاه تغییر یافت.");
-        setComments((prev) => {
-          const updateStatus = (list: Comment[]): Comment[] => {
-            return list.map((c) => {
-              if (c.id === commentId) {
-                return { ...c, status: newStatus };
-              }
-              return {
-                ...c,
-                replies: c.replies ? updateStatus(c.replies) : [],
-              };
-            });
-          };
-          return updateStatus(prev);
-        });
+        setComments((prev) =>
+          updateCommentInTree(prev, commentId, (node) => ({
+            ...node,
+            status: newStatus,
+          })),
+        );
       } else {
         toast.error(result.error || "خطا در تغییر وضعیت دیدگاه.");
       }
@@ -106,20 +93,12 @@ export function useAdminComments(initialComments: Comment[]) {
       const result = await editCommentAction(commentId, newText);
       if (result.success) {
         toast.success("تغییرات با موفقیت ذخیره شد.");
-        setComments((prev) => {
-          const updateText = (list: Comment[]): Comment[] => {
-            return list.map((c) => {
-              if (c.id === commentId) {
-                return { ...c, commentText: newText };
-              }
-              return {
-                ...c,
-                replies: c.replies ? updateText(c.replies) : [],
-              };
-            });
-          };
-          return updateText(prev);
-        });
+        setComments((prev) =>
+          updateCommentInTree(prev, commentId, (node) => ({
+            ...node,
+            commentText: newText,
+          })),
+        );
         setEditTargetId(null);
         return true;
       } else {
@@ -155,26 +134,7 @@ export function useAdminComments(initialComments: Comment[]) {
 
       if (result.success) {
         const newReply = result.data;
-        setComments((prev) => {
-          const addReplyToParent = (list: Comment[]): Comment[] => {
-            return list.map((c) => {
-              if (c.id === parentId) {
-                return {
-                  ...c,
-                  replies: [...(c.replies || []), newReply],
-                };
-              }
-              if (c.replies && c.replies.length > 0) {
-                return {
-                  ...c,
-                  replies: addReplyToParent(c.replies),
-                };
-              }
-              return c;
-            });
-          };
-          return addReplyToParent(prev);
-        });
+        setComments((prev) => insertCommentReply(prev, parentId, newReply));
         toast.success("پاسخ شما با موفقیت ثبت شد.");
         setReplyTargetId(null);
         return true;

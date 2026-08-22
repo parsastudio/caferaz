@@ -8,6 +8,7 @@ import CommentDialog from "@/components/features/product/CommentDialog";
 import { WidgetErrorBoundary } from "@/components/ui/widget-error-boundary";
 import { Comment } from "@/types";
 import { useSiteContent } from "@/context/ContentContext";
+import { insertCommentReply } from "@/lib/comment-tree";
 
 export interface UIComment extends Omit<Comment, "replies"> {
   isPending?: boolean;
@@ -35,24 +36,7 @@ export default function ProductTabsSection({
     initialComments,
     (state: UIComment[], newComment: UIComment) => {
       if (newComment.parentIdTemp) {
-        const insertReply = (list: UIComment[]): UIComment[] => {
-          return list.map((c) => {
-            if (c.id === newComment.parentIdTemp) {
-              return {
-                ...c,
-                replies: [...(c.replies || []), newComment],
-              };
-            }
-            if (c.replies && c.replies.length > 0) {
-              return {
-                ...c,
-                replies: insertReply(c.replies),
-              };
-            }
-            return c;
-          });
-        };
-        return insertReply(state);
+        return insertCommentReply(state, newComment.parentIdTemp, newComment);
       }
       return [newComment, ...state];
     },

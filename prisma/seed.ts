@@ -4,6 +4,11 @@ import pg from "pg";
 import crypto from "crypto";
 import "dotenv/config";
 import { DEFAULT_SITE_CONTENT } from "../src/lib/content/default-content";
+import {
+  DEFAULT_PRODUCT_PRICING,
+  DEFAULT_STOCK_GRAMS,
+  DEFAULT_FAQS,
+} from "../src/lib/constants";
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -41,7 +46,7 @@ async function main() {
       name: "قهوه فله میکس ویژه اسپرسو",
       description:
         "ترکیبی اقتصادی و باکیفیت از دانه‌های مرغوب عربیکا و روبوستا با طعم یاد متعادل و قیمتی فراتر از انتظار. ایده‌آل برای مصارف روزانه خانگی، کافه‌ها و ادارات.",
-      stockGrams: 150000,
+      stockGrams: DEFAULT_STOCK_GRAMS,
       isActive: true,
     },
   });
@@ -49,8 +54,8 @@ async function main() {
   await prisma.pricing.create({
     data: {
       productId: mainProduct.id,
-      pricePerKgArabica: 2200000,
-      pricePerKgRobusta: 1800000,
+      pricePerKgArabica: DEFAULT_PRODUCT_PRICING.pricePerKgArabica,
+      pricePerKgRobusta: DEFAULT_PRODUCT_PRICING.pricePerKgRobusta,
     },
   });
 
@@ -219,32 +224,7 @@ async function main() {
       },
       {
         key: "site_faq",
-        value: [
-          {
-            id: "faq_1",
-            question: "مدت زمان ارسال سفارش‌ها چقدر است؟",
-            answer:
-              "سفارشات ثبت‌شده بلافاصله وارد فرآیند آماده‌سازی و بسته‌بندی شده و ظرف مدت ۲۴ الی ۷۲ ساعت کاری از طریق پیک یا پست پیشتاز تحویل می‌گردند.",
-          },
-          {
-            id: "faq_2",
-            question: "چگونه می‌توانم ترکیب قهوه اختصاصی خودم را سفارش دهم؟",
-            answer:
-              "در بخش خرید بالای همین صفحه می‌توانید نسبت‌های متفاوتی از دانه عربیکا و روبوستا را بر اساس ذائقه خود انتخاب کنید و ویژگی‌های ترکیب را فوراً بسنجید.",
-          },
-          {
-            id: "faq_3",
-            question: "آیا پرداخت در محل فعال است؟",
-            answer:
-              "بله، به منظور افزایش امنیت و جلب اطمینان کامل شما، امکان پرداخت فاکتور پس از دریافت کالا درب منزل یا محل کار در سراسر کشور فراهم شده است.",
-          },
-          {
-            id: "faq_4",
-            question: "تفاوت میان درجات مختلف آسیاب چیست؟",
-            answer:
-              "هر روش دم‌آوری نیازمند میزان درشتی یا نرمی مشخصی از پودر قهوه است. ما بر اساس انتخاب دستگاه شما (اسپرسوساز، موکاپات، فرانسه یا قهوه ترک) دانه‌ها را آسیاب می‌کنیم.",
-          },
-        ],
+        value: DEFAULT_FAQS,
       },
     ],
   });

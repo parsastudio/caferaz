@@ -1,11 +1,12 @@
 import React from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import ProfileDashboardClient from "@/components/features/profile/ProfileDashboardClient";
 import { verifyScopedToken } from "@/lib/session";
 import { ContentProvider } from "@/context/ContentContext";
 import { ContentService } from "@/services/content.service";
+import { AuthService } from "@/services/auth.service";
+import { OrderService } from "@/services/order.service";
 import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
 
 export default async function ProfilePage() {
@@ -29,43 +30,8 @@ export default async function ProfilePage() {
     console.warn("Content service fallback in profile", err);
   }
 
-  const userDb = await prisma.user.findUnique({
-    where: { phone: phone.trim() },
-  });
-
-  const user = userDb
-    ? {
-        id: userDb.id,
-        name: userDb.name,
-        phone: userDb.phone,
-        createdAt: userDb.createdAt.toISOString(),
-        address: userDb.address ?? undefined,
-      }
-    : null;
-
-  const ordersDb = await prisma.order.findMany({
-    where: { customerPhone: phone.trim() },
-    include: { orderItems: true },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const orders = ordersDb.map((o) => {
-    const firstItem = o.orderItems?.[0];
-
-    return {
-      id: o.id,
-      productId: firstItem?.productId ?? "",
-      weightGrams: firstItem?.weightGrams ?? 0,
-      quantity: firstItem?.quantity ?? 1,
-      grindType: firstItem?.grindType ?? "",
-      finalPrice: o.finalPrice,
-      customerName: o.customerName,
-      customerPhone: o.customerPhone,
-      customerAddress: o.customerAddress,
-      createdAt: o.createdAt.toISOString(),
-      status: o.status as "unreviewed" | "pending" | "completed" | "cancelled",
-    };
-  });
+  const user = await AuthService.getUserByPhone(phone);
+  const orders = await OrderService.getUserOrders(phone);
 
   return (
     <ContentProvider content={siteContent}>
