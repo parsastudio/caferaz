@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { checkAdminAuth } from "@/actions/admin-auth";
 import { ContentService } from "@/services/content.service";
+import { ProductService } from "@/services/product.service";
 import {
   SiteContent,
   siteContentSchema,
@@ -66,6 +67,7 @@ export async function updateSiteContentSectionAction<
 export async function updateSingleContentKeyAction(
   path: string,
   newValue: string,
+  productId?: string,
 ): Promise<ActionResponse<boolean>> {
   try {
     const isAdmin = await checkAdminAuth();
@@ -73,11 +75,56 @@ export async function updateSingleContentKeyAction(
       return { success: false, error: "دسترسی غیرمجاز." };
     }
 
-    if (!path.trim()) {
+    const trimmedPath = path.trim();
+    if (!trimmedPath) {
       return { success: false, error: "مسیر فیلد معتبر نیست." };
     }
 
-    await ContentService.updateSingleKey(path.trim(), newValue);
+    if (
+      trimmedPath === "product.name" ||
+      trimmedPath === "product.description"
+    ) {
+      let targetProductId = productId;
+      let currentProduct = null;
+
+      if (!targetProductId) {
+        currentProduct = await ProductService.getMainProduct();
+        targetProductId = currentProduct?.id;
+      } else {
+        currentProduct = await ProductService.getMainProduct();
+      }
+
+      if (!targetProductId || !currentProduct) {
+        return { success: false, error: "کالای هدف در پایگاه داده یافت نشد." };
+      }
+
+      const updatedName =
+        trimmedPath === "product.name" ? newValue : currentProduct.name;
+      const updatedDescription =
+        trimmedPath === "product.description"
+          ? newValue
+          : currentProduct.description;
+
+      await ProductService.updateProductBasicInfo({
+        productId: targetProductId,
+        name: updatedName,
+        description: updatedDescription,
+      });
+
+      revalidatePath("/");
+      revalidatePath("/profile");
+      revalidatePath("/admin");
+      revalidatePath("/admin/pricing");
+      revalidatePath("/admin/settings");
+
+      return {
+        success: true,
+        data: true,
+        message: "مشخصات محصول با موفقیت در دیتابیس ذخیره شد.",
+      };
+    }
+
+    await ContentService.updateSingleKey(trimmedPath, newValue);
 
     revalidatePath("/");
     revalidatePath("/profile");

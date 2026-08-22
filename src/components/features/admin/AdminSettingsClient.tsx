@@ -7,6 +7,11 @@ import { SiteContent } from "@/domain/validations/content.schema";
 interface AdminSettingsClientProps {
   initialSettings: {
     siteContent: SiteContent;
+    product: {
+      id: string;
+      name: string;
+      description: string;
+    } | null;
   };
 }
 
@@ -18,7 +23,10 @@ export default function AdminSettingsClient({
       className="w-full text-right animate-in fade-in duration-200"
       dir="rtl"
     >
-      <SpotlightContentEditor initialContent={initialSettings.siteContent} />
+      <SpotlightContentEditor
+        initialContent={initialSettings.siteContent}
+        product={initialSettings.product}
+      />
     </div>
   );
 }

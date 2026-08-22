@@ -1,9 +1,19 @@
 import React from "react";
 import { ContentService } from "@/services/content.service";
+import { ProductService } from "@/services/product.service";
 import AdminSettingsClient from "@/components/features/admin/AdminSettingsClient";
 
 export default async function AdminSettingsPage() {
   const siteContent = await ContentService.getSiteContent();
+  const mainProduct = await ProductService.getMainProduct();
+
+  const product = mainProduct
+    ? {
+        id: mainProduct.id,
+        name: mainProduct.name,
+        description: mainProduct.description,
+      }
+    : null;
 
   return (
     <div className="space-y-8 text-right max-w-4xl" dir="rtl">
@@ -16,7 +26,7 @@ export default async function AdminSettingsPage() {
         </p>
       </div>
 
-      <AdminSettingsClient initialSettings={{ siteContent }} />
+      <AdminSettingsClient initialSettings={{ siteContent, product }} />
     </div>
   );
 }
