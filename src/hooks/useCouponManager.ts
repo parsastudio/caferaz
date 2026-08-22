@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { validateCouponAction } from "@/actions/validate-coupon";
-import { toEnglishDigits } from "@/lib/utils";
+import { normalizePhone, isValidIranianPhone } from "@/lib/phone";
 
 interface UseCouponManagerProps {
   productId: string;
@@ -53,8 +53,8 @@ export function useCouponManager({
 
   useEffect(() => {
     if (appliedCoupon) {
-      const cleanPhone = toEnglishDigits(phone.trim());
-      const isValid = /^09[0-9]{9}$/.test(cleanPhone);
+      const cleanPhone = normalizePhone(phone);
+      const isValid = isValidIranianPhone(cleanPhone);
       if (isValid && cleanPhone !== lastValidatedPhone) {
         const timer = setTimeout(() => {
           handleRemoveCoupon();
@@ -69,7 +69,7 @@ export function useCouponManager({
     setIsApplyingCoupon(true);
     setCouponError(null);
 
-    const cleanPhone = toEnglishDigits(phone.trim());
+    const cleanPhone = normalizePhone(phone);
 
     const res = await validateCouponAction({
       code: couponCode,

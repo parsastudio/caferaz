@@ -9,7 +9,7 @@ import {
   sendUserOtpAction,
   getOtpFormTokenAction,
 } from "@/actions/user-auth";
-import { toEnglishDigits } from "@/lib/utils";
+import { normalizePhone } from "@/lib/phone";
 
 export type OtpPurpose = "login" | "checkout";
 
@@ -55,7 +55,7 @@ export function useCheckoutAuth({
       const isPhoneValid = await trigger(["phone"]);
       if (!isPhoneValid) return;
 
-      const phoneVal = toEnglishDigits(getValues("phone").trim());
+      const phoneVal = normalizePhone(getValues("phone"));
       startTransition(async () => {
         const checkRes = await checkPhoneRegisteredAction({ phone: phoneVal });
         if (checkRes.success && checkRes.registered && checkRes.user) {
@@ -94,7 +94,7 @@ export function useCheckoutAuth({
   const handleVerifyLoginOtp = async (otpCode: string): Promise<boolean> => {
     setIsSubmittingAuth(true);
     setErrorMessage(null);
-    const cleanPhone = toEnglishDigits(getValues("phone").trim());
+    const cleanPhone = normalizePhone(getValues("phone"));
 
     try {
       const loginRes = await loginUserWithOtpAction({

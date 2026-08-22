@@ -1,7 +1,8 @@
 import React from "react";
 import { checkAdminAuth } from "@/actions/admin-auth";
 import { getCurrentUserAction } from "@/actions/user-auth";
-import { prisma } from "@/lib/prisma";
+import { OrderService } from "@/services/order.service";
+import { CommentService } from "@/services/comment.service";
 import AdminStatusBar from "@/components/layout/AdminStatusBar";
 import UserStatusBar from "@/components/layout/UserStatusBar";
 
@@ -15,40 +16,9 @@ export default async function GlobalStatusBar() {
   }
 
   if (isAdmin) {
-    const pendingCommentsCount = await prisma.comment.count({
-      where: { status: "pending" },
-    });
-
-    const pendingOrdersCount = await prisma.order.count({
-      where: { status: "unreviewed" },
-    });
-
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      0,
-      23,
-      59,
-      59,
-    );
-
-    const monthSalesAggregate = await prisma.order.aggregate({
-      _sum: {
-        finalPrice: true,
-      },
-      where: {
-        status: {
-          not: "cancelled",
-        },
-        createdAt: {
-          gte: startOfMonth,
-          lte: endOfMonth,
-        },
-      },
-    });
-    const monthSales = monthSalesAggregate._sum.finalPrice ?? 0;
+    const pendingCommentsCount = await CommentService.getPendingCommentsCount();
+    const { monthSales, pendingOrdersCount } =
+      await OrderService.getAdminStatusBarMetrics();
 
     return (
       <AdminStatusBar
@@ -60,14 +30,9 @@ export default async function GlobalStatusBar() {
   }
 
   if (user) {
-    const pendingUserOrdersCount = await prisma.order.count({
-      where: {
-        customerPhone: user.phone,
-        status: {
-          in: ["unreviewed", "pending"],
-        },
-      },
-    });
+    const pendingUserOrdersCount = await OrderService.getPendingUserOrdersCount(
+      user.phone,
+    );
 
     return (
       <UserStatusBar

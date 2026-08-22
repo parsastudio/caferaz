@@ -10,6 +10,8 @@ import {
   calculateAdvancedPriceMetrics,
 } from "@/lib/coffee-calculations";
 import { mapPrismaCoupon } from "@/lib/coupon-mappers";
+import { ContentService } from "@/services/content.service";
+import { normalizePhone } from "@/lib/phone";
 import crypto from "crypto";
 
 interface PrismaOrderWithItems {
@@ -56,13 +58,57 @@ export class OrderService {
   }
 
   static async getUserOrders(phone: string): Promise<Order[]> {
+    const cleanPhone = normalizePhone(phone);
     const orders = await prisma.order.findMany({
-      where: { customerPhone: phone.trim() },
+      where: { customerPhone: cleanPhone },
       include: { orderItems: true },
       orderBy: { createdAt: "desc" },
     });
 
     return orders.map(this.mapOrderWithItems);
+  }
+
+  static async getPendingUserOrdersCount(phone: string): Promise<number> {
+    const cleanPhone = normalizePhone(phone);
+    return await prisma.order.count({
+      where: {
+        customerPhone: cleanPhone,
+        status: { in: ["unreviewed", "pending"] },
+      },
+    });
+  }
+
+  static async getAdminStatusBarMetrics(): Promise<{
+    monthSales: number;
+    pendingOrdersCount: number;
+  }> {
+    const pendingOrdersCount = await prisma.order.count({
+      where: { status: "unreviewed" },
+    });
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    );
+
+    const monthSalesAggregate = await prisma.order.aggregate({
+      _sum: { finalPrice: true },
+      where: {
+        status: { not: "cancelled" },
+        createdAt: { gte: startOfMonth, lte: endOfMonth },
+      },
+    });
+
+    return {
+      monthSales: monthSalesAggregate._sum.finalPrice ?? 0,
+      pendingOrdersCount,
+    };
   }
 
   static async updateOrderStatus(
@@ -170,6 +216,7 @@ export class OrderService {
     } = payload;
 
     const totalWeightNeeded = weightGrams * quantity;
+    const cleanPhone = normalizePhone(securePhone);
 
     return await prisma.$transaction(async (tx) => {
       const product = await tx.product.findUnique({
@@ -222,7 +269,7 @@ export class OrderService {
           where: {
             couponId_phone: {
               couponId: coupon.id,
-              phone: securePhone,
+              phone: cleanPhone,
             },
           },
         });
@@ -234,7 +281,8 @@ export class OrderService {
         }
       }
 
-      const blendProfile = getBlendProfile(blend);
+      const siteContent = await ContentService.getSiteContent();
+      const blendProfile = getBlendProfile(blend, siteContent.product.blends);
       const activeCoupons = await tx.coupon.findMany({
         where: { deletedAt: null, isActive: true },
       });
@@ -247,15 +295,15 @@ export class OrderService {
         quantity,
         activeCoupons: activeCoupons.map(mapPrismaCoupon),
         appliedUserCouponCode: appliedCouponCode,
-        userPhone: securePhone,
+        userPhone: cleanPhone,
         couponUsages: [],
       });
 
       const user = await tx.user.upsert({
-        where: { phone: securePhone },
+        where: { phone: cleanPhone },
         update: { name: customerName, address: customerAddress },
         create: {
-          phone: securePhone,
+          phone: cleanPhone,
           name: customerName,
           address: customerAddress,
         },
@@ -265,7 +313,7 @@ export class OrderService {
         await tx.couponUsage.create({
           data: {
             couponId: coupon.id,
-            phone: securePhone,
+            phone: cleanPhone,
           },
         });
       }
@@ -283,7 +331,7 @@ export class OrderService {
           couponId: coupon?.id ?? null,
           finalPrice: pricingBreakdown.finalPrice,
           customerName,
-          customerPhone: securePhone,
+          customerPhone: cleanPhone,
           customerAddress,
           status: "unreviewed",
           orderItems: {

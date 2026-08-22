@@ -6,6 +6,7 @@ import {
   SubmitCommentInput,
 } from "@/domain/validations/comment.schema";
 import { buildCommentTree } from "@/lib/comment-tree";
+import { normalizePhone } from "@/lib/phone";
 
 export class CommentService {
   static async getApprovedComments(productId: string): Promise<Comment[]> {
@@ -29,14 +30,21 @@ export class CommentService {
     return buildCommentTree(comments);
   }
 
+  static async getPendingCommentsCount(): Promise<number> {
+    return await prisma.comment.count({
+      where: { status: "pending" },
+    });
+  }
+
   static async submitComment(
     input: SubmitCommentInput,
     status: CommentStatus,
   ): Promise<Comment> {
     let userId: string | null = null;
     if (input.phone) {
+      const cleanPhone = normalizePhone(input.phone);
       const user = await prisma.user.findUnique({
-        where: { phone: input.phone.trim() },
+        where: { phone: cleanPhone },
       });
       if (user) {
         userId = user.id;

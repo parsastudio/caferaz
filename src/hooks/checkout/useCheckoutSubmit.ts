@@ -4,7 +4,7 @@ import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { CheckoutFormValues } from "@/domain/validations/order.schema";
 import { submitOrderAction } from "@/actions/checkout";
-import { toEnglishDigits } from "@/lib/utils";
+import { normalizePhone } from "@/lib/phone";
 import { CheckoutData } from "@/context/CheckoutContext";
 
 interface UseCheckoutSubmitProps {
@@ -29,7 +29,7 @@ export function useCheckoutSubmit({
     setIsSubmittingOrder(true);
     setErrorMessage(null);
     const values = methods.getValues();
-    const cleanPhone = toEnglishDigits(values.phone.trim());
+    const cleanPhone = normalizePhone(values.phone);
     const fullName =
       `${values.firstName || ""} ${values.lastName || ""}`.trim() ||
       "کاربر کافه راز";

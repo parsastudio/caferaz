@@ -1,14 +1,11 @@
 import { z } from "zod";
-import { toEnglishDigits } from "@/lib/utils";
+import { normalizePhone, isValidIranianPhone } from "@/lib/phone";
 
 export const phoneSchema = z.preprocess(
-  (val) => (typeof val === "string" ? toEnglishDigits(val.trim()) : val),
-  z
-    .string()
-    .regex(
-      /^09[0-9]{9}$/,
-      "لطفاً یک شماره موبایل معتبر (مانند ۰۹۱۲۳۴۵۶۷۸۹) وارد کنید.",
-    ),
+  (val) => (typeof val === "string" ? normalizePhone(val) : val),
+  z.string().refine(isValidIranianPhone, {
+    message: "لطفاً یک شماره موبایل معتبر (مانند ۰۹۱۲۳۴۵۶۷۸۹) وارد کنید.",
+  }),
 );
 
 export const otpCodeSchema = z

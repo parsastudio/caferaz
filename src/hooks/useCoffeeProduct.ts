@@ -6,6 +6,7 @@ import {
   calculateRemainingStock,
 } from "@/lib/coffee-calculations";
 import { Coupon, ProductWithPricing } from "@/types";
+import { useSiteContent } from "@/context/ContentContext";
 
 export function useCoffeeProduct(
   initialProduct: ProductWithPricing,
@@ -13,10 +14,11 @@ export function useCoffeeProduct(
   serverTodayStr?: string,
 ) {
   const selection = useCoffeeSelection();
+  const { product } = useSiteContent();
 
   const blendProfile = useMemo(() => {
-    return getBlendProfile(selection.selectedBlend);
-  }, [selection.selectedBlend]);
+    return getBlendProfile(selection.selectedBlend, product.blends);
+  }, [selection.selectedBlend, product.blends]);
 
   const computedWeight = useMemo(() => {
     return selection.isCustomWeight

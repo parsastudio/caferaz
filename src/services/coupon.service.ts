@@ -11,6 +11,8 @@ import {
   calculateAdvancedPriceMetrics,
 } from "@/lib/coffee-calculations";
 import { parseJalaliString } from "@/lib/jalali-converter";
+import { ContentService } from "@/services/content.service";
+import { normalizePhone } from "@/lib/phone";
 
 export interface ValidatedCouponResult {
   couponId: string;
@@ -116,6 +118,7 @@ export class CouponService {
     securePhone: string | null,
   ): Promise<ValidatedCouponResult> {
     const cleanCode = input.code.trim().toUpperCase();
+    const cleanPhone = securePhone ? normalizePhone(securePhone) : null;
 
     const coupon = await prisma.coupon.findFirst({
       where: {
@@ -136,12 +139,12 @@ export class CouponService {
       throw new Error("این کد تخفیف برای محصول انتخابی شما تعریف نشده است.");
     }
 
-    if (securePhone) {
+    if (cleanPhone) {
       const usage = await prisma.couponUsage.findUnique({
         where: {
           couponId_phone: {
             couponId: coupon.id,
-            phone: securePhone,
+            phone: cleanPhone,
           },
         },
       });
@@ -159,7 +162,11 @@ export class CouponService {
       throw new Error("محصول مورد نظر یافت نشد.");
     }
 
-    const blendProfile = getBlendProfile(input.blend);
+    const siteContent = await ContentService.getSiteContent();
+    const blendProfile = getBlendProfile(
+      input.blend,
+      siteContent.product.blends,
+    );
     const activeCouponsFromDb = await prisma.coupon.findMany({
       where: { deletedAt: null, isActive: true },
     });
@@ -172,7 +179,7 @@ export class CouponService {
       quantity: input.quantity,
       activeCoupons: activeCouponsFromDb.map(mapPrismaCoupon),
       appliedUserCouponCode: cleanCode,
-      userPhone: securePhone,
+      userPhone: cleanPhone,
       couponUsages: [],
     });
 

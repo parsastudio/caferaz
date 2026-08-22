@@ -1,7 +1,7 @@
 "use server";
 
 import { ActionResponse } from "@/types/actions";
-import { toEnglishDigits } from "@/lib/utils";
+import { normalizePhone } from "@/lib/phone";
 import { getCurrentUserAction } from "@/actions/user-auth";
 import {
   validateCouponInputSchema,
@@ -28,7 +28,7 @@ export async function validateCouponAction(
     }
 
     const cleanPhone = validated.data.phone
-      ? toEnglishDigits(validated.data.phone.trim())
+      ? normalizePhone(validated.data.phone)
       : null;
 
     const currentUserRes = await getCurrentUserAction();

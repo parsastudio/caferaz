@@ -20,7 +20,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import OtpInput from "@/components/ui/otp-input";
-import { toEnglishDigits } from "@/lib/utils";
+import { normalizePhone, isValidIranianPhone } from "@/lib/phone";
 import { useSiteContent } from "@/context/ContentContext";
 
 export default function UserLoginForm() {
@@ -52,7 +52,8 @@ export default function UserLoginForm() {
     e.preventDefault();
     setError(null);
 
-    if (!/^09[0-9]{9}$/.test(phone)) {
+    const cleanPhone = normalizePhone(phone);
+    if (!isValidIranianPhone(cleanPhone)) {
       setError("لطفاً یک شماره موبایل معتبر (مانند ۰۹۱۲۳۴۵۶۷۸۹) وارد کنید.");
       return;
     }
@@ -63,7 +64,7 @@ export default function UserLoginForm() {
     }
 
     startTransition(async () => {
-      const checkRes = await checkPhoneRegisteredAction({ phone });
+      const checkRes = await checkPhoneRegisteredAction({ phone: cleanPhone });
       if (checkRes.success) {
         if (mode === "login" && !checkRes.registered) {
           setMode("register");
@@ -76,7 +77,11 @@ export default function UserLoginForm() {
           return;
         }
 
-        const otpRes = await sendUserOtpAction({ phone, honeypot, formToken });
+        const otpRes = await sendUserOtpAction({
+          phone: cleanPhone,
+          honeypot,
+          formToken,
+        });
         if (otpRes.success) {
           setStep("otp");
         } else {
@@ -95,11 +100,13 @@ export default function UserLoginForm() {
       return;
     }
 
+    const cleanPhone = normalizePhone(phone);
+
     startTransition(async () => {
       try {
         if (mode === "register") {
           const regRes = await registerUserAction({
-            phone,
+            phone: cleanPhone,
             name,
             address,
             otp,
@@ -111,7 +118,10 @@ export default function UserLoginForm() {
             setError(regRes.error || "خطایی در ثبت‌نام رخ داد.");
           }
         } else {
-          const loginRes = await loginUserWithOtpAction({ phone, otp });
+          const loginRes = await loginUserWithOtpAction({
+            phone: cleanPhone,
+            otp,
+          });
           if (loginRes.success) {
             router.push("/profile");
             router.refresh();
@@ -197,7 +207,7 @@ export default function UserLoginForm() {
             <input
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(toEnglishDigits(e.target.value))}
+              onChange={(e) => setPhone(normalizePhone(e.target.value))}
               placeholder={authCopy.phonePlaceholder}
               className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-left font-sans"
               dir="ltr"

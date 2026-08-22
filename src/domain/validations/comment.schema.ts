@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidIranianPhone } from "@/lib/phone";
 
 export const commentStatusSchema = z.enum([
   "pending",
@@ -16,7 +17,7 @@ export const commentFormSchema = z.object({
   phone: z
     .string()
     .optional()
-    .refine((val) => !val || /^09[0-9]{9}$/.test(val), {
+    .refine((val) => !val || isValidIranianPhone(val), {
       message: "لطفاً یک شماره موبایل معتبر (مانند ۰۹۱۲۳۴۵۶۷۸۹) وارد کنید",
     }),
   rating: z.number().min(1).max(5).nullable().optional(),
