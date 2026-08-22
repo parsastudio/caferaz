@@ -2,24 +2,18 @@
 
 import React from "react";
 import { Phone, MapPin, Send, ShieldCheck, Award } from "lucide-react";
-import { FooterConfig } from "@/types";
 import { toPersianDigits } from "@/lib/utils";
 import { useSiteContent } from "@/context/ContentContext";
 
-interface FooterProps {
-  config?: FooterConfig | null;
-}
-
-export default function Footer({ config }: FooterProps) {
+export default function Footer() {
   const { layout } = useSiteContent();
 
-  const phones = config?.phones?.filter((p) => Boolean(p && p.trim())) || [
-    "09002570060",
-    "09002570040",
-    "021-77311806",
-  ];
-  const address = config?.address || "تهران، کافه راز";
-  const eitaa = config?.eitaa || "https://eitaa.com/razcoffee";
+  const phones =
+    layout.phones && layout.phones.length > 0
+      ? layout.phones
+      : ["09002570060", "09002570040", "021-77311806"];
+  const address = layout.address || "تهران، کافه راز";
+  const eitaa = layout.eitaa || "https://eitaa.com/razcoffee";
 
   return (
     <footer

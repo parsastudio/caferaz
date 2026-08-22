@@ -7,6 +7,7 @@ import { updateSingleContentKeyAction } from "@/actions/content";
 import { SiteContent } from "@/domain/validations/content.schema";
 import { flattenContent } from "@/lib/content/content-flattener";
 import { Button } from "@/components/ui/button";
+import { toEnglishDigits } from "@/lib/utils";
 
 interface SpotlightContentEditorProps {
   initialContent: SiteContent;
@@ -62,15 +63,24 @@ export default function SpotlightContentEditor({
   }, [initialContent, product]);
 
   const filteredItems = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) {
+    const rawQuery = searchQuery.trim().toLowerCase();
+    if (!rawQuery) {
       return allItems;
     }
 
+    const normalizedQuery = toEnglishDigits(rawQuery);
+
     return allItems.filter((item) => {
       const currentVal = (values[item.path] ?? item.value).toLowerCase();
+      const normalizedVal = toEnglishDigits(currentVal);
       const pathStr = item.path.toLowerCase();
-      return currentVal.includes(query) || pathStr.includes(query);
+
+      return (
+        currentVal.includes(rawQuery) ||
+        normalizedVal.includes(normalizedQuery) ||
+        pathStr.includes(rawQuery) ||
+        pathStr.includes(normalizedQuery)
+      );
     });
   }, [allItems, searchQuery, values]);
 
@@ -135,7 +145,7 @@ export default function SpotlightContentEditor({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="کلمه یا متن مورد نظر برای تغییر را بنویسید (مثال: ارسال سریع، پشتیبانی، نام کالا...)"
+            placeholder="کلمه یا متن مورد نظر برای تغییر را بنویسید (مثال: ۰۹۰۰۲۵۷۰۰۶۰، ارسال سریع، ایتا...)"
             className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-2xl pr-11 pl-11 py-3.5 text-xs sm:text-sm text-stone-100 outline-none transition-all font-medium placeholder:text-stone-600"
           />
           <Search className="w-5 h-5 text-stone-500 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />

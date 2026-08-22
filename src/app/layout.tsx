@@ -4,10 +4,8 @@ import "./globals.css";
 import { CheckoutProvider } from "@/context/CheckoutContext";
 import { ContentProvider } from "@/context/ContentContext";
 import Footer from "@/components/layout/Footer";
-import { FooterConfig } from "@/types";
 import GlobalStatusBar from "@/components/layout/GlobalStatusBar";
 import RouteProgressBar from "@/components/layout/RouteProgressBar";
-import { prisma } from "@/lib/prisma";
 import { Suspense } from "react";
 import { ContentService } from "@/services/content.service";
 import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
@@ -27,30 +25,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  let footerData: FooterConfig | null = null;
   let siteContent = DEFAULT_SITE_CONTENT;
 
   try {
     siteContent = await ContentService.getSiteContent();
-
-    const footerOpt = await prisma.option.findUnique({
-      where: { key: "site_footer" },
-    });
-
-    if (
-      footerOpt &&
-      typeof footerOpt.value === "object" &&
-      footerOpt.value !== null
-    ) {
-      const raw = footerOpt.value as Record<string, unknown>;
-
-      footerData = {
-        phones: Array.isArray(raw.phones) ? (raw.phones as string[]) : [],
-        address: typeof raw.address === "string" ? raw.address : "",
-        website: typeof raw.website === "string" ? raw.website : "",
-        eitaa: typeof raw.eitaa === "string" ? raw.eitaa : "",
-      };
-    }
   } catch (error) {
     console.warn("Database connection fallback during build", error);
   }
@@ -72,7 +50,7 @@ export default async function RootLayout({
             </Suspense>
             <GlobalStatusBar />
             <div className="flex-grow">{children}</div>
-            <Footer config={footerData} />
+            <Footer />
           </CheckoutProvider>
         </ContentProvider>
       </body>
