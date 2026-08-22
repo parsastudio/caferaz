@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import { updateProductDetailsAction } from "@/actions/product";
 import { ProductWithPricing } from "@/types";
 import { toast } from "sonner";
-import { Loader2, Sparkles, Coffee } from "lucide-react";
+import { Loader2, Coffee } from "lucide-react";
+import { toEnglishDigits, toPersianDigits } from "@/lib/utils";
 
 interface AdminPricingFormProps {
   initialProduct: ProductWithPricing;
@@ -26,16 +27,16 @@ export default function AdminPricingForm({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const formatNumberWithCommas = (value: number) => {
+  const formatPersianNumberWithCommas = (value: number) => {
     if (value === 0) return "";
-    return value.toLocaleString("en-US");
+    return toPersianDigits(value.toLocaleString("en-US"));
   };
 
   const handleNumberChange = (
     rawValue: string,
     setter: React.Dispatch<React.SetStateAction<number>>,
   ) => {
-    const cleanValue = rawValue.replace(/[^0-9]/g, "");
+    const cleanValue = toEnglishDigits(rawValue).replace(/[^0-9]/g, "");
     const numericValue = cleanValue === "" ? 0 : parseInt(cleanValue, 10);
     setter(numericValue);
   };
@@ -71,9 +72,9 @@ export default function AdminPricingForm({
   };
 
   return (
-    <div className="bg-stone-900/30 border border-stone-800 p-6 rounded-2xl space-y-6">
-      <div className="bg-gold-500/5 border border-gold-500/20 p-4 rounded-xl flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-gold-500/10 text-gold-500 flex items-center justify-center text-lg shrink-0">
+    <div className="bg-stone-900/30 border border-stone-800 p-6 rounded-3xl space-y-6">
+      <div className="bg-gold-500/5 border border-gold-500/20 p-4 rounded-2xl flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-gold-500/10 text-gold-500 flex items-center justify-center text-lg shrink-0">
           <Coffee className="w-5 h-5" />
         </div>
         <div>
@@ -86,87 +87,57 @@ export default function AdminPricingForm({
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="space-y-2 text-right">
-            <label className="text-xs font-bold text-stone-300 block">
+          <div className="space-y-2 text-center sm:text-right">
+            <label className="text-xs font-bold text-stone-300 block text-center sm:text-right">
               قیمت هر کیلوگرم عربیکا (تومان):
             </label>
             <input
               type="text"
               inputMode="numeric"
-              value={formatNumberWithCommas(arabicaRaw)}
+              value={formatPersianNumberWithCommas(arabicaRaw)}
               onChange={(e) =>
                 handleNumberChange(e.target.value, setArabicaRaw)
               }
-              className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 rounded-xl px-4 py-3 text-sm text-gold-400 outline-none transition-all font-bold text-left"
-              dir="ltr"
+              className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-2xl px-4 py-3 text-base text-gold-400 outline-none transition-all font-black text-center font-sans"
             />
-            {arabicaRaw > 0 && (
-              <span className="text-[10px] text-stone-500 font-bold flex items-center gap-1 mt-1 pr-1">
-                <Sparkles className="w-3 h-3 text-gold-500" />
-                معادل:{" "}
-                <span className="text-stone-300">
-                  {arabicaRaw.toLocaleString("fa-IR")} تومان
-                </span>
-              </span>
-            )}
           </div>
 
-          <div className="space-y-2 text-right">
-            <label className="text-xs font-bold text-stone-300 block">
+          <div className="space-y-2 text-center sm:text-right">
+            <label className="text-xs font-bold text-stone-300 block text-center sm:text-right">
               قیمت هر کیلوگرم روبوستا (تومان):
             </label>
             <input
               type="text"
               inputMode="numeric"
-              value={formatNumberWithCommas(robustaRaw)}
+              value={formatPersianNumberWithCommas(robustaRaw)}
               onChange={(e) =>
                 handleNumberChange(e.target.value, setRobustaRaw)
               }
-              className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 rounded-xl px-4 py-3 text-sm text-gold-400 outline-none transition-all font-bold text-left"
-              dir="ltr"
+              className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-2xl px-4 py-3 text-base text-gold-400 outline-none transition-all font-black text-center font-sans"
             />
-            {robustaRaw > 0 && (
-              <span className="text-[10px] text-stone-500 font-bold flex items-center gap-1 mt-1 pr-1">
-                <Sparkles className="w-3 h-3 text-gold-500" />
-                معادل:{" "}
-                <span className="text-stone-300">
-                  {robustaRaw.toLocaleString("fa-IR")} تومان
-                </span>
-              </span>
-            )}
           </div>
 
-          <div className="space-y-2 text-right">
-            <label className="text-xs font-bold text-stone-300 block">
+          <div className="space-y-2 text-center sm:text-right">
+            <label className="text-xs font-bold text-stone-300 block text-center sm:text-right">
               موجودی فیزیکی کل انبار (کیلوگرم):
             </label>
             <input
               type="text"
               inputMode="numeric"
-              value={formatNumberWithCommas(stockKg)}
+              value={formatPersianNumberWithCommas(stockKg)}
               onChange={(e) => handleNumberChange(e.target.value, setStockKg)}
-              className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 rounded-xl px-4 py-3 text-sm text-gold-400 outline-none transition-all font-bold text-left"
-              dir="ltr"
+              className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-2xl px-4 py-3 text-base text-gold-400 outline-none transition-all font-black text-center font-sans"
             />
-            {stockKg >= 0 && (
-              <span className="text-[10px] text-stone-500 font-bold flex items-center gap-1 mt-1 pr-1">
-                <Sparkles className="w-3 h-3 text-gold-500" />
-                معادل:{" "}
-                <span className="text-stone-300">
-                  {(stockKg * 1000).toLocaleString("fa-IR")} گرم قهوه فله
-                </span>
-              </span>
-            )}
           </div>
         </div>
 
-        <div className="pt-4">
+        <div className="pt-2">
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-gold-500 hover:bg-gold-600 text-stone-950 font-black py-3 px-6 rounded-xl transition-colors cursor-pointer text-xs flex items-center justify-center gap-2"
+            className="w-full bg-gold-500 hover:bg-gold-600 text-stone-950 font-black py-3.5 px-6 rounded-2xl transition-colors cursor-pointer text-xs flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>

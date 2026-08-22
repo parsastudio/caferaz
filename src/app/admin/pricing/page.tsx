@@ -14,7 +14,7 @@ export default async function AdminPricingPage() {
   }
 
   return (
-    <div className="space-y-8 text-right max-w-2xl" dir="rtl">
+    <div className="max-w-2xl mx-auto space-y-6 text-right" dir="rtl">
       <div>
         <h1 className="text-2xl font-black text-stone-100">
           تنظیمات تخصصی و قیمت‌گذاری
@@ -26,7 +26,7 @@ export default async function AdminPricingPage() {
 
       <AdminPricingForm initialProduct={productResult.data} />
 
-      <div className="bg-stone-950/40 p-4 border border-stone-850 rounded-xl">
+      <div className="bg-stone-950/40 p-4 border border-stone-850 rounded-2xl">
         <p className="text-[11px] text-stone-400 leading-relaxed">
           🔒 تغییر این فیلدها بلافاصله مشخصات کالا را در پایگاه داده به‌روزرسانی
           کرده و مشتریان در صفحه اصلی جدیدترین نرخ‌ها را مشاهده خواهند کرد.
