@@ -7,11 +7,6 @@ export const siteUspItemSchema = z.object({
   description: z.string(),
 });
 
-export const siteFaqItemSchema = z.object({
-  question: z.string(),
-  answer: z.string(),
-});
-
 export const siteBlendItemSchema = z.object({
   value: z.string(),
   desc: z.string(),
@@ -122,11 +117,10 @@ export const siteWhyUsContentSchema = z.object({
   items: z.array(siteUspItemSchema),
 });
 
-export const siteFaqContentSchema = z.object({
+export const siteFaqHeaderSchema = z.object({
   badge: z.string(),
   title: z.string(),
   description: z.string(),
-  items: z.array(siteFaqItemSchema),
 });
 
 export const siteCheckoutContentSchema = z.object({
@@ -264,7 +258,7 @@ export const siteContentSchema = z.object({
   hero: siteHeroContentSchema,
   product: siteProductContentSchema,
   whyUs: siteWhyUsContentSchema,
-  faq: siteFaqContentSchema,
+  faqHeader: siteFaqHeaderSchema,
   checkout: siteCheckoutContentSchema,
   auth: siteAuthContentSchema,
   profile: siteProfileContentSchema,
@@ -273,6 +267,5 @@ export const siteContentSchema = z.object({
 
 export type SiteContent = z.infer<typeof siteContentSchema>;
 export type SiteUspItem = z.infer<typeof siteUspItemSchema>;
-export type SiteFaqItem = z.infer<typeof siteFaqItemSchema>;
 export type SiteBlendItem = z.infer<typeof siteBlendItemSchema>;
 export type SiteGrindItem = z.infer<typeof siteGrindItemSchema>;

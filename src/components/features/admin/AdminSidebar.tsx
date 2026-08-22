@@ -35,6 +35,11 @@ const menuItems = [
     emoji: "🎫",
   },
   {
+    path: "/admin/faq",
+    label: "مدیریت سوالات متداول",
+    emoji: "❓",
+  },
+  {
     path: "/admin/settings",
     label: "ویرایش متون سایت",
     emoji: "🔍",

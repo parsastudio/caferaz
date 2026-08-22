@@ -6,9 +6,9 @@ import { getCommentsAction } from "@/actions/public-comment";
 import { getCouponsAction } from "@/actions/admin-coupon";
 import WhyCafeRaz from "@/components/features/landing/WhyCafeRaz";
 import FAQSection from "@/components/features/landing/FAQSection";
-import { FAQItem } from "@/domain/types";
 import { getTehranTodayString } from "@/lib/jalali-converter";
 import { ContentService } from "@/services/content.service";
+import { FaqService } from "@/services/faq.service";
 import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
 
 export default async function Page() {
@@ -26,17 +26,15 @@ export default async function Page() {
   const commentsResult = await getCommentsAction(mainProduct.id);
   const couponsResult = await getCouponsAction();
 
-  let faqs: FAQItem[] = DEFAULT_SITE_CONTENT.faq.items;
   let siteSubtitle = DEFAULT_SITE_CONTENT.layout.brandSubtitle;
-
   try {
     const siteContent = await ContentService.getSiteContent();
-    faqs = siteContent.faq.items;
     siteSubtitle = siteContent.layout.brandSubtitle;
   } catch (error) {
     console.warn("Database connection fallback during build", error);
   }
 
+  const faqs = await FaqService.getAllFaqs();
   const serverTodayStr = getTehranTodayString();
 
   const jsonLd = {
