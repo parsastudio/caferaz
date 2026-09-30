@@ -1,32 +1,24 @@
-# مرحله اول: Build
-FROM node:22-alpine AS builder
+FROM node:22-slim
 WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY package*.json ./
-RUN npm ci --legacy-peer-deps
-
-COPY . .
-RUN npx prisma generate
-RUN npm run build
-
-# مرحله دوم: Run
-FROM node:22-alpine AS runner
-WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-# کپی فایل‌های تولید شده توسط نکس‌جی با حفظ مالکیت یوزر node
-COPY --from=builder --chown=node:node /app/.next/standalone ./
-COPY --from=builder --chown=node:node /app/.next/static ./.next/static
-COPY --from=builder --chown=node:node /app/public ./public
-COPY --chown=node:node .env* ./ 
+# ساخت کاربر امن nextjs در محیط دبیان
+RUN groupadd --system --gid 1001 nodejs && \
+    useradd --system --uid 1001 -g nodejs nextjs
 
-# ساخت پوشه کش برای ذخیره فایل‌های موقت و ISR با دسترسی مناسب
-RUN mkdir -p .next/cache && chown -R node:node .next/cache
+# کپی خروجی بیلد و فایل‌های استاتیک و فونت‌ها
+COPY --chown=nextjs:nodejs .next/standalone ./
+COPY --chown=nextjs:nodejs .next/static ./.next/static
+COPY --chown=nextjs:nodejs public ./public
 
-USER node
-EXPOSE 3005
-ENV PORT=3005
+# کپی پوشه prisma برای دسترسی موتور کوئری پریزما به schema.prisma در ران‌تایم
+COPY --chown=nextjs:nodejs prisma ./prisma
+
+USER nextjs
+EXPOSE 3000
 
 CMD ["node", "server.js"]

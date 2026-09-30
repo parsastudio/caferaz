@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -63,16 +64,12 @@ model Comment {
   product         Product?      @relation(fields: [productId], references: [id], onDelete: Cascade)
   userId          String?       @map("user_id")
   user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
-  
-  // فیلدهای نام برای کاربران غیرعضو (مهمان) اختیاری می‌شوند
   firstName       String?       @map("first_name")
   lastName        String?       @map("last_name")
-  
   rating          Int?
   commentText     String        @map("comment_text")
   createdAt       DateTime      @default(now()) @map("created_at")
   status          CommentStatus @default(pending)
-  
   parentCommentId String?       @map("parent_comment_id")
   parentComment   Comment?      @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
   replies         Comment[]     @relation("CommentReplies")
@@ -84,7 +81,7 @@ model Comment {
 }
 
 model Order {
-  id              String      @id @default(cuid()) // استفاده از cuid برای جلوگیری از تداخل شناسه در پروداکشن
+  id              String      @id @default(cuid())
   userId          String?     @map("user_id")
   user            User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   couponId        String?     @map("coupon_id")
@@ -104,7 +101,6 @@ model Order {
   @@map("orders")
 }
 
-// جدول واسط جهت توسعه‌پذیری چندمحصولی در آینده و ذخیره‌سازی دقیق ویژگی‌های هر آیتم
 model OrderItem {
   id          String   @id @default(cuid())
   orderId     String   @map("order_id")
@@ -116,7 +112,7 @@ model OrderItem {
   blend       String
   grind       String
   grindType   String   @map("grind_type")
-  price       Int      // قیمت ثبت‌شده این آیتم در زمان خرید برای آرشیو مالی صحیح
+  price       Int
 
   @@index([orderId])
   @@index([productId])
@@ -183,10 +179,10 @@ model OtpRecord {
   createdAt DateTime @default(now()) @map("created_at")
   expiresAt DateTime @map("expires_at")
   used      Boolean  @default(false)
-  attempts  Int      @default(0) 
+  attempts  Int      @default(0)
 
   @@index([phone])
   @@index([expiresAt])
-  @@index([ip, createdAt]) // بهینه‌سازی کوئری‌های بررسی سقف تعداد ارسال بر اساس آی‌پی در یک ساعت اخیر
+  @@index([ip, createdAt])
   @@map("otp_records")
 }

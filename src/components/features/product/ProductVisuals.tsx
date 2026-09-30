@@ -30,6 +30,7 @@ export default function ProductVisuals({ productName }: ProductVisualsProps) {
             className="object-cover"
             onError={() => setImgError(true)}
             priority
+            unoptimized
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-stone-900 to-stone-950 flex flex-col items-center justify-center text-stone-600 gap-2 p-6 text-center">

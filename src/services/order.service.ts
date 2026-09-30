@@ -1,4 +1,5 @@
 import "server-only";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { Order } from "@/domain/types";
 import {
@@ -115,7 +116,7 @@ export class OrderService {
     orderId: string,
     status: OrderStatus,
   ): Promise<boolean> {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const existingOrder = await tx.order.findUnique({
         where: { id: orderId },
         include: { orderItems: true },
@@ -169,7 +170,7 @@ export class OrderService {
   }
 
   static async deleteOrder(orderId: string): Promise<boolean> {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const existingOrder = await tx.order.findUnique({
         where: { id: orderId },
         include: { orderItems: true },
@@ -218,7 +219,7 @@ export class OrderService {
     const totalWeightNeeded = weightGrams * quantity;
     const cleanPhone = normalizePhone(securePhone);
 
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const product = await tx.product.findUnique({
         where: { id: productId, deletedAt: null, isActive: true },
         include: { pricing: true },

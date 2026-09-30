@@ -1,12 +1,4 @@
 node_modules
-npm-debug.log
 .git
-.next
-.env.local
-.vscode
-dist
-*.md
-*.sql
-*.py
-combined_files.txt
-scripts
+*.tar.gz
+.env*.local

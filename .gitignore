@@ -44,3 +44,5 @@ extract.py
 req.md
 combined_files.txt
 errors.txt
+deploy.sh
+/.fastagent
