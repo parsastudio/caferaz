@@ -1,4 +1,10 @@
 import { z } from "zod";
+import { parseJalaliString } from "@/lib/jalali-converter";
+
+const jalaliDateValidator = (val?: string | null) => {
+  if (!val || val.trim() === "") return true;
+  return parseJalaliString(val) !== null;
+};
 
 export const updateProductDetailsSchema = z.object({
   productId: z.string().min(1, "شناسه کالا نامعتبر است."),
@@ -13,6 +19,13 @@ export const updateProductDetailsSchema = z.object({
     .number()
     .min(0, "کرایه پیک نمی‌تواند منفی باشد.")
     .optional(),
+  lastRoastDate: z
+    .string()
+    .nullable()
+    .optional()
+    .refine(jalaliDateValidator, {
+      message: "فرمت تاریخ شمسی آخرین رست نامعتبر است (مثال: 1405/01/24)",
+    }),
 });
 
 export const updateProductBasicInfoSchema = z.object({

@@ -21,6 +21,20 @@ export class ProductService {
     }
   }
 
+  static async getLastRoastDate(): Promise<string | null> {
+    try {
+      const opt = await prisma.option.findUnique({
+        where: { key: "last_roast_date" },
+      });
+      if (!opt || typeof opt.value !== "string") {
+        return null;
+      }
+      return opt.value;
+    } catch {
+      return null;
+    }
+  }
+
   static async getMainProduct(): Promise<ProductWithPricing | null> {
     const product = await prisma.product.findFirst({
       where: { deletedAt: null, isActive: true },
@@ -31,6 +45,7 @@ export class ProductService {
     if (!product) return null;
 
     const tehranDeliveryFee = await this.getTehranDeliveryFee();
+    const lastRoastDate = await this.getLastRoastDate();
 
     return {
       id: product.id,
@@ -38,6 +53,7 @@ export class ProductService {
       description: product.description,
       stockGrams: product.stockGrams,
       tehranDeliveryFee,
+      lastRoastDate,
       pricing: product.pricing
         ? {
             pricePerKgArabica: product.pricing.pricePerKgArabica,
@@ -87,6 +103,22 @@ export class ProductService {
           create: {
             key: "tehran_delivery_fee",
             value: input.tehranDeliveryFee,
+          },
+        }),
+      );
+    }
+
+    if (input.lastRoastDate !== undefined) {
+      const cleanRoastDate = input.lastRoastDate
+        ? input.lastRoastDate.trim()
+        : null;
+      ops.push(
+        prisma.option.upsert({
+          where: { key: "last_roast_date" },
+          update: { value: cleanRoastDate },
+          create: {
+            key: "last_roast_date",
+            value: cleanRoastDate,
           },
         }),
       );

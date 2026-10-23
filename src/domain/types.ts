@@ -34,6 +34,7 @@ export interface ProductWithPricing extends Product {
     pricePerKgRobusta: number;
   } | null;
   tehranDeliveryFee?: number;
+  lastRoastDate?: string | null;
 }
 
 export interface Comment {

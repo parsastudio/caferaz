@@ -15,6 +15,9 @@ import ProductTabsSection, {
 } from "@/components/features/product/ProductTabsSection";
 import { useCheckout } from "@/context/CheckoutContext";
 import { Coupon, ProductWithPricing } from "@/types";
+import { Flame } from "lucide-react";
+import { getRoastDateDisplayInfo } from "@/lib/jalali-converter";
+import { toPersianDigits } from "@/lib/utils";
 
 interface CoffeeProductPageProps {
   initialProduct: ProductWithPricing;
@@ -53,6 +56,11 @@ export default function CoffeeProductPage({
 
   const { openCheckout } = useCheckout();
 
+  const roastInfo = getRoastDateDisplayInfo(
+    initialProduct.lastRoastDate,
+    serverTodayStr,
+  );
+
   const handleOpenCheckoutModal = () => {
     openCheckout({
       productId: initialProduct.id,
@@ -77,6 +85,17 @@ export default function CoffeeProductPage({
 
         <div className="lg:col-span-7 space-y-8 lg:pl-2">
           <div>
+            {roastInfo && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-3 select-none">
+                <Flame className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span>
+                  آخرین تاریخ رست: {toPersianDigits(roastInfo.formattedDate)}
+                  {roastInfo.daysAgo === 0
+                    ? " (امروز)"
+                    : ` (${toPersianDigits(roastInfo.daysAgo)} روز پیش)`}
+                </span>
+              </div>
+            )}
             <h1 className="text-2xl lg:text-4xl font-black text-stone-100 tracking-tight mb-3">
               {initialProduct.name}
             </h1>

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Loader2, Coffee } from "lucide-react";
 import { toEnglishDigits, toPersianDigits } from "@/lib/utils";
 import { DEFAULT_PRODUCT_PRICING, DEFAULT_STOCK_GRAMS } from "@/lib/constants";
+import { getTodayJalaliString } from "@/lib/jalali-converter";
 
 interface AdminPricingFormProps {
   initialProduct: ProductWithPricing;
@@ -29,6 +30,9 @@ export default function AdminPricingForm({
   );
   const [deliveryFee, setDeliveryFee] = useState<number>(
     initialProduct.tehranDeliveryFee ?? 70000,
+  );
+  const [lastRoastDate, setLastRoastDate] = useState<string>(
+    initialProduct.lastRoastDate || "",
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,6 +66,7 @@ export default function AdminPricingForm({
         pricePerKgRobusta: robustaRaw,
         stockGrams: stockKg * 1000,
         tehranDeliveryFee: deliveryFee,
+        lastRoastDate: lastRoastDate.trim() || null,
       });
 
       if (result.success) {
@@ -154,6 +159,32 @@ export default function AdminPricingForm({
             />
             <span className="text-[10px] text-stone-500 block">
               💡 پیروزی و حکیمیه رایگان بوده و این کرایه ثابت برای سایر مناطق تهران اعمال می‌شود.
+            </span>
+          </div>
+
+          <div className="space-y-2 text-right sm:col-span-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-stone-300 block">
+                آخرین تاریخ رست (شمسی):
+              </label>
+              <button
+                type="button"
+                onClick={() => setLastRoastDate(getTodayJalaliString())}
+                className="text-[11px] text-gold-400 hover:text-gold-300 font-bold hover:underline cursor-pointer"
+              >
+                تنظیم به تاریخ امروز
+              </button>
+            </div>
+            <input
+              type="text"
+              value={lastRoastDate}
+              onChange={(e) => setLastRoastDate(toEnglishDigits(e.target.value))}
+              placeholder="مثال: 1405/01/24"
+              className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-2xl px-4 py-3 text-sm text-gold-400 outline-none transition-all font-black text-center font-sans tracking-wider"
+              dir="ltr"
+            />
+            <span className="text-[10px] text-stone-500 block">
+              💡 این تاریخ در صفحه اصلی نمایش داده می‌شود. در صورت گذشت بیش از ۲۱ روز از این تاریخ، جهت حفظ پرستیژ فروشگاه به صورت خودکار پنهان خواهد شد.
             </span>
           </div>
         </div>

@@ -69,3 +69,47 @@ export function getTehranTodayString(): string {
   });
   return formatter.format(new Date());
 }
+
+export function getTodayJalaliString(): string {
+  const tehranToday = getTehranTodayString();
+  return formatGregorianToJalaliString(tehranToday);
+}
+
+export interface RoastDateDisplayInfo {
+  isFresh: boolean;
+  formattedDate: string;
+  daysAgo: number;
+}
+
+export function getRoastDateDisplayInfo(
+  roastDateJalaliStr?: string | null,
+  todayGregorianStr?: string,
+): RoastDateDisplayInfo | null {
+  if (!roastDateJalaliStr || !roastDateJalaliStr.trim()) return null;
+
+  const parsed = parseJalaliString(roastDateJalaliStr.trim());
+  if (!parsed) return null;
+
+  const roastDate = new Date(
+    Date.UTC(parsed.gy, parsed.gm - 1, parsed.gd, 12, 0, 0),
+  );
+
+  const todayStr = todayGregorianStr || getTehranTodayString();
+  const todayParts = todayStr.split("-").map((p) => parseInt(p, 10));
+  const todayDate = new Date(
+    Date.UTC(todayParts[0], todayParts[1] - 1, todayParts[2], 12, 0, 0),
+  );
+
+  const diffMs = todayDate.getTime() - roastDate.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0 || diffDays > 21) {
+    return null;
+  }
+
+  return {
+    isFresh: true,
+    formattedDate: roastDateJalaliStr.trim(),
+    daysAgo: diffDays,
+  };
+}
