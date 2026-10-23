@@ -21,6 +21,9 @@ export const checkoutFormSchema = z.object({
     .max(50, "نام خانوادگی بیش از حد طولانی است"),
   phone: phoneSchema,
   destination: z.enum(["tehran", "other"]).default("tehran"),
+  tehranZone: z
+    .enum(["piroozi", "hakimieh", "other_tehran"])
+    .default("piroozi"),
   postalCode: z.string().optional(),
   paymentMethod: z.enum(["cod", "online"]).default("cod"),
   shippingAddress: z
@@ -51,6 +54,11 @@ export const serverOrderSchema = z.object({
     .string()
     .min(10, "آدرس محل تحویل باید حداقل ۱۰ کاراکتر باشد.")
     .max(500, "آدرس وارد شده بیش از حد طولانی است."),
+  destination: z.enum(["tehran", "other"]).optional().default("tehran"),
+  tehranZone: z
+    .enum(["piroozi", "hakimieh", "other_tehran"])
+    .optional()
+    .default("piroozi"),
   otp: z.preprocess(
     (val) => (typeof val === "string" && val.trim() === "" ? undefined : val),
     otpCodeSchema.optional(),

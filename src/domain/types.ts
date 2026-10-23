@@ -33,6 +33,7 @@ export interface ProductWithPricing extends Product {
     pricePerKgArabica: number;
     pricePerKgRobusta: number;
   } | null;
+  tehranDeliveryFee?: number;
 }
 
 export interface Comment {

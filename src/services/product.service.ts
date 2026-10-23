@@ -7,6 +7,20 @@ import {
 } from "@/domain/validations/product.schema";
 
 export class ProductService {
+  static async getTehranDeliveryFee(): Promise<number> {
+    try {
+      const opt = await prisma.option.findUnique({
+        where: { key: "tehran_delivery_fee" },
+      });
+      if (!opt || typeof opt.value !== "number") {
+        return 70000;
+      }
+      return opt.value;
+    } catch {
+      return 70000;
+    }
+  }
+
   static async getMainProduct(): Promise<ProductWithPricing | null> {
     const product = await prisma.product.findFirst({
       where: { deletedAt: null, isActive: true },
@@ -16,11 +30,14 @@ export class ProductService {
 
     if (!product) return null;
 
+    const tehranDeliveryFee = await this.getTehranDeliveryFee();
+
     return {
       id: product.id,
       name: product.name,
       description: product.description,
       stockGrams: product.stockGrams,
+      tehranDeliveryFee,
       pricing: product.pricing
         ? {
             pricePerKgArabica: product.pricing.pricePerKgArabica,
@@ -43,7 +60,7 @@ export class ProductService {
   static async updateProductDetails(
     input: UpdateProductDetailsInput,
   ): Promise<boolean> {
-    await prisma.$transaction([
+    const ops: unknown[] = [
       prisma.product.update({
         where: { id: input.productId },
         data: { stockGrams: input.stockGrams },
@@ -60,7 +77,22 @@ export class ProductService {
           pricePerKgRobusta: input.pricePerKgRobusta,
         },
       }),
-    ]);
+    ];
+
+    if (input.tehranDeliveryFee !== undefined) {
+      ops.push(
+        prisma.option.upsert({
+          where: { key: "tehran_delivery_fee" },
+          update: { value: input.tehranDeliveryFee },
+          create: {
+            key: "tehran_delivery_fee",
+            value: input.tehranDeliveryFee,
+          },
+        }),
+      );
+    }
+
+    await prisma.$transaction(ops as never);
 
     return true;
   }

@@ -27,6 +27,9 @@ export default function AdminPricingForm({
   const [stockKg, setStockKg] = useState<number>(
     (initialProduct.stockGrams || DEFAULT_STOCK_GRAMS) / 1000,
   );
+  const [deliveryFee, setDeliveryFee] = useState<number>(
+    initialProduct.tehranDeliveryFee ?? 70000,
+  );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -46,8 +49,8 @@ export default function AdminPricingForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (arabicaRaw <= 0 || robustaRaw <= 0 || stockKg < 0) {
-      toast.error("لطفاً مقادیر قیمت و موجودی معتبر وارد کنید.");
+    if (arabicaRaw <= 0 || robustaRaw <= 0 || stockKg < 0 || deliveryFee < 0) {
+      toast.error("لطفاً مقادیر قیمت، موجودی و کرایه معتبر وارد کنید.");
       return;
     }
 
@@ -58,11 +61,12 @@ export default function AdminPricingForm({
         pricePerKgArabica: arabicaRaw,
         pricePerKgRobusta: robustaRaw,
         stockGrams: stockKg * 1000,
+        tehranDeliveryFee: deliveryFee,
       });
 
       if (result.success) {
         toast.success(
-          "نرخ‌های پایه و موجودی انبار با موفقیت به‌روزرسانی شدند.",
+          "نرخ‌های پایه، موجودی انبار و کرایه پیک با موفقیت به‌روزرسانی شدند.",
         );
       } else {
         toast.error(result.error || "خطا در ثبت تغییرات.");
@@ -82,7 +86,7 @@ export default function AdminPricingForm({
         </div>
         <div>
           <span className="text-[10px] text-stone-400 block font-bold">
-            تغییرات قیمت و موجودی زیر برای کالا اعمال می‌گردد:
+            تنظیمات نرخ‌های پایه، موجودی انبار و کرایه پیک:
           </span>
           <span className="text-sm font-black text-stone-200">
             {initialProduct.name}
@@ -91,9 +95,9 @@ export default function AdminPricingForm({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="space-y-2 text-center sm:text-right">
-            <label className="text-xs font-bold text-stone-300 block text-center sm:text-right">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2 text-right">
+            <label className="text-xs font-bold text-stone-300 block">
               قیمت هر کیلوگرم عربیکا (تومان):
             </label>
             <input
@@ -107,8 +111,8 @@ export default function AdminPricingForm({
             />
           </div>
 
-          <div className="space-y-2 text-center sm:text-right">
-            <label className="text-xs font-bold text-stone-300 block text-center sm:text-right">
+          <div className="space-y-2 text-right">
+            <label className="text-xs font-bold text-stone-300 block">
               قیمت هر کیلوگرم روبوستا (تومان):
             </label>
             <input
@@ -122,8 +126,8 @@ export default function AdminPricingForm({
             />
           </div>
 
-          <div className="space-y-2 text-center sm:text-right">
-            <label className="text-xs font-bold text-stone-300 block text-center sm:text-right">
+          <div className="space-y-2 text-right">
+            <label className="text-xs font-bold text-stone-300 block">
               موجودی فیزیکی کل انبار (کیلوگرم):
             </label>
             <input
@@ -133,6 +137,24 @@ export default function AdminPricingForm({
               onChange={(e) => handleNumberChange(e.target.value, setStockKg)}
               className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-2xl px-4 py-3 text-base text-gold-400 outline-none transition-all font-black text-center font-sans"
             />
+          </div>
+
+          <div className="space-y-2 text-right">
+            <label className="text-xs font-bold text-stone-300 block">
+              کرایه پیک سایر مناطق تهران (تومان):
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={formatPersianNumberWithCommas(deliveryFee)}
+              onChange={(e) =>
+                handleNumberChange(e.target.value, setDeliveryFee)
+              }
+              className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-2xl px-4 py-3 text-base text-gold-400 outline-none transition-all font-black text-center font-sans"
+            />
+            <span className="text-[10px] text-stone-500 block">
+              💡 پیروزی و حکیمیه رایگان بوده و این کرایه ثابت برای سایر مناطق تهران اعمال می‌شود.
+            </span>
           </div>
         </div>
 
@@ -148,7 +170,7 @@ export default function AdminPricingForm({
                 در حال ذخیره‌سازی...
               </>
             ) : (
-              "به‌روزرسانی نرخ‌ها و موجودی انبار"
+              "به‌روزرسانی نرخ‌ها، موجودی انبار و کرایه پیک"
             )}
           </button>
         </div>

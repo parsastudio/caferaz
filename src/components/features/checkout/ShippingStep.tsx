@@ -27,6 +27,8 @@ interface ShippingStepProps {
   directDiscountAmount: number;
   conditionalDiscountAmount: number;
   finalPrice: number;
+  payableFinalPrice: number;
+  tehranDeliveryFee: number;
   isLoggedIn?: boolean;
   isSubmitting?: boolean;
   couponCode: string;
@@ -45,6 +47,8 @@ export default function ShippingStep({
   directDiscountAmount,
   conditionalDiscountAmount,
   finalPrice,
+  payableFinalPrice,
+  tehranDeliveryFee,
   isLoggedIn,
   isSubmitting,
   couponCode,
@@ -64,6 +68,7 @@ export default function ShippingStep({
   } = useFormContext<CheckoutFormValues>();
 
   const destination = watch("destination") || "tehran";
+  const tehranZone = watch("tehranZone") || "piroozi";
   const paymentMethod = watch("paymentMethod") || "cod";
 
   const handleDestinationChange = (dest: "tehran" | "other") => {
@@ -108,7 +113,7 @@ export default function ShippingStep({
                   داخل تهران
                 </span>
                 <span className="text-[10px] text-stone-400 block mt-0.5">
-                  تحویل با پیک
+                  تحویل سریع پیک
                 </span>
               </div>
             </div>
@@ -168,11 +173,82 @@ export default function ShippingStep({
         </div>
       </div>
 
+      {/* انتخاب منطقه در تهران (پیروزی و حکیمیه رایگان / سایر مناطق با نرخ پیک) */}
+      {destination === "tehran" && (
+        <div className="space-y-1.5 animate-in fade-in duration-200">
+          <label className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
+            <MapPin className="w-3.5 h-3.5 text-gold-500" />
+            منطقه تحویل در تهران: <span className="text-red-500">*</span>
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() =>
+                setValue("tehranZone", "piroozi", { shouldValidate: true })
+              }
+              className={`p-2 sm:p-2.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 select-none ${
+                tehranZone === "piroozi"
+                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-400 shadow-md ring-1 ring-emerald-500/30"
+                  : "border-stone-800 bg-stone-950/60 hover:border-stone-700 text-stone-400 hover:text-stone-200"
+              }`}
+            >
+              <span className="text-xs font-black text-stone-100 block">
+                پیروزی
+              </span>
+              <span className="text-[10px] text-emerald-400 font-bold block">
+                ارسال رایگان 🎉
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                setValue("tehranZone", "hakimieh", { shouldValidate: true })
+              }
+              className={`p-2 sm:p-2.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 select-none ${
+                tehranZone === "hakimieh"
+                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-400 shadow-md ring-1 ring-emerald-500/30"
+                  : "border-stone-800 bg-stone-950/60 hover:border-stone-700 text-stone-400 hover:text-stone-200"
+              }`}
+            >
+              <span className="text-xs font-black text-stone-100 block">
+                حکیمیه
+              </span>
+              <span className="text-[10px] text-emerald-400 font-bold block">
+                ارسال رایگان 🎉
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                setValue("tehranZone", "other_tehran", {
+                  shouldValidate: true,
+                })
+              }
+              className={`p-2 sm:p-2.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 select-none ${
+                tehranZone === "other_tehran"
+                  ? "border-gold-500 bg-gold-500/10 text-gold-400 shadow-md ring-1 ring-gold-500/30"
+                  : "border-stone-800 bg-stone-950/60 hover:border-stone-700 text-stone-400 hover:text-stone-200"
+              }`}
+            >
+              <span className="text-xs font-black text-stone-100 block">
+                سایر مناطق
+              </span>
+              <span className="text-[10px] text-stone-300 font-sans block font-bold">
+                {tehranDeliveryFee.toLocaleString()} ت
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* آدرس محل تحویل */}
       <div className="space-y-1">
         <label className="text-xs font-bold text-stone-300 flex items-center gap-1">
           <MapPin className="w-3.5 h-3.5 text-stone-500" />
-          {checkout.shippingAddressLabel} <span className="text-red-500">*</span>
+          {checkout.shippingAddressLabel}{" "}
+          <span className="text-red-500">*</span>
         </label>
         <textarea
           {...register("shippingAddress")}
@@ -207,7 +283,7 @@ export default function ShippingStep({
           >
             <label className="text-xs font-bold text-stone-300 flex items-center gap-1 pt-0.5">
               <Mail className="w-3.5 h-3.5 text-gold-500" />
-              کد پستی ۱۰ رقمی: (الزامی برای اداره پست)
+              کد پستی ۱۰ رقمی:
             </label>
             <input
               type="text"
@@ -215,7 +291,10 @@ export default function ShippingStep({
               maxLength={10}
               {...register("postalCode")}
               onChange={(e) => {
-                e.target.value = toEnglishDigits(e.target.value).replace(/[^0-9]/g, "");
+                e.target.value = toEnglishDigits(e.target.value).replace(
+                  /[^0-9]/g,
+                  "",
+                );
                 register("postalCode").onChange(e);
               }}
               placeholder="مثال: ۱۲۳۴۵۶۷۸۹۰"
@@ -257,7 +336,9 @@ export default function ShippingStep({
           <div className="grid grid-cols-2 gap-2 min-h-[50px]">
             <button
               type="button"
-              onClick={() => setValue("paymentMethod", "cod", { shouldValidate: true })}
+              onClick={() =>
+                setValue("paymentMethod", "cod", { shouldValidate: true })
+              }
               className={`p-2.5 rounded-2xl border text-right transition-all cursor-pointer flex items-center justify-between select-none ${
                 paymentMethod === "cod"
                   ? "border-gold-500 bg-gold-500/10 text-gold-400 shadow-md ring-1 ring-gold-500/30"
@@ -290,7 +371,9 @@ export default function ShippingStep({
 
             <button
               type="button"
-              onClick={() => setValue("paymentMethod", "online", { shouldValidate: true })}
+              onClick={() =>
+                setValue("paymentMethod", "online", { shouldValidate: true })
+              }
               className={`p-2.5 rounded-2xl border text-right transition-all cursor-pointer flex items-center justify-between select-none ${
                 paymentMethod === "online"
                   ? "border-gold-500 bg-gold-500/10 text-gold-400 shadow-md ring-1 ring-gold-500/30"
@@ -413,14 +496,26 @@ export default function ShippingStep({
               </span>
             </div>
           )}
-          <div className="flex justify-between items-center text-emerald-400">
-            <span>{checkout.shippingCostLabel}</span>
-            <span className="font-bold">{checkout.freeShippingValue}</span>
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-stone-400">{checkout.shippingCostLabel}</span>
+            {destination === "other" ? (
+              <span className="text-amber-400 font-bold text-[10px] sm:text-[11px] bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md">
+                پس‌پرداخت (بر اساس نرخ شرکت پست)
+              </span>
+            ) : tehranZone === "other_tehran" ? (
+              <span className="font-sans font-bold text-stone-200">
+                {tehranDeliveryFee.toLocaleString()} تومان
+              </span>
+            ) : (
+              <span className="font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
+                رایگان
+              </span>
+            )}
           </div>
           <div className="border-t border-stone-800/80 pt-2 flex justify-between items-center text-gold-500 font-black text-sm">
             <span>{checkout.finalPayableLabel}</span>
             <span className="font-sans">
-              {finalPrice.toLocaleString()} تومان
+              {payableFinalPrice.toLocaleString()} تومان
             </span>
           </div>
         </div>
@@ -433,7 +528,7 @@ export default function ShippingStep({
             {checkout.payableAmountPrefix}
           </span>
           <span className="text-sm font-black text-gold-500 font-sans">
-            {finalPrice.toLocaleString()} تومان
+            {payableFinalPrice.toLocaleString()} تومان
           </span>
         </div>
         <div className="flex gap-2">

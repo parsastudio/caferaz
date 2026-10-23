@@ -16,6 +16,7 @@ interface SuccessStepProps {
   trackingCode: string;
   paymentMethod?: string;
   destination?: string;
+  tehranZone?: string;
   onClose: () => void;
 }
 
@@ -29,6 +30,7 @@ export default function SuccessStep({
   trackingCode,
   paymentMethod = "cod",
   destination = "tehran",
+  tehranZone = "piroozi",
   onClose,
 }: SuccessStepProps) {
   const router = useRouter();
@@ -78,14 +80,22 @@ export default function SuccessStep({
           <div className="text-left text-stone-200 font-sans">
             {quantity} {checkout.packageCountUnit}
           </div>
-          <div>نوع تحویل:</div>
+          <div>شیوه تحویل:</div>
           <div className="text-left text-stone-200 font-sans text-[11px]">
-            {destination === "other" ? "اداره پست (پیشتاز)" : "پیک در تهران"}
+            {destination === "other"
+              ? "اداره پست (کرایه پس‌پرداخت)"
+              : tehranZone === "piroozi"
+                ? "پیک تهران - پیروزی (رایگان)"
+                : tehranZone === "hakimieh"
+                  ? "پیک تهران - حکیمیه (رایگان)"
+                  : "پیک تهران - سایر مناطق"}
           </div>
           <div>
             {paymentMethod === "online"
-              ? "مبلغ پرداخت آنلاین:"
-              : checkout.codAmountLabel}
+              ? "مبلغ تسویه آنلاین:"
+              : destination === "other"
+                ? "مبلغ فاکتور کالا:"
+                : checkout.codAmountLabel}
           </div>
           <div className="text-left text-gold-400 font-black font-sans">
             {finalPrice.toLocaleString()} تومان

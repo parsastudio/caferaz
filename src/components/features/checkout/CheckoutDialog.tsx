@@ -125,6 +125,8 @@ export default function CheckoutDialog() {
                     directDiscountAmount={directDiscountAmount}
                     conditionalDiscountAmount={conditionalDiscountAmount}
                     finalPrice={checkoutFinalPrice}
+                    payableFinalPrice={payableFinalPrice}
+                    tehranDeliveryFee={tehranDeliveryFee}
                     isLoggedIn={isLoggedInUser}
                     isSubmitting={isSubmitting}
                     couponCode={couponCode}
@@ -178,10 +180,11 @@ export default function CheckoutDialog() {
                     phone={methods.getValues("phone")}
                     selectedWeight={selectedWeight}
                     quantity={quantity}
-                    finalPrice={checkoutFinalPrice}
+                    finalPrice={payableFinalPrice}
                     trackingCode={fakeTrackingCode}
                     paymentMethod={methods.getValues("paymentMethod")}
                     destination={methods.getValues("destination")}
+                    tehranZone={methods.getValues("tehranZone")}
                     onClose={handleClose}
                   />
                 </motion.div>

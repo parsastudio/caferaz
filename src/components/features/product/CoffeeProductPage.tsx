@@ -64,6 +64,7 @@ export default function CoffeeProductPage({
       basePrice: priceMetrics.basePrice,
       directDiscountAmount: priceMetrics.directDiscountAmount,
       conditionalDiscountAmount: priceMetrics.conditionalDiscountAmount,
+      tehranDeliveryFee: initialProduct.tehranDeliveryFee ?? 70000,
     });
   };
 

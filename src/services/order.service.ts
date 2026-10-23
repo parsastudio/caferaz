@@ -321,6 +321,21 @@ export class OrderService {
 
       const secureRandomId = crypto.randomInt(100000000000, 1000000000000);
       const generatedId = `ORD-${secureRandomId}`;
+      let shippingFee = 0;
+      if (
+        payload.destination === "tehran" &&
+        payload.tehranZone === "other_tehran"
+      ) {
+        const opt = await tx.option.findUnique({
+          where: { key: "tehran_delivery_fee" },
+        });
+        shippingFee =
+          opt && typeof opt.value === "number" ? opt.value : 70000;
+      }
+
+      const totalOrderFinalPrice =
+        pricingBreakdown.finalPrice + shippingFee;
+
       const unitPrice = Math.round(
         pricingBreakdown.finalPrice / Math.max(1, quantity),
       );
@@ -330,7 +345,7 @@ export class OrderService {
           id: generatedId,
           userId: user.id,
           couponId: coupon?.id ?? null,
-          finalPrice: pricingBreakdown.finalPrice,
+          finalPrice: totalOrderFinalPrice,
           customerName,
           customerPhone: cleanPhone,
           customerAddress,

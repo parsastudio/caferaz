@@ -12,6 +12,7 @@ export interface CheckoutData {
   basePrice: number;
   directDiscountAmount: number;
   conditionalDiscountAmount: number;
+  tehranDeliveryFee?: number;
 }
 
 interface CheckoutContextType {

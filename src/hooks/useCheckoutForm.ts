@@ -32,6 +32,7 @@ export function useCheckoutForm() {
       lastName: "",
       phone: "",
       destination: "tehran",
+      tehranZone: "piroozi",
       postalCode: "",
       paymentMethod: "cod",
       shippingAddress: "",
@@ -42,6 +43,16 @@ export function useCheckoutForm() {
 
   const { trigger, getValues, reset, setValue, control } = methods;
   const watchedPhone = useWatch({ control, name: "phone" });
+  const watchedDestination = useWatch({ control, name: "destination" }) || "tehran";
+  const watchedTehranZone = useWatch({ control, name: "tehranZone" }) || "piroozi";
+
+  const tehranDeliveryFee = checkoutData?.tehranDeliveryFee ?? 70000;
+  const currentShippingFee =
+    watchedDestination === "other"
+      ? 0
+      : watchedTehranZone === "other_tehran"
+        ? tehranDeliveryFee
+        : 0;
 
   const couponManager = useCouponManager({
     productId: checkoutData?.productId ?? "",
@@ -67,6 +78,7 @@ export function useCheckoutForm() {
     methods,
     checkoutData,
     appliedCouponCode: couponManager.appliedCoupon?.code ?? null,
+    tehranDeliveryFee,
     setErrorMessage,
     onSuccess: () => setStep("success"),
   });
@@ -192,5 +204,8 @@ export function useCheckoutForm() {
     basePrice: checkoutData?.basePrice ?? 0,
     formToken: authManager.formToken,
     honeypot: authManager.honeypot,
+    tehranDeliveryFee,
+    currentShippingFee,
+    payableFinalPrice: couponManager.checkoutFinalPrice + currentShippingFee,
   };
 }

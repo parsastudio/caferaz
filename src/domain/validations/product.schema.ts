@@ -9,6 +9,10 @@ export const updateProductDetailsSchema = z.object({
     .number()
     .min(1, "قیمت هر کیلوگرم روبوستا باید بزرگتر از صفر باشد."),
   stockGrams: z.number().min(0, "موجودی فیزیکی کل نمی‌تواند منفی باشد."),
+  tehranDeliveryFee: z
+    .number()
+    .min(0, "کرایه پیک نمی‌تواند منفی باشد.")
+    .optional(),
 });
 
 export const updateProductBasicInfoSchema = z.object({

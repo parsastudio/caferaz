@@ -11,6 +11,7 @@ interface UseCheckoutSubmitProps {
   methods: UseFormReturn<CheckoutFormValues>;
   checkoutData: CheckoutData | null;
   appliedCouponCode?: string | null;
+  tehranDeliveryFee?: number;
   setErrorMessage: (msg: string | null) => void;
   onSuccess: () => void;
 }
@@ -19,6 +20,7 @@ export function useCheckoutSubmit({
   methods,
   checkoutData,
   appliedCouponCode,
+  tehranDeliveryFee = 70000,
   setErrorMessage,
   onSuccess,
 }: UseCheckoutSubmitProps) {
@@ -39,11 +41,17 @@ export function useCheckoutSubmit({
       const postalText = values.postalCode?.trim()
         ? ` | کد پستی: ${values.postalCode.trim()}`
         : "";
-      customerAddress = `[ارسال با اداره پست | پرداخت آنلاین] ${customerAddress}${postalText}`;
+      customerAddress = `[ارسال با اداره پست (کرایه پس‌پرداخت پست) | پرداخت آنلاین] ${customerAddress}${postalText}`;
     } else {
+      const zoneLabel =
+        values.tehranZone === "piroozi"
+          ? "پیروزی (ارسال رایگان)"
+          : values.tehranZone === "hakimieh"
+            ? "حکیمیه (ارسال رایگان)"
+            : `سایر مناطق (کرایه پیک: ${tehranDeliveryFee.toLocaleString()} ت)`;
       const payLabel =
         values.paymentMethod === "online" ? "پرداخت آنلاین" : "پرداخت در محل";
-      customerAddress = `[تحویل پیک تهران | ${payLabel}] ${customerAddress}`;
+      customerAddress = `[تحویل پیک تهران - ${zoneLabel} | ${payLabel}] ${customerAddress}`;
     }
 
     try {
@@ -56,6 +64,8 @@ export function useCheckoutSubmit({
         customerName: fullName,
         customerPhone: cleanPhone,
         customerAddress,
+        destination: values.destination,
+        tehranZone: values.tehranZone,
         otp: otpCode,
         appliedCouponCode: appliedCouponCode ?? null,
       });
