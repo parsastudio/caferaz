@@ -12,7 +12,8 @@
 /debug
 # testing
 /coverage
-
+package-lock.json
+.yaml
 # next.js
 /.next/
 /out/
@@ -46,3 +47,5 @@ combined_files.txt
 errors.txt
 deploy.sh
 /.fastagent
+# FastAgent artifacts
+.fastagent/

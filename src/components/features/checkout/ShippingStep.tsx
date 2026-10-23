@@ -426,27 +426,6 @@ export default function ShippingStep({
         </div>
       </div>
 
-      {/* بنر اعتماد ارسال */}
-      <div className="bg-stone-950/40 border border-stone-850 p-2.5 sm:p-3 rounded-2xl flex items-start gap-2.5 text-right">
-        {destination === "other" ? (
-          <>
-            <Mail className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
-            <p className="text-[11px] text-stone-300 leading-relaxed">
-              سفارش شما با بسته‌بندی پلمپ تخصصی قهوه، از طریق <b className="text-gold-400">اداره پست (پست پیشتاز)</b> ارسال شده و شناسه رهگیری مرسوله پستی پیامک خواهد شد.
-            </p>
-          </>
-        ) : (
-          <>
-            <Truck className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
-            <p className="text-[11px] text-stone-300 leading-relaxed">
-              {paymentMethod === "cod"
-                ? checkout.codTrustNotice
-                : "سفارش شما پس از پرداخت اینترنتی، در اولویت آماده‌سازی سریع و تحویل با پیک اختصاصی کافه راز قرار می‌گیرد."}
-            </p>
-          </>
-        )}
-      </div>
-
       {/* نوار دکمه‌های اقدام نهایی همیشه در دسترس */}
       <div className="border-t border-stone-800/80 pt-3 mt-4 flex justify-between items-center">
         <div className="text-right">
