@@ -18,7 +18,7 @@ export default function CheckoutDialogHeader({
   const { checkout } = useSiteContent();
 
   return (
-    <div className="p-6 md:p-8 pb-4 md:pb-5 border-b border-stone-800/80 bg-stone-950/20 flex items-center justify-between">
+    <div className="px-5 py-3.5 sm:px-6 sm:py-4 border-b border-stone-800/80 bg-stone-950/40 flex items-center justify-between shrink-0">
       <div className="flex items-center gap-2.5">
         <div className="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center">
           <ShoppingBag className="w-5 h-5" />

@@ -79,12 +79,12 @@ export default function CheckoutDialog() {
     >
       <DialogContent
         dir="rtl"
-        className="sm:max-w-lg md:max-w-xl bg-stone-900 border border-stone-800 text-stone-100 p-0 overflow-hidden rounded-2xl text-right"
+        className="sm:max-w-lg md:max-w-xl max-h-[92dvh] sm:max-h-[88dvh] bg-stone-900 border border-stone-800 text-stone-100 p-0 rounded-3xl text-right flex flex-col overflow-hidden shadow-2xl transition-all duration-200"
         showCloseButton={false}
       >
         <CheckoutDialogHeader step={step} onBack={handleHeaderBack} />
 
-        <div className="p-6 md:p-8">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 overflow-x-hidden scrollbar-thin scrollbar-thumb-stone-800 scrollbar-track-transparent">
           <FormProvider {...methods}>
             <AnimatePresence mode="wait">
               {step === "user_info" && (
