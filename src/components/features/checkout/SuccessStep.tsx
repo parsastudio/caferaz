@@ -14,6 +14,8 @@ interface SuccessStepProps {
   quantity: number;
   finalPrice: number;
   trackingCode: string;
+  paymentMethod?: string;
+  destination?: string;
   onClose: () => void;
 }
 
@@ -25,6 +27,8 @@ export default function SuccessStep({
   quantity,
   finalPrice,
   trackingCode,
+  paymentMethod = "cod",
+  destination = "tehran",
   onClose,
 }: SuccessStepProps) {
   const router = useRouter();
@@ -74,7 +78,15 @@ export default function SuccessStep({
           <div className="text-left text-stone-200 font-sans">
             {quantity} {checkout.packageCountUnit}
           </div>
-          <div>{checkout.codAmountLabel}</div>
+          <div>نوع تحویل:</div>
+          <div className="text-left text-stone-200 font-sans text-[11px]">
+            {destination === "other" ? "اداره پست (پیشتاز)" : "پیک در تهران"}
+          </div>
+          <div>
+            {paymentMethod === "online"
+              ? "مبلغ پرداخت آنلاین:"
+              : checkout.codAmountLabel}
+          </div>
           <div className="text-left text-gold-400 font-black font-sans">
             {finalPrice.toLocaleString()} تومان
           </div>

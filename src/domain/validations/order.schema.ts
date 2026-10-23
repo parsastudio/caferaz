@@ -20,6 +20,9 @@ export const checkoutFormSchema = z.object({
     .min(2, "نام خانوادگی باید حداقل ۲ حرف باشد")
     .max(50, "نام خانوادگی بیش از حد طولانی است"),
   phone: phoneSchema,
+  destination: z.enum(["tehran", "other"]).default("tehran"),
+  postalCode: z.string().optional(),
+  paymentMethod: z.enum(["cod", "online"]).default("cod"),
   shippingAddress: z
     .string()
     .min(1, "لطفاً آدرس تحویل را وارد کنید")

@@ -180,6 +180,8 @@ export default function CheckoutDialog() {
                     quantity={quantity}
                     finalPrice={checkoutFinalPrice}
                     trackingCode={fakeTrackingCode}
+                    paymentMethod={methods.getValues("paymentMethod")}
+                    destination={methods.getValues("destination")}
                     onClose={handleClose}
                   />
                 </motion.div>

@@ -34,6 +34,18 @@ export function useCheckoutSubmit({
       `${values.firstName || ""} ${values.lastName || ""}`.trim() ||
       "کاربر کافه راز";
 
+    let customerAddress = values.shippingAddress.trim();
+    if (values.destination === "other") {
+      const postalText = values.postalCode?.trim()
+        ? ` | کد پستی: ${values.postalCode.trim()}`
+        : "";
+      customerAddress = `[ارسال با اداره پست | پرداخت آنلاین] ${customerAddress}${postalText}`;
+    } else {
+      const payLabel =
+        values.paymentMethod === "online" ? "پرداخت آنلاین" : "پرداخت در محل";
+      customerAddress = `[تحویل پیک تهران | ${payLabel}] ${customerAddress}`;
+    }
+
     try {
       const result = await submitOrderAction({
         productId: checkoutData?.productId ?? "",
@@ -43,7 +55,7 @@ export function useCheckoutSubmit({
         grind: checkoutData?.selectedGrind ?? "",
         customerName: fullName,
         customerPhone: cleanPhone,
-        customerAddress: values.shippingAddress,
+        customerAddress,
         otp: otpCode,
         appliedCouponCode: appliedCouponCode ?? null,
       });

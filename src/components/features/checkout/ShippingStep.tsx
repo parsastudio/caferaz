@@ -1,10 +1,22 @@
 "use client";
 
 import React from "react";
-import { MapPin, Check, Truck, Loader2, Ticket } from "lucide-react";
+import {
+  MapPin,
+  Check,
+  Truck,
+  Loader2,
+  Ticket,
+  Bike,
+  Mail,
+  CreditCard,
+  Banknote,
+  Building2,
+} from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { CheckoutFormValues } from "@/domain/validations/order.schema";
+import { toEnglishDigits } from "@/lib/utils";
 import { useSiteContent } from "@/context/ContentContext";
 
 interface ShippingStepProps {
@@ -45,11 +57,140 @@ export default function ShippingStep({
   const { checkout } = useSiteContent();
   const {
     register,
+    watch,
+    setValue,
     formState: { errors },
   } = useFormContext<CheckoutFormValues>();
 
+  const destination = watch("destination") || "tehran";
+  const paymentMethod = watch("paymentMethod") || "cod";
+
+  const handleDestinationChange = (dest: "tehran" | "other") => {
+    setValue("destination", dest, { shouldValidate: true });
+    if (dest === "other") {
+      setValue("paymentMethod", "online", { shouldValidate: true });
+    } else {
+      setValue("paymentMethod", "cod", { shouldValidate: true });
+    }
+  };
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      {/* مرحله ۱: انتخاب موقعیت تحویل */}
+      <div className="space-y-2 text-right">
+        <label className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
+          <Building2 className="w-3.5 h-3.5 text-gold-500" />
+          محدوده تحویل سفارش: <span className="text-red-500">*</span>
+        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <button
+            type="button"
+            onClick={() => handleDestinationChange("tehran")}
+            className={`p-3.5 rounded-2xl border text-right transition-all cursor-pointer flex items-center justify-between gap-2 select-none ${
+              destination === "tehran"
+                ? "border-gold-500 bg-gold-500/10 text-gold-400 shadow-lg shadow-gold-500/5 ring-1 ring-gold-500/30"
+                : "border-stone-800 bg-stone-950/60 hover:border-stone-700 text-stone-400 hover:text-stone-200"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+                  destination === "tehran"
+                    ? "bg-gold-500 text-stone-950"
+                    : "bg-stone-900 text-stone-400"
+                }`}
+              >
+                <Bike className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-black text-stone-100 block">
+                  داخل تهران
+                </span>
+                <span className="text-[10px] text-stone-400 block mt-0.5">
+                  تحویل سریع با پیک
+                </span>
+              </div>
+            </div>
+            <div
+              className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                destination === "tehran"
+                  ? "border-gold-500 bg-gold-500"
+                  : "border-stone-700"
+              }`}
+            >
+              {destination === "tehran" && (
+                <div className="w-1.5 h-1.5 rounded-full bg-stone-950" />
+              )}
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleDestinationChange("other")}
+            className={`p-3.5 rounded-2xl border text-right transition-all cursor-pointer flex items-center justify-between gap-2 select-none ${
+              destination === "other"
+                ? "border-gold-500 bg-gold-500/10 text-gold-400 shadow-lg shadow-gold-500/5 ring-1 ring-gold-500/30"
+                : "border-stone-800 bg-stone-950/60 hover:border-stone-700 text-stone-400 hover:text-stone-200"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+                  destination === "other"
+                    ? "bg-gold-500 text-stone-950"
+                    : "bg-stone-900 text-stone-400"
+                }`}
+              >
+                <Mail className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-black text-stone-100 block">
+                  سایر شهرها و استان‌ها
+                </span>
+                <span className="text-[10px] text-stone-400 block mt-0.5">
+                  ارسال با اداره پست
+                </span>
+              </div>
+            </div>
+            <div
+              className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                destination === "other"
+                  ? "border-gold-500 bg-gold-500"
+                  : "border-stone-700"
+              }`}
+            >
+              {destination === "other" && (
+                <div className="w-1.5 h-1.5 rounded-full bg-stone-950" />
+              )}
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* کد پستی اختصاصی برای ارسال اداره پست */}
+      {destination === "other" && (
+        <div className="space-y-1.5 text-right animate-in fade-in duration-200">
+          <label className="text-xs font-bold text-stone-300 flex items-center gap-1">
+            <Mail className="w-3.5 h-3.5 text-gold-500" />
+            کد پستی ۱۰ رقمی: (الزامی برای اداره پست)
+          </label>
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={10}
+            {...register("postalCode")}
+            onChange={(e) => {
+              e.target.value = toEnglishDigits(e.target.value).replace(/[^0-9]/g, "");
+              register("postalCode").onChange(e);
+            }}
+            placeholder="مثال: ۱۲۳۴۵۶۷۸۹۰"
+            className="w-full bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-3.5 py-2.5 text-xs text-stone-100 outline-none text-left font-sans tracking-widest"
+            dir="ltr"
+          />
+        </div>
+      )}
+
+      {/* آدرس محل تحویل */}
       <div className="space-y-1.5 text-right">
         <label className="text-xs font-bold text-stone-300 flex items-center gap-1">
           <MapPin className="w-3.5 h-3.5 text-stone-500" />
@@ -64,7 +205,11 @@ export default function ShippingStep({
               ? "border-destructive/60 focus:border-destructive focus:ring-destructive/30"
               : "border-stone-800/80 focus:border-gold-500 focus:ring-gold-500"
           }`}
-          placeholder={checkout.shippingAddressPlaceholder}
+          placeholder={
+            destination === "tehran"
+              ? "تهران، منطقه/محله، خیابان، کوچه، پلاک، واحد..."
+              : "استان، شهر، خیابان، کوچه، پلاک، واحد..."
+          }
         />
         {errors.shippingAddress && (
           <p className="text-[10px] text-destructive font-bold mt-1">
@@ -73,18 +218,102 @@ export default function ShippingStep({
         )}
       </div>
 
-      <div className="space-y-1.5 text-right">
-        <label className="text-xs font-bold text-stone-300">
-          {checkout.paymentMethodLabel}
+      {/* انتخاب شیوه پرداخت */}
+      <div className="space-y-2 text-right">
+        <label className="text-xs font-bold text-stone-300 block">
+          {checkout.paymentMethodLabel}:
         </label>
-        <div className="w-full bg-stone-950 border border-gold-500/50 bg-gold-500/5 rounded-xl px-3 py-2.5 flex items-center justify-between">
-          <span className="text-xs font-bold text-gold-400">
-            {checkout.codPaymentTitle}
-          </span>
-          <div className="w-4 h-4 rounded-full bg-gold-500 flex items-center justify-center">
-            <Check className="w-2.5 h-2.5 text-stone-950 stroke-[3]" />
+
+        {destination === "other" ? (
+          /* برای سایر شهرها فقط پرداخت آنلاین نمایش داده می‌شود */
+          <div className="w-full bg-stone-950 border border-gold-500/30 bg-gold-500/5 rounded-2xl p-3.5 flex items-center justify-between animate-in fade-in duration-200">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-gold-500/10 text-gold-500 flex items-center justify-center shrink-0">
+                <CreditCard className="w-4 h-4" />
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-bold text-gold-400 block">
+                  پرداخت آنلاین اینترنتی
+                </span>
+                <span className="text-[10px] text-stone-400 block mt-0.5">
+                  ارسال با پست پیشتاز اداره پست با تسویه فوری آنلاین شتاب
+                </span>
+              </div>
+            </div>
+            <div className="w-4 h-4 rounded-full bg-gold-500 flex items-center justify-center shrink-0">
+              <Check className="w-2.5 h-2.5 text-stone-950 stroke-[3]" />
+            </div>
           </div>
-        </div>
+        ) : (
+          /* برای داخل تهران هر دو حالت پرداخت در محل و پرداخت آنلاین فعال است */
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 animate-in fade-in duration-200">
+            <button
+              type="button"
+              onClick={() => setValue("paymentMethod", "cod", { shouldValidate: true })}
+              className={`p-3 rounded-xl border text-right transition-all cursor-pointer flex items-center justify-between select-none ${
+                paymentMethod === "cod"
+                  ? "border-gold-500 bg-gold-500/10 text-gold-400 shadow-md ring-1 ring-gold-500/30"
+                  : "border-stone-800 bg-stone-950/60 hover:border-stone-700 text-stone-400 hover:text-stone-200"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Banknote className="w-4 h-4 text-gold-500" />
+                <div>
+                  <span className="text-xs font-bold text-stone-200 block">
+                    {checkout.codPaymentTitle}
+                  </span>
+                  <span className="text-[10px] text-stone-400 block mt-0.5">
+                    تسویه هنگام تحویل پیک
+                  </span>
+                </div>
+              </div>
+              <div
+                className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 ${
+                  paymentMethod === "cod"
+                    ? "border-gold-500 bg-gold-500"
+                    : "border-stone-700"
+                }`}
+              >
+                {paymentMethod === "cod" && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-stone-950" />
+                )}
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setValue("paymentMethod", "online", { shouldValidate: true })}
+              className={`p-3 rounded-xl border text-right transition-all cursor-pointer flex items-center justify-between select-none ${
+                paymentMethod === "online"
+                  ? "border-gold-500 bg-gold-500/10 text-gold-400 shadow-md ring-1 ring-gold-500/30"
+                  : "border-stone-800 bg-stone-950/60 hover:border-stone-700 text-stone-400 hover:text-stone-200"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <CreditCard className="w-4 h-4 text-gold-500" />
+                <div>
+                  <span className="text-xs font-bold text-stone-200 block">
+                    پرداخت آنلاین اینترنتی
+                  </span>
+                  <span className="text-[10px] text-stone-400 block mt-0.5">
+                    کلیه کارت‌های عضو شتاب
+                  </span>
+                </div>
+              </div>
+              <div
+                className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 ${
+                  paymentMethod === "online"
+                    ? "border-gold-500 bg-gold-500"
+                    : "border-stone-700"
+                }`}
+              >
+                {paymentMethod === "online" && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-stone-950" />
+                )}
+              </div>
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="space-y-2 text-right border-t border-stone-800/60 pt-4">
@@ -187,11 +416,24 @@ export default function ShippingStep({
         </div>
       </div>
 
-      <div className="bg-stone-950/40 border border-stone-850 p-3 rounded-xl flex items-start gap-2.5 text-right">
-        <Truck className="w-4 h-4 text-stone-500 shrink-0 mt-0.5" />
-        <p className="text-[11px] text-stone-400 leading-relaxed">
-          {checkout.codTrustNotice}
-        </p>
+      <div className="bg-stone-950/40 border border-stone-850 p-3.5 rounded-2xl flex items-start gap-2.5 text-right">
+        {destination === "other" ? (
+          <>
+            <Mail className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
+            <p className="text-[11px] text-stone-300 leading-relaxed">
+              سفارش شما با بسته‌بندی پلمپ تخصصی قهوه، از طریق <b className="text-gold-400">اداره پست (پست پیشتاز)</b> ارسال شده و شناسه رهگیری مرسوله پستی پیامک خواهد شد.
+            </p>
+          </>
+        ) : (
+          <>
+            <Truck className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
+            <p className="text-[11px] text-stone-300 leading-relaxed">
+              {paymentMethod === "cod"
+                ? checkout.codTrustNotice
+                : "سفارش شما پس از پرداخت اینترنتی، در اولویت آماده‌سازی سریع و ارسال با پیک اختصاصی کافه راز قرار می‌گیرد."}
+            </p>
+          </>
+        )}
       </div>
 
       <div className="border-t border-stone-850 pt-4 mt-6 flex justify-between items-center">
