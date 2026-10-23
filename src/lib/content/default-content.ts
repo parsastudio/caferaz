@@ -11,7 +11,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     phonesLabel: "پشتیبانی:",
     phones: ["09002570060", "09002570040", "021-77311806"],
     address: "تهران، کافه راز",
-    eitaa: "https://eitaa.com/razcoffee",
+    eitaa: "https://eitaa.com/cafe_raz",
     website: "https://caferaz.ir",
     securePaymentTitle: "پرداخت امن",
     securePaymentSub: "در محل خریدار",
