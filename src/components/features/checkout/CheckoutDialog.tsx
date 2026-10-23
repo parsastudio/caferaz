@@ -40,6 +40,9 @@ export default function CheckoutDialog() {
     couponError,
     isApplyingCoupon,
     checkoutFinalPrice,
+    payableFinalPrice,
+    tehranDeliveryFee,
+    currentShippingFee,
     basePrice,
     directDiscountAmount,
     conditionalDiscountAmount,
@@ -159,7 +162,7 @@ export default function CheckoutDialog() {
                     }}
                     onSubmit={handleOtpVerifyAndSubmit}
                     isSubmitting={isSubmitting}
-                    finalPrice={checkoutFinalPrice}
+                    finalPrice={payableFinalPrice}
                     summaryData={summaryData}
                     formToken={formToken}
                     honeypot={honeypot}
