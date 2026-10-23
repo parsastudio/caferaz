@@ -2,6 +2,7 @@
 
 import React from "react";
 import { OrderStatus } from "@/domain/types";
+import { toPersianDigits } from "@/lib/utils";
 
 interface OrderFilterTabsProps {
   statusFilter: "all" | OrderStatus;
@@ -32,7 +33,7 @@ export default function OrderFilterTabs({
             : "text-stone-400 hover:text-stone-200"
         }`}
       >
-        همه سفارش‌ها ({totalCount})
+        همه سفارش‌ها ({toPersianDigits(totalCount)})
       </button>
       <button
         onClick={() => setStatusFilter("unreviewed")}
@@ -42,7 +43,7 @@ export default function OrderFilterTabs({
             : "text-stone-400 hover:text-stone-200"
         }`}
       >
-        بررسی نشده ({unreviewedCount})
+        بررسی نشده ({toPersianDigits(unreviewedCount)})
         {unreviewedCount > 0 && (
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
         )}
@@ -55,7 +56,7 @@ export default function OrderFilterTabs({
             : "text-stone-400 hover:text-stone-200"
         }`}
       >
-        در حال انجام ({pendingCount})
+        در حال انجام ({toPersianDigits(pendingCount)})
       </button>
       <button
         onClick={() => setStatusFilter("completed")}
@@ -65,7 +66,7 @@ export default function OrderFilterTabs({
             : "text-stone-400 hover:text-stone-200"
         }`}
       >
-        تکمیل شده ({completedCount})
+        تکمیل شده ({toPersianDigits(completedCount)})
       </button>
       <button
         onClick={() => setStatusFilter("cancelled")}
@@ -75,7 +76,7 @@ export default function OrderFilterTabs({
             : "text-stone-400 hover:text-stone-200"
         }`}
       >
-        لغو شده ({cancelledCount})
+        لغو شده ({toPersianDigits(cancelledCount)})
       </button>
     </div>
   );

@@ -2,6 +2,8 @@
 
 import React from "react";
 
+import { toPersianDigits } from "@/lib/utils";
+
 interface CommentFilterTabsProps {
   statusFilter: "all" | "pending" | "approved" | "rejected" | "spam";
   setStatusFilter: (
@@ -33,7 +35,7 @@ export default function CommentFilterTabs({
             : "text-stone-400 hover:text-stone-200"
         }`}
       >
-        همه دیدگاه‌ها ({totalCount})
+        همه دیدگاه‌ها ({toPersianDigits(totalCount)})
       </button>
       <button
         onClick={() => setStatusFilter("pending")}
@@ -43,7 +45,7 @@ export default function CommentFilterTabs({
             : "text-stone-400 hover:text-stone-200"
         }`}
       >
-        در انتظار تایید ({pendingCount})
+        در انتظار تایید ({toPersianDigits(pendingCount)})
         {pendingCount > 0 && (
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
         )}
@@ -56,7 +58,7 @@ export default function CommentFilterTabs({
             : "text-stone-400 hover:text-stone-200"
         }`}
       >
-        منتشر شده ({approvedCount})
+        منتشر شده ({toPersianDigits(approvedCount)})
       </button>
       <button
         onClick={() => setStatusFilter("rejected")}
@@ -66,7 +68,7 @@ export default function CommentFilterTabs({
             : "text-stone-400 hover:text-stone-200"
         }`}
       >
-        رد شده ({rejectedCount})
+        رد شده ({toPersianDigits(rejectedCount)})
       </button>
       <button
         onClick={() => setStatusFilter("spam")}
@@ -76,7 +78,7 @@ export default function CommentFilterTabs({
             : "text-stone-400 hover:text-stone-200"
         }`}
       >
-        اسپم ({spamCount})
+        اسپم ({toPersianDigits(spamCount)})
       </button>
     </div>
   );

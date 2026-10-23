@@ -5,6 +5,7 @@ import { Percent, Zap, Coffee, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { BlendProfile } from "@/lib/constants";
 import { useSiteContent } from "@/context/ContentContext";
+import { toPersianDigits } from "@/lib/utils";
 
 interface BlendSelectorProps {
   selectedBlend: string;
@@ -91,7 +92,7 @@ function BlendSelectorComponent({
                 }`}
               >
                 <span className="text-[9px] font-black text-stone-300 px-1 truncate select-none">
-                  {blendProfile.robusta}٪ {product.robustaLabel}
+                  {toPersianDigits(blendProfile.robusta)}٪ {product.robustaLabel}
                 </span>
               </motion.div>
             )}
@@ -105,7 +106,7 @@ function BlendSelectorComponent({
                 }`}
               >
                 <span className="text-[9px] font-black text-stone-950 px-1 truncate select-none">
-                  {blendProfile.arabica}٪ {product.arabicaLabel}
+                  {toPersianDigits(blendProfile.arabica)}٪ {product.arabicaLabel}
                 </span>
               </motion.div>
             )}
@@ -119,7 +120,7 @@ function BlendSelectorComponent({
                   {product.caffeineLabel}
                 </span>
                 <span className="text-gold-400 font-black text-[10px] font-sans">
-                  {blendProfile.caffeine}٪
+                  {toPersianDigits(blendProfile.caffeine)}٪
                 </span>
               </span>
               <div className="h-2 w-full bg-stone-950 rounded-full overflow-hidden">
@@ -139,7 +140,7 @@ function BlendSelectorComponent({
                   {product.bodyLabel}
                 </span>
                 <span className="text-stone-300 font-black text-[10px] font-sans">
-                  {blendProfile.body}٪
+                  {toPersianDigits(blendProfile.body)}٪
                 </span>
               </span>
               <div className="h-2 w-full bg-stone-950 rounded-full overflow-hidden">
@@ -159,7 +160,7 @@ function BlendSelectorComponent({
                   {product.aromaLabel}
                 </span>
                 <span className="text-gold-300 font-black text-[10px] font-sans">
-                  {blendProfile.aroma}٪
+                  {toPersianDigits(blendProfile.aroma)}٪
                 </span>
               </span>
               <div className="h-2 w-full bg-stone-950 rounded-full overflow-hidden">

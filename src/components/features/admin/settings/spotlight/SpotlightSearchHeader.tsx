@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Search, X } from "lucide-react";
+import { toPersianDigits } from "@/lib/utils";
 
 interface SpotlightSearchHeaderProps {
   searchQuery: string;
@@ -39,7 +40,7 @@ export default function SpotlightSearchHeader({
         <div className="flex items-center gap-2 self-end sm:self-auto">
           {isFilterActive && (
             <span className="text-xs font-bold text-stone-400 bg-stone-950 px-3 py-1.5 rounded-xl border border-stone-850 font-sans animate-in fade-in duration-150">
-              {matchCount} مورد یافت شد
+              {toPersianDigits(matchCount)} مورد یافت شد
             </span>
           )}
         </div>

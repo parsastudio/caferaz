@@ -15,6 +15,7 @@ import { Comment } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import CommentEditForm from "@/components/features/admin/comments/CommentEditForm";
 import CommentReplyForm from "@/components/features/admin/comments/CommentReplyForm";
+import { toPersianDigits } from "@/lib/utils";
 
 interface CommentRowProps {
   comment: Comment;
@@ -100,7 +101,7 @@ export default function CommentRow({
           {comment.rating && (
             <div className="flex items-center gap-1 bg-gold-500/10 border border-gold-500/25 text-gold-500 px-2 py-0.5 rounded-lg text-[10px] font-bold">
               <Star className="w-3 h-3 fill-gold-500 text-gold-500" />
-              <span>{comment.rating}</span>
+              <span>{toPersianDigits(comment.rating)}</span>
             </div>
           )}
         </div>

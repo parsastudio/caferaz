@@ -12,6 +12,7 @@ import {
 import { Order, OrderStatus } from "@/domain/types";
 import { Badge } from "@/components/ui/badge";
 import OrderActions from "@/components/features/admin/orders/OrderActions";
+import { formatPersianNumber, toPersianDigits } from "@/lib/utils";
 
 interface OrderCardProps {
   order: Order;
@@ -80,7 +81,7 @@ export default function OrderCard({
             </div>
             <div className="flex items-center gap-1.5 font-sans">
               <Phone className="w-3.5 h-3.5 text-stone-500" />
-              <span>{order.customerPhone}</span>
+              <span>{toPersianDigits(order.customerPhone)}</span>
             </div>
           </div>
         </div>
@@ -97,11 +98,11 @@ export default function OrderCard({
             <div className="text-stone-400">
               وزن:{" "}
               <span className="text-stone-200 font-sans">
-                {order.weightGrams} گرم
+                {formatPersianNumber(order.weightGrams)} گرم
               </span>{" "}
               | تعداد:{" "}
               <span className="text-stone-200 font-sans">
-                {order.quantity} بسته
+                {toPersianDigits(order.quantity)} بسته
               </span>
             </div>
           </div>
@@ -112,7 +113,7 @@ export default function OrderCard({
             مبلغ کل فاکتور:
           </span>
           <div className="text-gold-500 font-black text-sm font-sans">
-            {order.finalPrice.toLocaleString()} تومان
+            {formatPersianNumber(order.finalPrice)} تومان
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { ShoppingBag, Percent, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useSiteContent } from "@/context/ContentContext";
+import { formatPersianNumber, toPersianDigits } from "@/lib/utils";
 
 interface PriceSummaryProps {
   basePrice: number;
@@ -44,11 +45,11 @@ function PriceSummaryComponent({
           {hasDiscount && (
             <div className="flex items-center gap-2">
               <span className="text-xs text-stone-500 line-through font-sans">
-                {basePrice.toLocaleString()} {product.currency}
+                {formatPersianNumber(basePrice)} {product.currency}
               </span>
               <span className="text-[10px] bg-red-500/10 border border-red-500/20 text-red-400 px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5">
                 <Percent className="w-2.5 h-2.5" />
-                {discountPercent}٪ {product.discountBadge}
+                {toPersianDigits(discountPercent)}٪ {product.discountBadge}
               </span>
             </div>
           )}
@@ -58,7 +59,7 @@ function PriceSummaryComponent({
             animate={{ scale: 1, opacity: 1 }}
             className="text-2xl lg:text-3xl font-black text-gold-500 font-sans tracking-tight"
           >
-            {finalPrice.toLocaleString()}{" "}
+            {formatPersianNumber(finalPrice)}{" "}
             <span className="text-sm font-bold text-stone-400">
               {product.currency}
             </span>

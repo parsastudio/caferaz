@@ -5,7 +5,7 @@ import { Smartphone, Loader2 } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { CheckoutFormValues } from "@/domain/validations/order.schema";
-import { toEnglishDigits } from "@/lib/utils";
+import { toEnglishDigits, toPersianDigits, formatPersianNumber } from "@/lib/utils";
 import { sendUserOtpAction, getOtpFormTokenAction } from "@/actions/user-auth";
 import OrderSummaryCard from "@/components/features/checkout/components/OrderSummaryCard";
 import { useSiteContent } from "@/context/ContentContext";
@@ -166,7 +166,7 @@ export default function OtpStep({
             className="text-gold-400 font-bold tracking-wider font-sans"
             dir="ltr"
           >
-            {phone}
+            {toPersianDigits(phone)}
           </span>
         </p>
       </div>
@@ -206,7 +206,7 @@ export default function OtpStep({
           <span className="text-xs text-stone-500 font-medium">
             {checkout.resendCountdownPrefix}{" "}
             <span className="text-stone-300 font-bold font-sans">
-              {formatTime(timer)}
+              {toPersianDigits(formatTime(timer))}
             </span>
           </span>
         ) : (
@@ -227,7 +227,7 @@ export default function OtpStep({
             {checkout.payableAmountPrefix}
           </span>
           <span className="text-sm font-black text-gold-500 font-sans">
-            {finalPrice.toLocaleString()} تومان
+            {formatPersianNumber(finalPrice)} تومان
           </span>
         </div>
         <div className="flex gap-2">

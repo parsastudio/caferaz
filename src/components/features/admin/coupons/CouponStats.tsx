@@ -1,5 +1,6 @@
 import React from "react";
 import { Coupon } from "@/types";
+import { toPersianDigits } from "@/lib/utils";
 
 interface CouponStatsProps {
   coupons: Coupon[];
@@ -21,7 +22,7 @@ export default function CouponStats({ coupons }: CouponStatsProps) {
             کل تخفیف‌ها
           </span>
           <span className="text-xl font-black text-stone-100 font-sans">
-            {totalCoupons}
+            {toPersianDigits(totalCoupons)}
           </span>
         </div>
         <span className="text-2xl">🎫</span>
@@ -32,7 +33,7 @@ export default function CouponStats({ coupons }: CouponStatsProps) {
             کوپن‌های فعال
           </span>
           <span className="text-xl font-black text-emerald-400 font-sans">
-            {activeCouponsCount}
+            {toPersianDigits(activeCouponsCount)}
           </span>
         </div>
         <span className="text-2xl">⚡</span>
@@ -43,7 +44,7 @@ export default function CouponStats({ coupons }: CouponStatsProps) {
             کدهای هدیه دستی
           </span>
           <span className="text-xl font-black text-gold-400 font-sans">
-            {codeCouponsCount}
+            {toPersianDigits(codeCouponsCount)}
           </span>
         </div>
         <span className="text-2xl">🔑</span>
@@ -54,7 +55,7 @@ export default function CouponStats({ coupons }: CouponStatsProps) {
             تخفیف‌های خط‌خورده
           </span>
           <span className="text-xl font-black text-stone-100 font-sans">
-            {directCouponsCount}
+            {toPersianDigits(directCouponsCount)}
           </span>
         </div>
         <span className="text-2xl">🔥</span>

@@ -9,6 +9,7 @@ import {
   LogOut,
   Home,
 } from "lucide-react";
+import { formatPersianNumber, toPersianDigits } from "@/lib/utils";
 
 interface AdminStatusBarProps {
   monthSales: number;
@@ -69,7 +70,7 @@ export default function AdminStatusBar({
               </span>
               <div className="flex items-center gap-1 text-gold-400 font-sans font-bold text-[11px]">
                 <DollarSign className="w-3.5 h-3.5 text-gold-500 shrink-0" />
-                <span>{monthSales.toLocaleString()} ت</span>
+                <span>{formatPersianNumber(monthSales)} ت</span>
               </div>
             </div>
 
@@ -86,7 +87,7 @@ export default function AdminStatusBar({
                       : "text-stone-300"
                   }
                 >
-                  {pendingOrdersCount} مورد
+                  {toPersianDigits(pendingOrdersCount)} مورد
                 </span>
               </div>
             </div>
@@ -104,7 +105,7 @@ export default function AdminStatusBar({
                       : "text-stone-300"
                   }
                 >
-                  {pendingCommentsCount} مورد
+                  {toPersianDigits(pendingCommentsCount)} مورد
                 </span>
               </div>
             </div>
@@ -123,7 +124,7 @@ export default function AdminStatusBar({
                 <DollarSign className="w-3.5 h-3.5 text-gold-500" />
                 <span>فروش این ماه:</span>
                 <span className="font-sans font-bold text-gold-400">
-                  {monthSales.toLocaleString()} تومان
+                  {formatPersianNumber(monthSales)} تومان
                 </span>
               </div>
 
@@ -137,7 +138,7 @@ export default function AdminStatusBar({
                       : "text-stone-400"
                   }`}
                 >
-                  {pendingOrdersCount} مورد
+                  {toPersianDigits(pendingOrdersCount)} مورد
                 </span>
               </div>
 
@@ -151,7 +152,7 @@ export default function AdminStatusBar({
                       : "text-stone-400"
                   }`}
                 >
-                  {pendingCommentsCount} مورد
+                  {toPersianDigits(pendingCommentsCount)} مورد
                 </span>
               </div>
             </div>

@@ -5,6 +5,7 @@ import { Sparkles, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useSiteContent } from "@/context/ContentContext";
+import { formatPersianNumber, toPersianDigits } from "@/lib/utils";
 
 interface SuccessStepProps {
   firstName: string;
@@ -71,14 +72,14 @@ export default function SuccessStep({
             {firstName} {lastName}
           </div>
           <div>{checkout.contactPhoneLabel}</div>
-          <div className="text-left text-stone-200 font-sans">{phone}</div>
+          <div className="text-left text-stone-200 font-sans">{toPersianDigits(phone)}</div>
           <div>{checkout.packWeightLabel}</div>
           <div className="text-left text-stone-200 font-sans">
-            {selectedWeight} {checkout.packageWeightUnit}
+            {formatPersianNumber(selectedWeight)} {checkout.packageWeightUnit}
           </div>
           <div>{checkout.quantityLabel}</div>
           <div className="text-left text-stone-200 font-sans">
-            {quantity} {checkout.packageCountUnit}
+            {toPersianDigits(quantity)} {checkout.packageCountUnit}
           </div>
           <div>شیوه تحویل:</div>
           <div className="text-left text-stone-200 font-sans text-[11px]">
@@ -98,7 +99,7 @@ export default function SuccessStep({
                 : checkout.codAmountLabel}
           </div>
           <div className="text-left text-gold-400 font-black font-sans">
-            {finalPrice.toLocaleString()} تومان
+            {formatPersianNumber(finalPrice)} تومان
           </div>
         </div>
       </div>

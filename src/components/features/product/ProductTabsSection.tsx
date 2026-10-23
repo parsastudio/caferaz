@@ -9,6 +9,7 @@ import { WidgetErrorBoundary } from "@/components/ui/widget-error-boundary";
 import { Comment } from "@/types";
 import { useSiteContent } from "@/context/ContentContext";
 import { insertCommentReply } from "@/lib/comment-tree";
+import { toPersianDigits } from "@/lib/utils";
 
 export interface UIComment extends Omit<Comment, "replies"> {
   isPending?: boolean;
@@ -83,7 +84,7 @@ export default function ProductTabsSection({
               className="flex-1 flex items-center justify-center gap-2 cursor-pointer py-2.5"
             >
               <MessageSquare className="w-4 h-4" />
-              {product.commentsTabLabel} ({optimisticComments?.length || 0})
+              {product.commentsTabLabel} ({toPersianDigits(optimisticComments?.length || 0)})
             </TabsTrigger>
             <TabsTrigger
               value="description"
@@ -203,7 +204,7 @@ function CommentNode({
           {comment.rating && (
             <div className="flex items-center gap-1 bg-gold-500/10 border border-gold-500/25 text-gold-500 px-2 py-0.5 rounded-lg text-xs font-bold">
               <Star className="w-3.5 h-3.5 fill-gold-500 text-gold-500" />
-              <span>{comment.rating}</span>
+              <span>{toPersianDigits(comment.rating)}</span>
             </div>
           )}
         </div>

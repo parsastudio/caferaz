@@ -3,6 +3,7 @@
 import React from "react";
 import { Flame } from "lucide-react";
 import { useSiteContent } from "@/context/ContentContext";
+import { toPersianDigits } from "@/lib/utils";
 
 interface QuantitySelectorProps {
   quantity: number;
@@ -41,7 +42,7 @@ export default function QuantitySelector({
           -
         </button>
         <span className="w-12 text-center font-bold text-lg text-stone-100">
-          {quantity}
+          {toPersianDigits(quantity)}
         </span>
         <button
           type="button"

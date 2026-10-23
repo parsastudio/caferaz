@@ -3,6 +3,7 @@
 import React from "react";
 import { Check } from "lucide-react";
 import { useSiteContent } from "@/context/ContentContext";
+import { toPersianDigits } from "@/lib/utils";
 
 interface WeightSelectorProps {
   selectedWeight: number;
@@ -108,7 +109,7 @@ export default function WeightSelector({
               {product.customWeightUnit}
             </span>
             <span className="text-xs text-stone-500 mr-auto">
-              ({product.customWeightEquiv} {(customWeightVal / 1000).toFixed(2)}{" "}
+              ({product.customWeightEquiv} {toPersianDigits((customWeightVal / 1000).toFixed(2))}{" "}
               کیلوگرم)
             </span>
           </div>

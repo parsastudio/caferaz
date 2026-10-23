@@ -21,6 +21,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import OtpInput from "@/components/ui/otp-input";
 import { normalizePhone, isValidIranianPhone } from "@/lib/phone";
+import { toPersianDigits } from "@/lib/utils";
 import { useSiteContent } from "@/context/ContentContext";
 
 export default function UserLoginForm() {
@@ -290,7 +291,7 @@ export default function UserLoginForm() {
             <p className="text-[11px] text-stone-400 leading-relaxed">
               {authCopy.otpNoticePrefix}{" "}
               <span className="text-gold-400 font-bold font-sans" dir="ltr">
-                {phone}
+                {toPersianDigits(phone)}
               </span>
             </p>
           </div>

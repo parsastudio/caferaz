@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import FaqCard from "@/components/features/admin/faq/FaqCard";
+import { toPersianDigits } from "@/lib/utils";
 
 interface AdminFaqClientProps {
   initialFaqs: FAQItem[];
@@ -163,7 +164,7 @@ export default function AdminFaqClient({ initialFaqs }: AdminFaqClientProps) {
           <div className="flex items-center gap-2">
             <HelpCircle className="w-5 h-5 text-gold-500" />
             <h3 className="text-xs sm:text-sm font-black text-stone-200">
-              لیست سوالات فعال سایت ({faqs.length} مورد)
+              لیست سوالات فعال سایت ({toPersianDigits(faqs.length)} مورد)
             </h3>
           </div>
         </div>

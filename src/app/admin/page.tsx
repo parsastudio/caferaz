@@ -2,6 +2,7 @@ import React from "react";
 import { getOrdersAction } from "@/actions/admin-order";
 import { getAdminCommentsAction } from "@/actions/admin-comment";
 import { getMainProductAction } from "@/actions/product";
+import { formatPersianNumber, toPersianDigits } from "@/lib/utils";
 
 export default async function AdminDashboardPage() {
   const ordersResult = await getOrdersAction();
@@ -44,7 +45,7 @@ export default async function AdminDashboardPage() {
               کل درآمدهای فروش
             </span>
             <span className="text-lg font-black text-gold-500 block">
-              {totalRevenue.toLocaleString()}{" "}
+              {formatPersianNumber(totalRevenue)}{" "}
               <span className="text-xs">تومان</span>
             </span>
           </div>
@@ -57,7 +58,7 @@ export default async function AdminDashboardPage() {
               کل سفارش‌های ثبت‌شده
             </span>
             <span className="text-lg font-black text-stone-100 block">
-              {totalOrders} سفارش
+              {toPersianDigits(totalOrders)} سفارش
             </span>
           </div>
           <span className="text-3xl">📦</span>
@@ -70,7 +71,7 @@ export default async function AdminDashboardPage() {
               سفارش‌های تحویل‌نشده (جاری)
             </span>
             <span className="text-lg font-black text-gold-500 block flex items-center gap-1.5">
-              {pendingOrders} سفارش جدید
+              {toPersianDigits(pendingOrders)} سفارش جدید
               {pendingOrders > 0 && (
                 <span className="w-2 h-2 rounded-full bg-gold-500 animate-pulse" />
               )}
@@ -85,7 +86,7 @@ export default async function AdminDashboardPage() {
               نظرات کاربران
             </span>
             <span className="text-lg font-black text-stone-100 block">
-              {totalComments} دیدگاه
+              {toPersianDigits(totalComments)} دیدگاه
             </span>
           </div>
           <span className="text-3xl">💬</span>
@@ -108,20 +109,20 @@ export default async function AdminDashboardPage() {
               <div className="flex justify-between items-center text-xs">
                 <span className="text-stone-400">موجودی فیزیکی کل:</span>
                 <span className="font-bold text-gold-400">
-                  {(productResult.data.stockGrams / 1000).toFixed(1)} کیلوگرم
+                  {toPersianDigits((productResult.data.stockGrams / 1000).toFixed(1))} کیلوگرم
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-stone-400">قیمت مبنای عربیکا:</span>
                 <span className="font-bold text-stone-300">
-                  {productResult.data.pricing?.pricePerKgArabica.toLocaleString()}{" "}
+                  {formatPersianNumber(productResult.data.pricing?.pricePerKgArabica ?? 0)}{" "}
                   تومان / کیلوگرم
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-stone-400">قیمت مبنای روبوستا:</span>
                 <span className="font-bold text-stone-300">
-                  {productResult.data.pricing?.pricePerKgRobusta.toLocaleString()}{" "}
+                  {formatPersianNumber(productResult.data.pricing?.pricePerKgRobusta ?? 0)}{" "}
                   تومان / کیلوگرم
                 </span>
               </div>

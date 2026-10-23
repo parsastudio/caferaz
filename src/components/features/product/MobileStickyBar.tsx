@@ -5,6 +5,7 @@ import { ShoppingBag, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useSiteContent } from "@/context/ContentContext";
+import { formatPersianNumber } from "@/lib/utils";
 
 interface MobileStickyBarProps {
   finalPrice: number;
@@ -57,11 +58,11 @@ export default function MobileStickyBar({
               <div className="flex items-center gap-1.5">
                 {hasDiscount && (
                   <span className="text-[10px] text-stone-500 line-through font-sans">
-                    {basePrice.toLocaleString()}
+                    {formatPersianNumber(basePrice)}
                   </span>
                 )}
                 <span className="text-base font-black text-gold-400 font-sans">
-                  {finalPrice.toLocaleString()}{" "}
+                  {formatPersianNumber(finalPrice)}{" "}
                   <span className="text-[10px] font-bold text-stone-300">
                     {product.currency}
                   </span>

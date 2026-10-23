@@ -5,7 +5,7 @@ import { User, Phone, KeyRound } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { CheckoutFormValues } from "@/domain/validations/order.schema";
-import { toEnglishDigits } from "@/lib/utils";
+import { toEnglishDigits, formatPersianNumber } from "@/lib/utils";
 import OrderSummaryCard from "@/components/features/checkout/components/OrderSummaryCard";
 import { useSiteContent } from "@/context/ContentContext";
 
@@ -185,7 +185,7 @@ export default function UserInfoStep({
             {checkout.totalInvoiceAmountLabel}
           </span>
           <span className="text-sm font-black text-gold-500 font-sans">
-            {finalPrice.toLocaleString()} تومان
+            {formatPersianNumber(finalPrice)} تومان
           </span>
         </div>
         <div className="flex gap-2">

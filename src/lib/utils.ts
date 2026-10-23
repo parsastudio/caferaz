@@ -16,3 +16,12 @@ export function toPersianDigits(value: string | number): string {
   const persianDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
   return str.replace(/[0-9]/g, (d) => persianDigits[parseInt(d, 10)]);
 }
+
+export function formatPersianNumber(value: string | number | null | undefined): string {
+  if (value === null || value === undefined || value === "") return "";
+  const num = typeof value === "number" ? value : Number(value);
+  if (!isNaN(num)) {
+    return toPersianDigits(num.toLocaleString("en-US"));
+  }
+  return toPersianDigits(value);
+}

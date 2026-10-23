@@ -4,6 +4,7 @@ import React, { useState, useTransition } from "react";
 import { FAQItem } from "@/domain/validations/faq.schema";
 import { Trash2, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toPersianDigits } from "@/lib/utils";
 
 interface FaqCardProps {
   faq: FAQItem;
@@ -46,7 +47,7 @@ export default function FaqCard({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-850/80 pb-2.5">
         <div className="flex items-center gap-2">
           <span className="w-6 h-6 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center text-xs font-black font-sans">
-            {index + 1}
+            {toPersianDigits(index + 1)}
           </span>
           <span className="text-xs text-stone-400 font-bold">سوال متداول</span>
           {isDirty && (

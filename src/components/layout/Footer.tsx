@@ -150,7 +150,7 @@ export default function Footer() {
 
       <div className="max-w-7xl mx-auto border-t border-stone-900/80 mt-10 pt-6 text-center">
         <p className="text-[10px] text-stone-600 leading-normal font-sans">
-          {layout.copyrightText} {new Date().getFullYear()}
+          {layout.copyrightText} {toPersianDigits(new Date().getFullYear())}
         </p>
       </div>
     </footer>

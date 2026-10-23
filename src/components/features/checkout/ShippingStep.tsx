@@ -17,7 +17,7 @@ import {
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { CheckoutFormValues } from "@/domain/validations/order.schema";
-import { toEnglishDigits } from "@/lib/utils";
+import { toEnglishDigits, formatPersianNumber } from "@/lib/utils";
 import { useSiteContent } from "@/context/ContentContext";
 
 interface ShippingStepProps {
@@ -236,7 +236,7 @@ export default function ShippingStep({
                 سایر مناطق
               </span>
               <span className="text-[10px] text-stone-300 font-sans block font-bold">
-                {tehranDeliveryFee.toLocaleString()} ت
+                {formatPersianNumber(tehranDeliveryFee)} ت
               </span>
             </button>
           </div>
@@ -453,7 +453,7 @@ export default function ShippingStep({
         {appliedCoupon && (
           <p className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
             ✓ {checkout.couponSuccessPrefix}{" "}
-            {appliedCoupon.discountAmount.toLocaleString()} تومان.
+            {formatPersianNumber(appliedCoupon.discountAmount)} تومان.
           </p>
         )}
       </div>
@@ -467,14 +467,14 @@ export default function ShippingStep({
           <div className="flex justify-between items-center text-stone-400">
             <span>{checkout.basePriceLabel}</span>
             <span className="font-sans font-bold">
-              {basePrice.toLocaleString()} تومان
+              {formatPersianNumber(basePrice)} تومان
             </span>
           </div>
           {directDiscountAmount > 0 && (
             <div className="flex justify-between items-center text-red-400">
               <span>{checkout.directDiscountLabel}</span>
               <span className="font-sans font-bold">
-                -{directDiscountAmount.toLocaleString()} تومان
+                -{formatPersianNumber(directDiscountAmount)} تومان
               </span>
             </div>
           )}
@@ -482,7 +482,7 @@ export default function ShippingStep({
             <div className="flex justify-between items-center text-red-400">
               <span>{checkout.conditionalDiscountLabel}</span>
               <span className="font-sans font-bold">
-                -{conditionalDiscountAmount.toLocaleString()} تومان
+                -{formatPersianNumber(conditionalDiscountAmount)} تومان
               </span>
             </div>
           )}
@@ -492,7 +492,7 @@ export default function ShippingStep({
                 {checkout.userCouponDiscountPrefix} ({appliedCoupon.code}):
               </span>
               <span className="font-sans font-bold">
-                -{appliedCoupon.discountAmount.toLocaleString()} تومان
+                -{formatPersianNumber(appliedCoupon.discountAmount)} تومان
               </span>
             </div>
           )}
@@ -504,7 +504,7 @@ export default function ShippingStep({
               </span>
             ) : tehranZone === "other_tehran" ? (
               <span className="font-sans font-bold text-stone-200">
-                {tehranDeliveryFee.toLocaleString()} تومان
+                {formatPersianNumber(tehranDeliveryFee)} تومان
               </span>
             ) : (
               <span className="font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
@@ -515,7 +515,7 @@ export default function ShippingStep({
           <div className="border-t border-stone-800/80 pt-2 flex justify-between items-center text-gold-500 font-black text-sm">
             <span>{checkout.finalPayableLabel}</span>
             <span className="font-sans">
-              {payableFinalPrice.toLocaleString()} تومان
+              {formatPersianNumber(payableFinalPrice)} تومان
             </span>
           </div>
         </div>
@@ -528,7 +528,7 @@ export default function ShippingStep({
             {checkout.payableAmountPrefix}
           </span>
           <span className="text-sm font-black text-gold-500 font-sans">
-            {payableFinalPrice.toLocaleString()} تومان
+            {formatPersianNumber(payableFinalPrice)} تومان
           </span>
         </div>
         <div className="flex gap-2">

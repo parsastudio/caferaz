@@ -13,6 +13,7 @@ import {
   formatGregorianToJalaliString,
   getTehranTodayString,
 } from "@/lib/jalali-converter";
+import { formatPersianNumber, toPersianDigits } from "@/lib/utils";
 
 interface CouponCardProps {
   coupon: Coupon;
@@ -86,9 +87,9 @@ export default function CouponCard({
 
         <div className="text-right font-black text-2xl text-stone-100 font-sans">
           {coupon.discountType === "percentage" ? (
-            <span>{coupon.discountValue}٪ تخفیف</span>
+            <span>{toPersianDigits(coupon.discountValue)}٪ تخفیف</span>
           ) : (
-            <span>{coupon.discountValue.toLocaleString()} تومان</span>
+            <span>{formatPersianNumber(coupon.discountValue)} تومان</span>
           )}
         </div>
       </div>
@@ -102,7 +103,7 @@ export default function CouponCard({
               <Scale className="w-3.5 h-3.5 text-stone-600" />
               <span>
                 حداقل وزن خرید:{" "}
-                <b>{(coupon.minWeightGrams / 1000).toLocaleString()} کیلوگرم</b>
+                <b>{formatPersianNumber(coupon.minWeightGrams / 1000)} کیلوگرم</b>
               </span>
             </p>
           ) : null}
@@ -112,7 +113,7 @@ export default function CouponCard({
               <DollarSign className="w-3.5 h-3.5 text-stone-600" />
               <span>
                 سقف تخفیف:{" "}
-                <b>{coupon.maxDiscountAmount.toLocaleString()} تومان</b>
+                <b>{formatPersianNumber(coupon.maxDiscountAmount)} تومان</b>
               </span>
             </p>
           ) : null}
@@ -121,7 +122,7 @@ export default function CouponCard({
             <p className="flex items-center gap-1 font-sans text-[11px]">
               <Calendar className="w-3.5 h-3.5 text-stone-600" />
               <span>
-                معتبر تا: {formatGregorianToJalaliString(coupon.validTo)}
+                معتبر تا: {toPersianDigits(formatGregorianToJalaliString(coupon.validTo))}
               </span>
             </p>
           ) : (

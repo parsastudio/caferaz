@@ -3,6 +3,7 @@
 import React from "react";
 import { Coffee, Layers, Scale, Sparkles } from "lucide-react";
 import { useSiteContent } from "@/context/ContentContext";
+import { formatPersianNumber, toPersianDigits } from "@/lib/utils";
 
 interface OrderSummaryCardProps {
   blend: string;
@@ -27,7 +28,7 @@ export default function OrderSummaryCard({
           {checkout.summaryHeading}
         </span>
         <span className="text-[10px] bg-gold-500/10 text-gold-400 border border-gold-500/20 px-2 py-0.5 rounded-full font-bold">
-          {quantity} {checkout.packageCountUnit}
+          {toPersianDigits(quantity)} {checkout.packageCountUnit}
         </span>
       </div>
 
@@ -45,9 +46,9 @@ export default function OrderSummaryCard({
           <span>
             {checkout.totalWeightLabel}{" "}
             <b className="text-stone-200">
-              {weightGrams.toLocaleString()} {checkout.packageWeightUnit}
+              {formatPersianNumber(weightGrams)} {checkout.packageWeightUnit}
             </b>{" "}
-            ({((weightGrams * quantity) / 1000).toFixed(1)} کیلوگرم)
+            ({toPersianDigits(((weightGrams * quantity) / 1000).toFixed(1))} کیلوگرم)
           </span>
         </div>
       </div>

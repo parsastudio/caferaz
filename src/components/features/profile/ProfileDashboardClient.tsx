@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSiteContent } from "@/context/ContentContext";
+import { formatPersianNumber, toPersianDigits } from "@/lib/utils";
 
 interface ProfileDashboardClientProps {
   user: User | null;
@@ -64,11 +65,11 @@ export default function ProfileDashboardClient({
               dir="rtl"
             >
               {pCopy.phoneLabel}{" "}
-              <span className="font-sans">{user?.phone}</span> |{" "}
+              <span className="font-sans">{toPersianDigits(user?.phone || "")}</span> |{" "}
               {pCopy.joinDateLabel}{" "}
               <span className="font-sans" suppressHydrationWarning>
                 {user
-                  ? new Date(user.createdAt).toLocaleDateString("fa-IR")
+                  ? toPersianDigits(new Date(user.createdAt).toLocaleDateString("fa-IR"))
                   : "-"}
               </span>
             </p>
@@ -143,7 +144,7 @@ export default function ProfileDashboardClient({
         <div className="flex items-center gap-2">
           <ShoppingBag className="w-5 h-5 text-gold-500" />
           <h2 className="text-base font-black text-stone-200">
-            {pCopy.invoiceHistoryTitle} ({orders.length})
+            {pCopy.invoiceHistoryTitle} ({toPersianDigits(orders.length)})
           </h2>
         </div>
 
@@ -203,7 +204,7 @@ export default function ProfileDashboardClient({
                       {pCopy.invoicePackagingSpecs}
                     </span>
                     <p className="text-stone-200 font-sans">
-                      {order.weightGrams} گرم (تعداد: {order.quantity} بسته)
+                      {formatPersianNumber(order.weightGrams)} گرم (تعداد: {toPersianDigits(order.quantity)} بسته)
                     </p>
                   </div>
                   <div className="space-y-1">
@@ -211,7 +212,7 @@ export default function ProfileDashboardClient({
                       {pCopy.invoiceTotalPrice}
                     </span>
                     <p className="text-gold-500 font-black text-sm font-sans">
-                      {order.finalPrice.toLocaleString()} تومان
+                      {formatPersianNumber(order.finalPrice)} تومان
                     </p>
                   </div>
                 </div>
