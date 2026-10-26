@@ -3,7 +3,7 @@
 import React, { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Ticket, Plus } from "lucide-react";
-import { Coupon } from "@/types";
+import { Coupon } from "@/domain/types";
 import {
   createCouponAction,
   deleteCouponAction,

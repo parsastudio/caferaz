@@ -1,4 +1,4 @@
-import { Comment } from "@/types";
+import { Comment } from "@/domain/types";
 
 interface PrismaCommentDb {
   id: string;

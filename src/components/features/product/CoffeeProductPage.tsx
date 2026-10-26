@@ -14,9 +14,9 @@ import ProductTabsSection, {
   UIComment,
 } from "@/components/features/product/ProductTabsSection";
 import { useCheckout } from "@/context/CheckoutContext";
-import { Coupon, ProductWithPricing } from "@/types";
+import { Coupon, ProductWithPricing } from "@/domain/types";
 import { Flame } from "lucide-react";
-import { getRoastDateDisplayInfo } from "@/lib/jalali-converter";
+import { getRoastDateDisplayInfo } from "@/lib/date/formatters";
 import { toPersianDigits } from "@/lib/utils";
 
 interface CoffeeProductPageProps {

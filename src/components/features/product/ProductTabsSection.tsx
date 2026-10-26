@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import CommentDialog from "@/components/features/product/CommentDialog";
 import { WidgetErrorBoundary } from "@/components/ui/widget-error-boundary";
-import { Comment } from "@/types";
+import { Comment } from "@/domain/types";
 import { useSiteContent } from "@/context/ContentContext";
 import { insertCommentReply } from "@/lib/comment-tree";
 import { toPersianDigits } from "@/lib/utils";

@@ -11,7 +11,7 @@ import {
   Edit3,
   ShieldAlert,
 } from "lucide-react";
-import { Comment } from "@/types";
+import { Comment } from "@/domain/types";
 import { Badge } from "@/components/ui/badge";
 import CommentEditForm from "@/components/features/admin/comments/CommentEditForm";
 import CommentReplyForm from "@/components/features/admin/comments/CommentReplyForm";

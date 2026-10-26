@@ -1,11 +1,9 @@
 import { useMemo } from "react";
 import { useCoffeeSelection } from "@/hooks/useCoffeeSelection";
-import {
-  getBlendProfile,
-  calculateAdvancedPriceMetrics,
-  calculateRemainingStock,
-} from "@/lib/coffee-calculations";
-import { Coupon, ProductWithPricing } from "@/types";
+import { getBlendProfile } from "@/lib/pricing/blend";
+import { calculateAdvancedPriceMetrics } from "@/lib/pricing/discount-engine";
+import { calculateRemainingStock } from "@/lib/pricing/stock";
+import { Coupon, ProductWithPricing } from "@/domain/types";
 import { useSiteContent } from "@/context/ContentContext";
 
 export function useCoffeeProduct(

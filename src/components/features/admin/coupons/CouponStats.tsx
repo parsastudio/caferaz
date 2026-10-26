@@ -1,5 +1,5 @@
 import React from "react";
-import { Coupon } from "@/types";
+import { Coupon } from "@/domain/types";
 import { toPersianDigits } from "@/lib/utils";
 
 interface CouponStatsProps {

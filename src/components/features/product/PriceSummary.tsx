@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useSiteContent } from "@/context/ContentContext";
 import { formatPersianNumber, toPersianDigits } from "@/lib/utils";
-import { RoastDateDisplayInfo } from "@/lib/jalali-converter";
+import { RoastDateDisplayInfo } from "@/lib/date/formatters";
 
 interface PriceSummaryProps {
   basePrice: number;

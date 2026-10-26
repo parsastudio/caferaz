@@ -1,5 +1,5 @@
 import { getTehranTodayString } from "@/lib/date/formatters";
-import { Coupon, CouponUsage } from "@/types";
+import { Coupon, CouponUsage } from "@/domain/types";
 import { BlendProfile, DEFAULT_PRODUCT_PRICING } from "@/lib/constants";
 
 export interface AdvancedPriceMetrics {

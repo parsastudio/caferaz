@@ -5,7 +5,7 @@ import { toEnglishDigits, toPersianDigits } from "@/lib/utils";
 import {
   calculateGregorianDateFromDaysAgo,
   formatGregorianToJalaliString,
-} from "@/lib/jalali-converter";
+} from "@/lib/date/formatters";
 
 interface RoastDateSelectorProps {
   roastDaysAgo: number | "";

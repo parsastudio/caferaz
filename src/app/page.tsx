@@ -6,7 +6,7 @@ import { getCommentsAction } from "@/actions/public-comment";
 import { getCouponsAction } from "@/actions/admin-coupon";
 import WhyCafeRaz from "@/components/features/landing/WhyCafeRaz";
 import FAQSection from "@/components/features/landing/FAQSection";
-import { getTehranTodayString } from "@/lib/jalali-converter";
+import { getTehranTodayString } from "@/lib/date/formatters";
 import { ContentService } from "@/services/content.service";
 import { FaqService } from "@/services/faq.service";
 import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";

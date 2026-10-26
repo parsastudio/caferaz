@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { User, Order } from "@/types";
+import { User, Order } from "@/domain/types";
 import { logoutUserAction } from "@/actions/user-auth";
 import { motion } from "framer-motion";
 import {

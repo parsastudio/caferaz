@@ -3,10 +3,8 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { Order } from "@/domain/types";
 import { ServerOrderPayload } from "@/domain/validations/order.schema";
-import {
-  getBlendProfile,
-  calculateAdvancedPriceMetrics,
-} from "@/lib/coffee-calculations";
+import { getBlendProfile } from "@/lib/pricing/blend";
+import { calculateAdvancedPriceMetrics } from "@/lib/pricing/discount-engine";
 import { mapPrismaCoupon } from "@/lib/coupon-mappers";
 import { ContentService } from "@/services/content.service";
 import { normalizePhone } from "@/lib/phone";

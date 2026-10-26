@@ -1,5 +1,5 @@
 import React from "react";
-import { Coupon } from "@/types";
+import { Coupon } from "@/domain/types";
 import { Badge } from "@/components/ui/badge";
 import {
   Trash,
@@ -12,7 +12,7 @@ import {
 import {
   formatGregorianToJalaliString,
   getTehranTodayString,
-} from "@/lib/jalali-converter";
+} from "@/lib/date/formatters";
 import { formatPersianNumber, toPersianDigits } from "@/lib/utils";
 
 interface CouponCardProps {

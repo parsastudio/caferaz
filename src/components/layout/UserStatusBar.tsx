@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { logoutUserAction } from "@/actions/user-auth";
 import { User, Award, Clock, Home, LogOut } from "lucide-react";
-import { User as UserType } from "@/types";
+import { User as UserType } from "@/domain/types";
 import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
 
 interface UserStatusBarProps {

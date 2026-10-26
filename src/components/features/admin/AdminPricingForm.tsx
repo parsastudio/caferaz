@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { updateProductDetailsAction } from "@/actions/product";
-import { ProductWithPricing } from "@/types";
+import { ProductWithPricing } from "@/domain/types";
 import { toast } from "sonner";
 import { Loader2, Coffee } from "lucide-react";
 import { toEnglishDigits, toPersianDigits } from "@/lib/utils";
@@ -10,7 +10,7 @@ import { DEFAULT_PRODUCT_PRICING, DEFAULT_STOCK_GRAMS } from "@/lib/constants";
 import {
   calculateGregorianDateFromDaysAgo,
   calculateDaysAgoFromGregorian,
-} from "@/lib/jalali-converter";
+} from "@/lib/date/formatters";
 import RoastDateSelector from "@/components/features/admin/pricing/RoastDateSelector";
 
 interface AdminPricingFormProps {

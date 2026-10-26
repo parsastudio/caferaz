@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Comment } from "@/types";
+import { Comment } from "@/domain/types";
 import { toast } from "sonner";
 import { submitCommentAction } from "@/actions/public-comment";
 import {

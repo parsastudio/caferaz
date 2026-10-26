@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { parseJalaliString } from "@/lib/jalali-converter";
+import { parseJalaliString } from "@/lib/date/formatters";
 
 const roastDateValidator = (val?: string | null) => {
   if (!val || val.trim() === "") return true;
