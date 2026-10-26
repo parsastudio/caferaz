@@ -30,10 +30,13 @@ export default function AdminStatusBar({
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 font-sans text-xs">
         <div className="flex flex-col md:hidden w-full gap-2">
           <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-1.5 bg-gold-500/10 text-gold-400 px-2 py-0.5 rounded-lg border border-gold-500/20 font-black text-xs shrink-0">
+            <Link
+              href="/admin"
+              className="flex items-center gap-1.5 bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 px-2.5 py-1 rounded-lg border border-gold-500/20 font-black text-xs shrink-0 transition-colors"
+            >
               <ShieldCheck className="w-3.5 h-3.5 text-gold-500" />
-              <span>ادمین</span>
-            </div>
+              <span>پنل مدیریت</span>
+            </Link>
 
             <div className="flex items-center gap-1.5">
               <Link
@@ -41,14 +44,14 @@ export default function AdminStatusBar({
                 className="bg-stone-800/80 hover:bg-stone-750 text-stone-300 border border-stone-800 font-bold px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px]"
               >
                 <Home className="w-3 h-3 text-stone-400" />
-                <span>سایت</span>
+                <span>مشاهده سایت</span>
               </Link>
 
               <form action={logoutAdminAction} className="inline-block">
                 <button
                   type="submit"
                   className="p-1 text-stone-400 hover:text-red-400 rounded-lg border border-stone-800 transition-all cursor-pointer flex items-center justify-center"
-                  title="خروج"
+                  title="خروج از حساب مدیریت"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
@@ -65,7 +68,7 @@ export default function AdminStatusBar({
             <div className="flex items-center gap-1 font-bold">
               <ShoppingCart className="w-3 h-3 text-stone-400 shrink-0" />
               <span className={pendingOrdersCount > 0 ? "text-red-400" : "text-stone-400"}>
-                {toPersianDigits(pendingOrdersCount)} سفارش جدید
+                {toPersianDigits(pendingOrdersCount)} سفارش
               </span>
             </div>
 

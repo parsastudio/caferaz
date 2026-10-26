@@ -35,56 +35,48 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   {
     path: "/admin",
-    label: "داشبورد اصلی",
+    label: "داشبورد",
     icon: LayoutDashboard,
   },
   {
     path: "/admin/orders",
-    label: "مدیریت سفارش‌ها",
+    label: "سفارش‌ها",
     icon: ShoppingBag,
   },
   {
     path: "/admin/comments",
-    label: "مدیریت نظرات",
+    label: "نظرات",
     icon: MessageSquare,
   },
   {
     path: "/admin/pricing",
-    label: "تغییر قیمت و موجودی",
+    label: "قیمت و موجودی",
     icon: Tag,
   },
   {
     path: "/admin/coupons",
-    label: "مدیریت کوپن‌ها",
+    label: "کوپن‌ها",
     icon: Ticket,
   },
   {
     path: "/admin/faq",
-    label: "مدیریت سوالات متداول",
+    label: "سوالات متداول",
     icon: HelpCircle,
   },
   {
     path: "/admin/settings",
-    label: "ویرایش متون سایت",
+    label: "متون سایت",
     icon: FileText,
   },
   {
     path: "/admin/change-password",
-    label: "تغییر رمز عبور",
+    label: "تغییر رمز",
     icon: KeyRound,
   },
 ];
 
-const mobilePrimaryPaths = [
-  "/admin",
-  "/admin/orders",
-  "/admin/comments",
-  "/admin/pricing",
-];
-
 export default function AdminSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
 
@@ -96,7 +88,7 @@ export default function AdminSidebar() {
 
   return (
     <>
-      {/* 1. سایدبار نسخه دسکتاپ (فقط در صفحات متوسط و بزرگ نمایش داده می‌شود) */}
+      {/* 1. سایدبار نسخه دسکتاپ (دقیقاً دست‌نخورده برای تبلت و کامپیوتر) */}
       <motion.div
         animate={{ width: isCollapsed ? 80 : 280 }}
         transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
@@ -221,132 +213,28 @@ export default function AdminSidebar() {
         </div>
       </motion.div>
 
-      {/* 2. نوار ابزار پایین گوشی (Mobile Bottom Dock - کاملاً واکنش‌گرا و سبک) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-stone-900/95 border-t border-stone-800 backdrop-blur-xl px-2 py-1.5 flex items-center justify-around shadow-2xl">
-        {menuItems
-          .filter((item) => mobilePrimaryPaths.includes(item.path))
-          .map((item) => {
-            const isActive = pathname === item.path;
-            const IconComponent = item.icon;
-            return (
-              <Link key={item.path} href={item.path} className="flex-1">
-                <div
-                  className={cn(
-                    "flex flex-col items-center justify-center py-1 rounded-xl transition-all select-none",
-                    isActive
-                      ? "text-gold-400 font-black"
-                      : "text-stone-400 hover:text-stone-200",
-                  )}
-                >
-                  <IconComponent className="w-5 h-5 mb-0.5" strokeWidth={isActive ? 2.2 : 1.5} />
-                  <span className="text-[10px] truncate">{item.label.split(" ")[1] || item.label}</span>
-                </div>
-              </Link>
-            );
-          })}
-
-        {/* دکمه منوی سایر بخش‌ها */}
-        <button
-          type="button"
-          onClick={() => setIsMobileMenuOpen(true)}
-          className={cn(
-            "flex-1 flex flex-col items-center justify-center py-1 rounded-xl transition-all select-none cursor-pointer",
-            !mobilePrimaryPaths.includes(pathname)
-              ? "text-gold-400 font-black"
-              : "text-stone-400 hover:text-stone-200",
-          )}
-        >
-          <Menu className="w-5 h-5 mb-0.5" strokeWidth={1.5} />
-          <span className="text-[10px]">سایر منوها</span>
-        </button>
-      </div>
-
-      {/* 3. پنجره کشویی تمام گزینه‌ها در موبایل (Bottom Sheet) */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50"
-            />
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="md:hidden fixed bottom-0 left-0 right-0 max-h-[85vh] bg-stone-900 border-t border-stone-800 rounded-t-3xl z-50 overflow-y-auto p-5 space-y-4"
-              dir="rtl"
+      {/* 2. نوار افقی اسکرول‌پذیر تب‌های مدیریت در موبایل (دسترسی مستقیم، آنی و بدون گیر کردن) */}
+      <div className="md:hidden sticky top-0 z-40 w-full bg-stone-900/95 border-b border-stone-800 backdrop-blur-md px-3 py-2.5 overflow-x-auto scrollbar-none flex items-center gap-2 shrink-0 select-none">
+        {menuItems.map((item) => {
+          const isActive = pathname === item.path;
+          const IconComponent = item.icon;
+          return (
+            <Link
+              key={item.path}
+              href={item.path}
+              className={cn(
+                "px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 shrink-0 transition-all cursor-pointer",
+                isActive
+                  ? "bg-gold-500 text-stone-950 font-black shadow-sm"
+                  : "bg-stone-950/70 text-stone-300 hover:text-stone-100 border border-stone-800",
+              )}
             >
-              <div className="flex items-center justify-between pb-3 border-b border-stone-800">
-                <div className="flex items-center gap-2">
-                  <Coffee className="w-5 h-5 text-gold-500" strokeWidth={1.75} />
-                  <span className="text-sm font-black text-stone-100">بخش‌های پنل مدیریت</span>
-                </div>
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-1 rounded-lg text-stone-400 hover:text-stone-200"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                {menuItems.map((item) => {
-                  const isActive = pathname === item.path;
-                  const IconComponent = item.icon;
-                  return (
-                    <Link
-                      key={item.path}
-                      href={item.path}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <div
-                        className={cn(
-                          "flex items-center gap-2.5 p-3 rounded-xl border text-right transition-colors",
-                          isActive
-                            ? "bg-gold-500/10 border-gold-500/40 text-gold-400 font-bold"
-                            : "bg-stone-950/60 border-stone-800 text-stone-300 hover:border-stone-700",
-                        )}
-                      >
-                        <IconComponent className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-                        <span className="text-xs truncate">{item.label}</span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-
-              <div className="pt-3 border-t border-stone-800 flex items-center justify-between gap-2">
-                <Link
-                  href="/"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-stone-950 border border-stone-800 text-stone-300 text-xs font-bold"
-                >
-                  <Home className="w-4 h-4 text-stone-400" />
-                  <span>مشاهده وب‌سایت</span>
-                </Link>
-
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  disabled={isPending}
-                  className="flex items-center justify-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold cursor-pointer"
-                >
-                  {isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <LogOut className="w-4 h-4" />
-                  )}
-                  <span>خروج</span>
-                </button>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+              <IconComponent className="w-3.5 h-3.5 shrink-0" strokeWidth={isActive ? 2.2 : 1.5} />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </div>
     </>
   );
 }

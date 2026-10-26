@@ -20,7 +20,7 @@ export default async function AdminLayout({
       dir="rtl"
     >
       <AdminSidebar />
-      <main className="flex-1 min-w-0 min-h-screen overflow-y-auto bg-stone-950/40 p-3.5 sm:p-6 lg:p-10 pb-24 md:pb-10">
+      <main className="flex-1 min-w-0 min-h-screen overflow-y-auto bg-stone-950/40 p-3.5 sm:p-6 lg:p-10 pb-12 md:pb-10">
         {children}
       </main>
     </div>
