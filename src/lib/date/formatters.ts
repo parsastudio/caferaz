@@ -41,37 +41,28 @@ export function formatGregorianToJalaliString(gregorianStr: string): string {
   if (!gregorianStr || !gregorianStr.trim()) return "";
   const clean = gregorianStr.trim();
 
-  const matchYmd = clean.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  const matchYmd = clean.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
   if (matchYmd) {
     const y = parseInt(matchYmd[1], 10);
     const m = parseInt(matchYmd[2], 10);
     const d = parseInt(matchYmd[3], 10);
-    if (y < 1700) {
+    if (y < 1700 && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
       return formatJalaliString(y, m, d);
     }
-    const res = toJalaali(y, m, d);
-    return formatJalaliString(res.jy, res.jm, res.jd);
+    if (y >= 1700) {
+      const res = toJalaali(y, m, d);
+      return formatJalaliString(res.jy, res.jm, res.jd);
+    }
   }
 
   const d = new Date(clean);
   if (isNaN(d.getTime())) return clean;
 
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Tehran",
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-  });
-
-  const parts = formatter.formatToParts(d);
-  const gy = parseInt(
-    parts.find((p) => p.type === "year")?.value || "1970",
-    10,
+  const res = toJalaali(
+    d.getUTCFullYear(),
+    d.getUTCMonth() + 1,
+    d.getUTCDate(),
   );
-  const gm = parseInt(parts.find((p) => p.type === "month")?.value || "1", 10);
-  const gd = parseInt(parts.find((p) => p.type === "day")?.value || "1", 10);
-
-  const res = toJalaali(gy, gm, gd);
   return formatJalaliString(res.jy, res.jm, res.jd);
 }
 

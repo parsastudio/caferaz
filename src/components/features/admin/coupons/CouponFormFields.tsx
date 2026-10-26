@@ -1,0 +1,246 @@
+"use client";
+
+import React from "react";
+import { Control, Controller, FieldErrors, UseFormRegister } from "react-hook-form";
+import { Scale, Calendar, ChevronDown } from "lucide-react";
+import { CreateCouponInput } from "@/domain/validations/coupon.schema";
+
+interface CouponFormFieldsProps {
+  register: UseFormRegister<CreateCouponInput>;
+  control: Control<CreateCouponInput>;
+  errors: FieldErrors<CreateCouponInput>;
+  currentType?: string;
+  currentDiscountType?: string;
+  products: { id: string; name: string }[];
+}
+
+export default function CouponFormFields({
+  register,
+  control,
+  errors,
+  currentType,
+  currentDiscountType,
+  products,
+}: CouponFormFieldsProps) {
+  return (
+    <>
+      <div className="space-y-1 text-right">
+        <label className="text-xs font-bold text-stone-300">
+          کد کوپن (حروف انگلیسی و عدد){" "}
+          {currentType === "user_code" && (
+            <span className="text-red-500">*</span>
+          )}
+        </label>
+        <input
+          type="text"
+          {...register("code")}
+          className={`w-full bg-stone-950 border focus:ring-1 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none transition-all text-left font-sans font-black tracking-widest ${
+            errors.code ? "border-destructive/60" : "border-stone-800"
+          }`}
+          placeholder={
+            currentType === "user_code"
+              ? "مثال: WELCOME"
+              : "تولید خودکار در صورت عدم ورود کد"
+          }
+          dir="ltr"
+        />
+        {errors.code && (
+          <p className="text-[10px] text-destructive font-bold">
+            {errors.code.message}
+          </p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1 text-right">
+          <label className="text-xs font-bold text-stone-300">نوع کوپن</label>
+          <div className="relative">
+            <Controller
+              name="type"
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <select
+                  value={value}
+                  onChange={onChange}
+                  className="w-full bg-stone-950 border border-stone-800 rounded-xl pl-9 pr-3.5 py-3 text-xs text-stone-300 outline-none appearance-none cursor-pointer focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50 transition-all font-bold"
+                >
+                  <option value="user_code">کوپن تخفیف دستی کاربر در تسویه</option>
+                  <option value="product_direct">تخفیف خط‌خورده مستقیم محصول</option>
+                  <option value="conditional">تخفیف شرطی حجم و زمان سیستمی</option>
+                </select>
+              )}
+            />
+            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-stone-500">
+              <ChevronDown className="w-4 h-4" />
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-1 text-right">
+          <label className="text-xs font-bold text-stone-300">نوع کسر قیمت</label>
+          <div className="relative">
+            <Controller
+              name="discountType"
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <select
+                  value={value}
+                  onChange={onChange}
+                  className="w-full bg-stone-950 border border-stone-800 rounded-xl pl-9 pr-3.5 py-3 text-xs text-stone-300 outline-none appearance-none cursor-pointer focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50 transition-all font-bold"
+                >
+                  <option value="percentage">درصدی (٪)</option>
+                  <option value="fixed">مبلغ ثابت (تومان)</option>
+                </select>
+              )}
+            />
+            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-stone-500">
+              <ChevronDown className="w-4 h-4" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1 text-right">
+          <label className="text-xs font-bold text-stone-300">
+            {currentDiscountType === "percentage"
+              ? "درصد تخفیف (٪)"
+              : "مبلغ تخفیف (تومان)"}
+            <span className="text-red-500"> *</span>
+          </label>
+          <input
+            type="number"
+            {...register("discountValue", { valueAsNumber: true })}
+            className="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-left font-sans focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50"
+            dir="ltr"
+          />
+          {errors.discountValue && (
+            <p className="text-[10px] text-destructive font-bold">
+              {errors.discountValue.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-1 text-right">
+          <label className="text-xs font-bold text-stone-300">
+            سقف تخفیف (تومان - اختیاری)
+          </label>
+          <input
+            type="number"
+            {...register("maxDiscountAmount", { valueAsNumber: true })}
+            disabled={currentDiscountType === "fixed"}
+            className="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-left font-sans disabled:opacity-40 focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50"
+            placeholder="مخصوص تخفیف درصدی"
+            dir="ltr"
+          />
+        </div>
+      </div>
+
+      {currentType === "conditional" && (
+        <div className="space-y-1 text-right p-4 bg-stone-950/40 border border-stone-800 rounded-xl animate-in fade-in duration-200">
+          <label className="text-xs font-bold text-stone-300 flex items-center gap-1">
+            <Scale className="w-3.5 h-3.5 text-gold-500" />
+            حداقل وزن انتخابی پکیج (گرم)
+          </label>
+          <input
+            type="number"
+            {...register("minWeightGrams", { valueAsNumber: true })}
+            className="w-full bg-stone-900 border border-stone-800 rounded-xl px-4 py-3 text-xs text-stone-100 outline-none text-left font-sans focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50"
+            placeholder="مثال: ۵۰۰۰ برای ۵ کیلوگرم"
+            dir="ltr"
+          />
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1 text-right">
+          <label className="text-xs font-bold text-stone-300 flex items-center gap-1">
+            <Calendar className="w-3.5 h-3.5 text-stone-500" />
+            فعال از تاریخ (شمسی)
+          </label>
+          <input
+            type="text"
+            {...register("validFrom")}
+            className="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-center font-sans tracking-wide focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50"
+            placeholder="1405/04/11"
+            dir="ltr"
+          />
+          {errors.validFrom && (
+            <p className="text-[10px] text-destructive font-bold">
+              {errors.validFrom.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-1 text-right">
+          <label className="text-xs font-bold text-stone-300 flex items-center gap-1">
+            <Calendar className="w-3.5 h-3.5 text-stone-500" />
+            منقضی در تاریخ (شمسی)
+          </label>
+          <input
+            type="text"
+            {...register("validTo")}
+            className="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 text-sm text-stone-100 outline-none text-center font-sans tracking-wide focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50"
+            placeholder="1405/04/11"
+            dir="ltr"
+          />
+          {errors.validTo && (
+            <p className="text-[10px] text-destructive font-bold">
+              {errors.validTo.message}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-1 text-right">
+        <label className="text-xs font-bold text-stone-300">کالای هدف</label>
+        <div className="relative">
+          <Controller
+            name="productId"
+            control={control}
+            render={({ field: { value, onChange } }) => (
+              <select
+                value={value}
+                onChange={onChange}
+                className="w-full bg-stone-950 border border-stone-800 rounded-xl pl-9 pr-3.5 py-3 text-xs text-stone-300 outline-none appearance-none cursor-pointer focus:border-gold-500 focus:ring-1 focus:ring-gold-500/50 transition-all font-bold mb-2"
+              >
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          />
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-stone-500 mb-2">
+            <ChevronDown className="w-4 h-4" />
+          </div>
+        </div>
+      </div>
+
+      {currentType === "user_code" && (
+        <div className="flex items-center gap-2.5 p-3.5 bg-stone-950/40 border border-stone-800 rounded-xl text-right animate-in fade-in duration-200">
+          <Controller
+            name="allowStacking"
+            control={control}
+            render={({ field: { value, onChange } }) => (
+              <input
+                type="checkbox"
+                id="allowStacking"
+                checked={value || false}
+                onChange={(e) => onChange(e.target.checked)}
+                className="w-4 h-4 rounded border-stone-800 text-gold-500 focus:ring-gold-500 accent-gold-500 bg-stone-950 cursor-pointer shrink-0"
+              />
+            )}
+          />
+          <label
+            htmlFor="allowStacking"
+            className="text-xs font-bold text-stone-300 cursor-pointer select-none"
+          >
+            امکان همپوشانی (Stacking) با تخفیف‌های مستقیم فروشگاه فعال باشد؟
+          </label>
+        </div>
+      )}
+    </>
+  );
+}
