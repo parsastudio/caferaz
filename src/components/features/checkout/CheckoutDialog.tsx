@@ -43,7 +43,6 @@ export default function CheckoutDialog() {
     checkoutFinalPrice,
     payableFinalPrice,
     tehranDeliveryFee,
-    currentShippingFee,
     basePrice,
     directDiscountAmount,
     conditionalDiscountAmount,
@@ -129,7 +128,6 @@ export default function CheckoutDialog() {
                     basePrice={basePrice}
                     directDiscountAmount={directDiscountAmount}
                     conditionalDiscountAmount={conditionalDiscountAmount}
-                    finalPrice={checkoutFinalPrice}
                     payableFinalPrice={payableFinalPrice}
                     tehranDeliveryFee={tehranDeliveryFee}
                     isLoggedIn={isLoggedInUser}

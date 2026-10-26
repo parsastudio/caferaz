@@ -1,4 +1,5 @@
 import "server-only";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ProductWithPricing } from "@/domain/types";
 import {
@@ -115,10 +116,10 @@ export class ProductService {
       ops.push(
         prisma.option.upsert({
           where: { key: "last_roast_date" },
-          update: { value: cleanRoastDate },
+          update: { value: cleanRoastDate ?? Prisma.JsonNull },
           create: {
             key: "last_roast_date",
-            value: cleanRoastDate,
+            value: cleanRoastDate ?? Prisma.JsonNull,
           },
         }),
       );

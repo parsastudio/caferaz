@@ -11,7 +11,6 @@ interface UseCheckoutSubmitProps {
   methods: UseFormReturn<CheckoutFormValues>;
   checkoutData: CheckoutData | null;
   appliedCouponCode?: string | null;
-  tehranDeliveryFee?: number;
   setErrorMessage: (msg: string | null) => void;
   onSuccess: () => void;
 }
@@ -20,7 +19,6 @@ export function useCheckoutSubmit({
   methods,
   checkoutData,
   appliedCouponCode,
-  tehranDeliveryFee = 70000,
   setErrorMessage,
   onSuccess,
 }: UseCheckoutSubmitProps) {

@@ -78,7 +78,6 @@ export function useCheckoutForm() {
     methods,
     checkoutData,
     appliedCouponCode: couponManager.appliedCoupon?.code ?? null,
-    tehranDeliveryFee,
     setErrorMessage,
     onSuccess: () => setStep("success"),
   });

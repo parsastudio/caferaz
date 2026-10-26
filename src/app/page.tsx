@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 import CoffeeProductPage from "@/components/features/product/CoffeeProductPage";
+
+export const revalidate = 14400; // 4 hours in seconds (Time-based ISR)
 import ProductPageSkeleton from "@/components/features/product/ProductPageSkeleton";
 import { getMainProductAction } from "@/actions/product";
 import { getCommentsAction } from "@/actions/public-comment";

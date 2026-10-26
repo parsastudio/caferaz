@@ -9,21 +9,9 @@ import {
 import { normalizePhone } from "@/lib/phone";
 import { OrderCreatorService } from "@/services/order-creator.service";
 
-interface PrismaOrderWithItems {
-  id: string;
-  finalPrice: number;
-  customerName: string;
-  customerPhone: string;
-  customerAddress: string;
-  createdAt: Date;
-  status: string;
-  orderItems: {
-    productId: string;
-    weightGrams: number;
-    quantity: number;
-    grindType: string;
-  }[];
-}
+export type PrismaOrderWithItems = Prisma.OrderGetPayload<{
+  include: { orderItems: true };
+}>;
 
 export class OrderService {
   static mapOrderWithItems(o: PrismaOrderWithItems): Order {

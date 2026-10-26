@@ -8,6 +8,7 @@ import {
   createFormToken,
   verifyFormToken,
 } from "@/lib/session";
+import { checkAdminAuth } from "@/actions/admin-auth";
 import { AuthService } from "@/services/auth.service";
 import {
   sendOtpSchema,

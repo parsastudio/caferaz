@@ -14,7 +14,9 @@ export class OrderCreatorService {
   static async createOrderTransaction(
     payload: ServerOrderPayload,
     securePhone: string,
-    mapOrderFn: (order: any) => Order,
+    mapOrderFn: (
+      order: Prisma.OrderGetPayload<{ include: { orderItems: true } }>,
+    ) => Order,
   ): Promise<Order> {
     const {
       productId,

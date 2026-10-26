@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin,
   Check,
-  Truck,
   Loader2,
   Ticket,
   Bike,
@@ -26,7 +25,6 @@ interface ShippingStepProps {
   basePrice: number;
   directDiscountAmount: number;
   conditionalDiscountAmount: number;
-  finalPrice: number;
   payableFinalPrice: number;
   tehranDeliveryFee: number;
   isLoggedIn?: boolean;
@@ -46,7 +44,6 @@ export default function ShippingStep({
   basePrice,
   directDiscountAmount,
   conditionalDiscountAmount,
-  finalPrice,
   payableFinalPrice,
   tehranDeliveryFee,
   isLoggedIn,
