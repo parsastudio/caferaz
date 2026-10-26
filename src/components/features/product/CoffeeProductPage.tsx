@@ -84,27 +84,29 @@ export default function CoffeeProductPage({
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-12 relative" dir="rtl">
-      <div className="absolute top-12 right-12 w-96 h-96 bg-gold-500/[0.04] rounded-full blur-3xl pointer-events-none -z-10" />
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+    <div className="w-full max-w-7xl mx-auto px-4 py-8 sm:py-12 relative" dir="rtl">
+      <div className="absolute top-0 right-0 w-full max-w-sm sm:max-w-md h-72 sm:h-96 overflow-hidden pointer-events-none -z-10">
+        <div className="w-72 sm:w-96 h-72 sm:h-96 bg-gold-500/[0.04] rounded-full blur-3xl" />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
         <div className="lg:col-span-5 space-y-6">
           <ProductVisuals productName={initialProduct.name} />
         </div>
 
-        <div className="lg:col-span-7 space-y-8 lg:pl-2">
+        <div className="lg:col-span-7 space-y-6 sm:space-y-8 lg:pl-2">
           <div>
             {roastInfo && (
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-gold-500/10 text-gold-400 border border-gold-500/25 mb-3 select-none shadow-sm shadow-gold-500/5">
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold bg-gold-500/10 text-gold-400 border border-gold-500/25 mb-2.5 sm:mb-3 select-none shadow-sm shadow-gold-500/5">
                 <Flame className="w-3.5 h-3.5 text-gold-500 fill-gold-500/20 animate-pulse shrink-0" />
                 <span>
                   {roastInfo.freshnessLabel} • {toPersianDigits(roastInfo.formattedDate)}
                 </span>
               </div>
             )}
-            <h1 className="text-2xl lg:text-4xl font-black text-stone-100 tracking-tight mb-3">
+            <h1 className="text-xl sm:text-2xl lg:text-4xl font-black text-stone-100 tracking-tight mb-2 sm:mb-3">
               {initialProduct.name}
             </h1>
-            <p className="text-sm text-stone-400 leading-relaxed max-w-2xl">
+            <p className="text-xs sm:text-sm text-stone-400 leading-relaxed max-w-2xl">
               {siteSubtitle || initialProduct.description}
             </p>
           </div>

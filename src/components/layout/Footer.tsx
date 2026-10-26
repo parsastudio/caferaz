@@ -21,10 +21,10 @@ export default function Footer({
 
   return (
     <footer
-      className="w-full bg-stone-950 border-t border-stone-900 text-stone-300 py-12 px-6"
+      className="w-full bg-stone-950 border-t border-stone-900 text-stone-300 py-10 sm:py-12 px-4 sm:px-6"
       dir="rtl"
     >
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-start">
         <div className="md:col-span-6 space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center shrink-0">
@@ -107,7 +107,7 @@ export default function Footer({
             {phones.length > 0 && (
               <li className="flex items-start gap-2.5">
                 <Phone className="w-4 h-4 text-gold-500 shrink-0 mt-0.5" />
-                <div className="flex flex-wrap items-center gap-2 font-sans">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-sans">
                   <span className="font-bold text-stone-300">
                     {layout.phonesLabel}
                   </span>

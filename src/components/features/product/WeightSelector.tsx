@@ -42,7 +42,7 @@ export default function WeightSelector({
         </span>
         {product.weightStepTitle}
       </label>
-      <div className="flex flex-wrap gap-2.5">
+      <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 sm:gap-2.5">
         {presetWeights.map((w) => (
           <button
             key={w.value}
@@ -52,15 +52,15 @@ export default function WeightSelector({
               setSelectedWeight(w.value);
               setQuantity(1);
             }}
-            className={`px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-all duration-150 flex items-center gap-2 cursor-pointer ${
+            className={`p-2.5 sm:px-4 sm:py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-all duration-150 flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 cursor-pointer ${
               !isCustomWeight && selectedWeight === w.value
                 ? "border-gold-500 bg-gold-500/10 text-gold-400 shadow-sm ring-1 ring-gold-500/25"
                 : "border-stone-800/80 bg-stone-900/30 hover:border-stone-700 text-stone-400 hover:text-stone-200"
             }`}
           >
-            {w.label}
+            <span>{w.label}</span>
             {!isCustomWeight && selectedWeight === w.value && (
-              <Check className="w-3.5 h-3.5 text-gold-500" />
+              <Check className="w-3.5 h-3.5 text-gold-500 shrink-0" />
             )}
           </button>
         ))}
@@ -71,23 +71,23 @@ export default function WeightSelector({
             setIsCustomWeight(true);
             setQuantity(1);
           }}
-          className={`px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-all duration-150 flex items-center gap-2 cursor-pointer ${
+          className={`p-2.5 sm:px-4 sm:py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-all duration-150 flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 cursor-pointer ${
             isCustomWeight
               ? "border-gold-500 bg-gold-500/10 text-gold-400 shadow-sm ring-1 ring-gold-500/25"
               : "border-stone-800/80 bg-stone-900/30 hover:border-stone-700 text-stone-400 hover:text-stone-200"
           }`}
         >
-          {product.customWeightLabel}
-          {isCustomWeight && <Check className="w-3.5 h-3.5 text-gold-500" />}
+          <span>{product.customWeightLabel}</span>
+          {isCustomWeight && <Check className="w-3.5 h-3.5 text-gold-500 shrink-0" />}
         </button>
       </div>
 
       {isCustomWeight && (
-        <div className="mt-3 p-3.5 bg-stone-900/30 rounded-xl border border-stone-800/80 space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+        <div className="mt-2.5 p-3.5 bg-stone-900/30 rounded-xl border border-stone-800/80 space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
           <label className="text-xs font-bold text-stone-400 block">
             {product.customWeightInputLabel}
           </label>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <input
               type="text"
               inputMode="numeric"
@@ -103,12 +103,12 @@ export default function WeightSelector({
                   setCustomWeightVal(250);
                 }
               }}
-              className="bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-4 py-2.5 text-sm text-stone-100 outline-none w-32 text-center font-bold"
+              className="bg-stone-950 border border-stone-800 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 rounded-xl px-3 py-2 text-sm text-stone-100 outline-none w-28 sm:w-32 text-center font-bold font-sans"
             />
-            <span className="text-sm font-bold text-stone-300">
+            <span className="text-xs sm:text-sm font-bold text-stone-300">
               {product.customWeightUnit}
             </span>
-            <span className="text-xs text-stone-500 mr-auto">
+            <span className="text-xs text-stone-500 mr-auto font-sans">
               ({product.customWeightEquiv} {toPersianDigits((customWeightVal / 1000).toFixed(2))}{" "}
               کیلوگرم)
             </span>

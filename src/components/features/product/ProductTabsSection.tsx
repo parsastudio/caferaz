@@ -67,7 +67,7 @@ export default function ProductTabsSection({
   return (
     <WidgetErrorBoundary fallbackTitle={product.noDescriptionText}>
       <div
-        className="mt-16 border-t border-stone-800/80 pt-10 text-right"
+        className="mt-10 sm:mt-16 border-t border-stone-800/80 pt-6 sm:pt-10 text-right"
         dir="rtl"
       >
         <Tabs
@@ -76,7 +76,7 @@ export default function ProductTabsSection({
           dir="rtl"
         >
           <TabsList
-            className="bg-stone-900 border border-stone-800 p-1 mb-8 flex w-full max-w-md"
+            className="bg-stone-900 border border-stone-800 p-1 mb-6 sm:mb-8 flex w-full max-w-md"
             dir="rtl"
           >
             <TabsTrigger
@@ -120,7 +120,7 @@ export default function ProductTabsSection({
 
             {optimisticComments && optimisticComments.length > 0 ? (
               <div
-                className="divide-y divide-stone-800/80 bg-stone-900/20 p-6 rounded-2xl border border-stone-900/60 text-right"
+                className="divide-y divide-stone-800/80 bg-stone-900/20 p-4 sm:p-6 rounded-2xl border border-stone-900/60 text-right"
                 dir="rtl"
               >
                 {optimisticComments.map((comment: UIComment) => (
@@ -182,45 +182,45 @@ function CommentNode({
   onReply,
 }: CommentNodeProps) {
   return (
-    <div className="py-5 space-y-3 text-right" dir="rtl">
+    <div className="py-4 sm:py-5 space-y-2.5 sm:space-y-3 text-right" dir="rtl">
       <div
-        className="flex flex-row items-center justify-between w-full"
+        className="flex flex-wrap items-center justify-between gap-2 w-full"
         dir="rtl"
       >
-        <div className="flex items-center gap-2.5" dir="rtl">
-          <div className="w-9 h-9 rounded-full bg-stone-800 border border-stone-700/60 flex items-center justify-center text-xs font-black text-gold-500">
+        <div className="flex items-center gap-2 sm:gap-2.5" dir="rtl">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-stone-800 border border-stone-700/60 flex items-center justify-center text-xs font-black text-gold-500 shrink-0">
             {comment.firstName[0] || "ک"}
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-stone-200 text-sm flex items-center gap-2">
+            <span className="font-bold text-stone-200 text-xs sm:text-sm flex items-center gap-1.5">
               {comment.firstName}
               {comment.isPending && (
-                <span className="text-[10px] bg-gold-500/10 border border-gold-500/20 text-gold-500 px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <Clock className="w-3 h-3" /> {pendingBadgeText}
+                <span className="text-[9px] sm:text-[10px] bg-gold-500/10 border border-gold-500/20 text-gold-500 px-1.5 py-0.2 rounded-full flex items-center gap-0.5">
+                  <Clock className="w-2.5 h-2.5" /> {pendingBadgeText}
                 </span>
               )}
             </span>
           </div>
           {comment.rating && (
-            <div className="flex items-center gap-1 bg-gold-500/10 border border-gold-500/25 text-gold-500 px-2 py-0.5 rounded-lg text-xs font-bold">
-              <Star className="w-3.5 h-3.5 fill-gold-500 text-gold-500" />
+            <div className="flex items-center gap-1 bg-gold-500/10 border border-gold-500/25 text-gold-400 px-1.5 py-0.5 rounded-lg text-[10px] sm:text-xs font-bold">
+              <Star className="w-3 h-3 fill-gold-500 text-gold-500" />
               <span>{toPersianDigits(comment.rating)}</span>
             </div>
           )}
         </div>
-        <span className="text-xs text-stone-500" suppressHydrationWarning>
+        <span className="text-[11px] text-stone-500 font-sans" suppressHydrationWarning>
           {new Date(comment.createdAt).toLocaleDateString("fa-IR")}
         </span>
       </div>
 
       <p
-        className="text-sm text-stone-300 pr-11 leading-relaxed text-right"
+        className="text-xs sm:text-sm text-stone-300 pr-0 sm:pr-11 leading-relaxed text-right"
         dir="rtl"
       >
         {comment.commentText}
       </p>
 
-      <div className="pr-11">
+      <div className="pr-0 sm:pr-11">
         <button
           type="button"
           onClick={() => onReply(comment.id)}

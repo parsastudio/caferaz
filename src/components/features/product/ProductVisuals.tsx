@@ -45,22 +45,22 @@ export default function ProductVisuals({ productName }: ProductVisualsProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-2 text-center bg-stone-900/30 p-3 rounded-xl border border-stone-850/80">
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-center bg-stone-900/30 p-2 sm:p-3 rounded-xl border border-stone-850/80">
         <div className="flex flex-col items-center justify-center p-1">
           <Truck className="w-4 h-4 text-gold-500 mb-1" strokeWidth={1.5} />
-          <span className="text-[11px] font-bold text-stone-300">
+          <span className="text-[10px] sm:text-[11px] font-bold text-stone-300 leading-tight">
             {hero.fastShippingText}
           </span>
         </div>
         <div className="flex flex-col items-center justify-center p-1 border-x border-stone-800/80">
           <ShieldCheck className="w-4 h-4 text-emerald-400 mb-1" strokeWidth={1.5} />
-          <span className="text-[11px] font-bold text-stone-300">
+          <span className="text-[10px] sm:text-[11px] font-bold text-stone-300 leading-tight">
             {hero.qualityGuaranteeText}
           </span>
         </div>
         <div className="flex flex-col items-center justify-center p-1">
           <ShieldCheck className="w-4 h-4 text-amber-500 mb-1" strokeWidth={1.5} />
-          <span className="text-[11px] font-bold text-stone-300">
+          <span className="text-[10px] sm:text-[11px] font-bold text-stone-300 leading-tight">
             {hero.sealedPackageText}
           </span>
         </div>

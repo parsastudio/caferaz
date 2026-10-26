@@ -18,10 +18,10 @@ export default function FAQSection({
   return (
     <section
       id="faq"
-      className="w-full max-w-4xl mx-auto px-4 py-16 text-right"
+      className="w-full max-w-4xl mx-auto px-4 py-10 sm:py-16 text-right"
       dir="rtl"
     >
-      <div className="text-center mb-12">
+      <div className="text-center mb-8 sm:mb-12">
         <span className="text-[10px] bg-gold-500/10 border border-gold-500/20 text-gold-400 px-3 py-1 rounded-full font-black tracking-widest uppercase">
           {header.badge}
         </span>

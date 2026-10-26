@@ -62,7 +62,7 @@ export default async function Page() {
   };
 
   return (
-    <main className="min-h-screen bg-background text-foreground pb-20">
+    <main className="min-h-screen bg-background text-foreground pb-24 lg:pb-20 overflow-x-clip min-w-0">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
