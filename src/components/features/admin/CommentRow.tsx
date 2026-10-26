@@ -106,24 +106,24 @@ export default function CommentRow({
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 justify-start sm:justify-end w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2 justify-start sm:justify-end w-full sm:w-auto pt-1 sm:pt-0">
           {status !== "approved" && (
             <button
               onClick={() => handleStatusChange(comment.id, "approved")}
-              className="p-1.5 sm:p-2 text-emerald-400 hover:bg-emerald-500/5 rounded-xl border border-stone-800 hover:border-emerald-500/20 transition-all cursor-pointer"
+              className="w-8 h-8 sm:w-auto sm:h-auto p-1.5 sm:p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg sm:rounded-xl border border-stone-800 hover:border-emerald-500/30 transition-all cursor-pointer flex items-center justify-center"
               title="تایید انتشار"
             >
               {isReplyNode ? (
                 <Check className="w-3.5 h-3.5" />
               ) : (
-                <Eye className="w-4 h-4" />
+                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               )}
             </button>
           )}
           {status !== "rejected" && (
             <button
               onClick={() => handleStatusChange(comment.id, "rejected")}
-              className="p-1.5 sm:p-2 text-amber-500 hover:bg-amber-500/5 rounded-xl border border-stone-800 hover:border-amber-500/20 transition-all cursor-pointer"
+              className="w-8 h-8 sm:w-auto sm:h-auto p-1.5 sm:p-2 text-amber-500 hover:bg-amber-500/10 rounded-lg sm:rounded-xl border border-stone-800 hover:border-amber-500/30 transition-all cursor-pointer flex items-center justify-center"
               title="رد انتشار"
             >
               <EyeOff className="w-3.5 h-3.5" />
@@ -132,7 +132,7 @@ export default function CommentRow({
           {status !== "spam" && (
             <button
               onClick={() => handleStatusChange(comment.id, "spam")}
-              className="p-1.5 sm:p-2 text-red-400 hover:bg-red-500/5 rounded-xl border border-stone-800 hover:border-red-500/20 transition-all cursor-pointer"
+              className="w-8 h-8 sm:w-auto sm:h-auto p-1.5 sm:p-2 text-red-400 hover:bg-red-500/10 rounded-lg sm:rounded-xl border border-stone-800 hover:border-red-500/30 transition-all cursor-pointer flex items-center justify-center"
               title="علامت‌گذاری به عنوان اسپم"
             >
               <ShieldAlert className="w-3.5 h-3.5" />
@@ -140,7 +140,7 @@ export default function CommentRow({
           )}
           <button
             onClick={() => setEditTargetId(comment.id)}
-            className="p-1.5 sm:p-2 text-blue-400 hover:bg-blue-500/5 rounded-xl border border-stone-800 hover:border-blue-500/20 transition-all cursor-pointer"
+            className="w-8 h-8 sm:w-auto sm:h-auto p-1.5 sm:p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg sm:rounded-xl border border-stone-800 hover:border-blue-500/30 transition-all cursor-pointer flex items-center justify-center"
             title="ویرایش"
           >
             <Edit3 className="w-3.5 h-3.5" />
@@ -148,7 +148,7 @@ export default function CommentRow({
           {!isReplyNode && (
             <button
               onClick={() => setReplyTargetId(comment.id)}
-              className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-gold-500 hover:bg-gold-500/5 rounded-xl border border-stone-800 hover:border-gold-500/20 transition-all cursor-pointer h-7 sm:h-8"
+              className="flex items-center gap-1 px-2.5 py-1 text-xs text-gold-500 hover:bg-gold-500/10 rounded-lg sm:rounded-xl border border-stone-800 hover:border-gold-500/30 transition-all cursor-pointer h-8"
             >
               <Reply className="w-3.5 h-3.5" />
               <span>پاسخ</span>
@@ -156,7 +156,7 @@ export default function CommentRow({
           )}
           <button
             onClick={() => handleDelete(comment.id)}
-            className="p-1.5 sm:p-2 text-stone-400 hover:text-red-400 hover:bg-red-500/5 rounded-xl border border-stone-800 hover:border-red-500/20 transition-all cursor-pointer"
+            className="w-8 h-8 sm:w-auto sm:h-auto p-1.5 sm:p-2 text-stone-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg sm:rounded-xl border border-stone-800 hover:border-red-500/30 transition-all cursor-pointer flex items-center justify-center"
             title="حذف دائمی"
           >
             <Trash className="w-3.5 h-3.5" />

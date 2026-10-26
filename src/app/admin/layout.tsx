@@ -16,11 +16,11 @@ export default async function AdminLayout({
 
   return (
     <div
-      className="min-h-screen bg-stone-950 text-stone-100 flex flex-row overflow-hidden"
+      className="min-h-screen bg-stone-950 text-stone-100 flex flex-col md:flex-row overflow-x-hidden"
       dir="rtl"
     >
       <AdminSidebar />
-      <main className="flex-1 h-screen overflow-y-auto bg-stone-950/40 p-6 lg:p-10">
+      <main className="flex-1 min-w-0 min-h-screen overflow-y-auto bg-stone-950/40 p-3.5 sm:p-6 lg:p-10 pb-24 md:pb-10">
         {children}
       </main>
     </div>

@@ -28,86 +28,52 @@ export default function AdminStatusBar({
       dir="rtl"
     >
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 font-sans text-xs">
-        <div className="flex flex-col md:hidden w-full gap-3">
+        <div className="flex flex-col md:hidden w-full gap-2">
           <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-1.5 bg-gold-500/10 text-gold-400 px-2.5 py-1 rounded-full border border-gold-500/20 font-black">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span className="text-[11px]">پنل مدیریت کافه راز</span>
+            <div className="flex items-center gap-1.5 bg-gold-500/10 text-gold-400 px-2 py-0.5 rounded-lg border border-gold-500/20 font-black text-xs shrink-0">
+              <ShieldCheck className="w-3.5 h-3.5 text-gold-500" />
+              <span>ادمین</span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <Link
                 href="/"
-                className="bg-stone-800 hover:bg-stone-750 text-stone-300 border border-stone-800 hover:border-stone-700 font-bold px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1 text-[11px]"
+                className="bg-stone-800/80 hover:bg-stone-750 text-stone-300 border border-stone-800 font-bold px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px]"
               >
-                <Home className="w-3.5 h-3.5 text-stone-400" />
-                <span>صفحه اصلی</span>
-              </Link>
-
-              <Link
-                href="/admin"
-                className="bg-gold-500 hover:bg-gold-600 text-stone-950 font-black px-3 py-1.5 rounded-lg transition-colors duration-150 shadow shadow-gold-500/10 flex items-center gap-1 text-[11px]"
-              >
-                <span>ورود به پنل</span>
+                <Home className="w-3 h-3 text-stone-400" />
+                <span>سایت</span>
               </Link>
 
               <form action={logoutAdminAction} className="inline-block">
                 <button
                   type="submit"
-                  className="p-1.5 text-stone-400 hover:text-red-400 hover:bg-red-500/5 rounded-lg border border-stone-800 transition-all cursor-pointer flex items-center justify-center"
-                  title="خروج از مدیریت"
+                  className="p-1 text-stone-400 hover:text-red-400 rounded-lg border border-stone-800 transition-all cursor-pointer flex items-center justify-center"
+                  title="خروج"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-3.5 h-3.5" />
                 </button>
               </form>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 w-full pt-3 border-t border-stone-800/60 text-center">
-            <div className="bg-stone-950/40 p-2 rounded-xl border border-stone-800/60 flex flex-col items-center justify-center gap-1">
-              <span className="text-[9px] text-stone-500 font-bold">
-                فروش این ماه
-              </span>
-              <div className="flex items-center gap-1 text-gold-400 font-sans font-bold text-[11px]">
-                <DollarSign className="w-3.5 h-3.5 text-gold-500 shrink-0" />
-                <span>{formatPersianNumber(monthSales)} ت</span>
-              </div>
+          <div className="flex items-center justify-between gap-1 w-full pt-1.5 border-t border-stone-800/60 text-[10px]">
+            <div className="flex items-center gap-1 text-gold-400 font-sans font-bold">
+              <DollarSign className="w-3 h-3 text-gold-500 shrink-0" />
+              <span>{formatPersianNumber(monthSales)} ت</span>
             </div>
 
-            <div className="bg-stone-950/40 p-2 rounded-xl border border-stone-800/60 flex flex-col items-center justify-center gap-1">
-              <span className="text-[9px] text-stone-500 font-bold">
-                سفارش جدید
+            <div className="flex items-center gap-1 font-bold">
+              <ShoppingCart className="w-3 h-3 text-stone-400 shrink-0" />
+              <span className={pendingOrdersCount > 0 ? "text-red-400" : "text-stone-400"}>
+                {toPersianDigits(pendingOrdersCount)} سفارش جدید
               </span>
-              <div className="flex items-center gap-1 text-[11px] font-bold">
-                <ShoppingCart className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                <span
-                  className={
-                    pendingOrdersCount > 0
-                      ? "text-red-400 animate-pulse"
-                      : "text-stone-300"
-                  }
-                >
-                  {toPersianDigits(pendingOrdersCount)} مورد
-                </span>
-              </div>
             </div>
 
-            <div className="bg-stone-950/40 p-2 rounded-xl border border-stone-800/60 flex flex-col items-center justify-center gap-1">
-              <span className="text-[9px] text-stone-500 font-bold">
-                دیدگاه معلق
+            <div className="flex items-center gap-1 font-bold">
+              <MessageSquare className="w-3 h-3 text-stone-400 shrink-0" />
+              <span className={pendingCommentsCount > 0 ? "text-amber-400" : "text-stone-400"}>
+                {toPersianDigits(pendingCommentsCount)} نظر معلق
               </span>
-              <div className="flex items-center gap-1 text-[11px] font-bold">
-                <MessageSquare className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                <span
-                  className={
-                    pendingCommentsCount > 0
-                      ? "text-red-400 animate-pulse"
-                      : "text-stone-300"
-                  }
-                >
-                  {toPersianDigits(pendingCommentsCount)} مورد
-                </span>
-              </div>
             </div>
           </div>
         </div>
