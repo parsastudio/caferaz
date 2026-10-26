@@ -130,25 +130,30 @@ export default function Footer({
             </li>
           </ul>
 
-          <div className="pt-3 flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-stone-900/40 border border-stone-850">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" strokeWidth={1.5} />
-              <div className="text-right">
-                <span className="text-[11px] text-stone-200 font-bold block">
+          <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-stone-900/30 border border-stone-800/80 hover:border-stone-700/80 transition-colors">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-5 h-5" strokeWidth={1.75} />
+              </div>
+              <div className="text-right space-y-0.5">
+                <span className="text-xs font-bold text-stone-100 block">
                   {layout.securePaymentTitle}
                 </span>
-                <span className="text-[9px] text-stone-500 block">
+                <span className="text-[11px] text-stone-400 block leading-snug">
                   {layout.securePaymentSub}
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-stone-900/40 border border-stone-850">
-              <Award className="w-4 h-4 text-gold-500 shrink-0" strokeWidth={1.5} />
-              <div className="text-right">
-                <span className="text-[11px] text-stone-200 font-bold block">
+
+            <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-stone-900/30 border border-stone-800/80 hover:border-stone-700/80 transition-colors">
+              <div className="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center shrink-0">
+                <Award className="w-5 h-5" strokeWidth={1.75} />
+              </div>
+              <div className="text-right space-y-0.5">
+                <span className="text-xs font-bold text-stone-100 block">
                   {layout.originalQualityTitle}
                 </span>
-                <span className="text-[9px] text-stone-500 block">
+                <span className="text-[11px] text-stone-400 block leading-snug">
                   {layout.originalQualitySub}
                 </span>
               </div>
