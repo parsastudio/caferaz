@@ -15,7 +15,7 @@ export function toGregorian(
 }
 
 function isLeapJalaaliYear(jy: number): boolean {
-  return jalCalLeap(jy) === 0;
+  return jalCal(jy).leap === 0;
 }
 
 export function jalaaliMonthLength(jy: number, jm: number): number {
@@ -23,10 +23,6 @@ export function jalaaliMonthLength(jy: number, jm: number): number {
   if (jm <= 11) return 30;
   if (isLeapJalaaliYear(jy)) return 30;
   return 29;
-}
-
-function jalCalLeap(jy: number): number {
-  return jalCal(jy).leap;
 }
 
 function jalCal(jy: number): { leap: number; gy: number; march: number } {
@@ -38,6 +34,7 @@ function jalCal(jy: number): { leap: number; gy: number; march: number } {
   const gy = jy + 621;
   let leapJ = -14;
   let jp = breaks[0];
+  let jm = 0;
   let jump = 0;
 
   if (jy < jp || jy >= breaks[bl - 1]) {
@@ -45,34 +42,29 @@ function jalCal(jy: number): { leap: number; gy: number; march: number } {
   }
 
   for (let i = 1; i < bl; i += 1) {
-    const jb = breaks[i];
-    const n = jb - jp;
-    if (jy < jb) {
-      jump = Math.floor(n / 33) * 4 + Math.floor((n % 33) / 4);
-      break;
-    }
-    leapJ += Math.floor(n / 33) * 8 + Math.floor(((n % 33) + 3) / 4);
-    jp = jb;
+    jm = breaks[i];
+    jump = jm - jp;
+    if (jy < jm) break;
+    leapJ += Math.floor(jump / 33) * 8 + Math.floor((jump % 33) / 4);
+    jp = jm;
   }
-
-  const n = jy - jp;
-  leapJ += Math.floor(n / 33) * 4 + Math.floor(((n % 33) + 3) / 4);
-  if (jump > 0 && (jump - n) % 33 === 0) {
-    leapJ += Math.floor((jump - n) / 33) - 1;
+  let n = jy - jp;
+  leapJ += Math.floor(n / 33) * 8 + Math.floor(((n % 33) + 3) / 4);
+  if (jump % 33 === 4 && jump - n === 4) {
+    leapJ += 1;
   }
-
   const leapG =
     Math.floor(gy / 4) - Math.floor(((Math.floor(gy / 100) + 1) * 3) / 4) - 150;
   const march = 20 + leapJ - leapG;
 
-  if ((jump - n) % 33 === 0) {
-    return { leap: 0, gy, march };
+  if (jump - n < 6) {
+    n = n - jump + Math.floor((jump + 4) / 33) * 33;
   }
-  const nextLeap = (jump - n) % 33;
-  if (nextLeap < 0) {
-    return { leap: ((n - jump) % 33) % 4 === 0 ? 0 : 1, gy, march };
+  let leap = ((n + 1) % 33 - 1) % 4;
+  if (leap === -1) {
+    leap = 4;
   }
-  return { leap: nextLeap % 4 === 0 ? 0 : 1, gy, march };
+  return { leap, gy, march };
 }
 
 function j2d(jy: number, jm: number, jd: number): number {
@@ -117,8 +109,10 @@ function g2d(gy: number, gm: number, gd: number): number {
     34840408;
   return (
     d -
-    (Math.floor((gy + Math.floor((gm - 8) / 6) + 100100) / 100) * 3) / 4 +
-    38
+    Math.floor(
+      (Math.floor((gy + 100100 + Math.floor((gm - 8) / 6)) / 100) * 3) / 4,
+    ) +
+    752
   );
 }
 
@@ -129,6 +123,6 @@ function d2g(d: number): { gy: number; gm: number; gd: number } {
   const i = Math.floor((j % 1461) / 4) * 5 + 308;
   const gd = Math.floor((i % 153) / 5) + 1;
   const gm = ((Math.floor(i / 153) + 2) % 12) + 1;
-  const gy = Math.floor(j / 1461) - 100100 + Math.floor((7 - gm) / 6);
+  const gy = Math.floor(j / 1461) - 100100 + Math.floor((8 - gm) / 6);
   return { gy, gm, gd };
 }

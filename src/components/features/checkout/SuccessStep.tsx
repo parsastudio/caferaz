@@ -93,9 +93,7 @@ export default function SuccessStep({
               <div className="text-left text-emerald-400 font-bold font-sans text-[11px] flex items-center justify-end gap-1">
                 <Flame className="w-3 h-3 text-emerald-400 shrink-0" />
                 <span>
-                  {roastInfo.daysAgo === 0
-                    ? "رست داغ امروز"
-                    : `${toPersianDigits(roastInfo.daysAgo)} روز پیش`}
+                  {roastInfo.freshnessLabel} ({toPersianDigits(roastInfo.formattedDate)})
                 </span>
               </div>
             </>

@@ -96,11 +96,7 @@ export default function CoffeeProductPage({
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-gold-500/10 text-gold-400 border border-gold-500/25 mb-3 select-none shadow-sm shadow-gold-500/5">
                 <Flame className="w-3.5 h-3.5 text-gold-500 fill-gold-500/20 animate-pulse shrink-0" />
                 <span>
-                  {roastInfo.freshnessLabel} • {toPersianDigits(roastInfo.formattedDate)} (
-                  {roastInfo.daysAgo === 0
-                    ? "امروز"
-                    : `${toPersianDigits(roastInfo.daysAgo)} روز پیش`}
-                  )
+                  {roastInfo.freshnessLabel} • {toPersianDigits(roastInfo.formattedDate)}
                 </span>
               </div>
             )}

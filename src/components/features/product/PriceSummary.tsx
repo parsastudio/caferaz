@@ -77,9 +77,7 @@ function PriceSummaryComponent({
             {roastInfo.freshnessLabel}
           </span>
           <span className="text-[11px] text-stone-400 font-sans">
-            {roastInfo.daysAgo === 0
-              ? "رست داغ امروز"
-              : `${toPersianDigits(roastInfo.daysAgo)} روز پیش`}
+            {toPersianDigits(roastInfo.formattedDate)}
           </span>
         </div>
       )}

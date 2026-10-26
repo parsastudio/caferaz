@@ -38,8 +38,23 @@ function formatJalaliString(jy: number, jm: number, jd: number): string {
 }
 
 export function formatGregorianToJalaliString(gregorianStr: string): string {
-  const d = new Date(gregorianStr);
-  if (isNaN(d.getTime())) return gregorianStr;
+  if (!gregorianStr || !gregorianStr.trim()) return "";
+  const clean = gregorianStr.trim();
+
+  const matchYmd = clean.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (matchYmd) {
+    const y = parseInt(matchYmd[1], 10);
+    const m = parseInt(matchYmd[2], 10);
+    const d = parseInt(matchYmd[3], 10);
+    if (y < 1700) {
+      return formatJalaliString(y, m, d);
+    }
+    const res = toJalaali(y, m, d);
+    return formatJalaliString(res.jy, res.jm, res.jd);
+  }
+
+  const d = new Date(clean);
+  if (isNaN(d.getTime())) return clean;
 
   const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Tehran",
@@ -133,7 +148,7 @@ export function calculateDaysAgoFromGregorian(
   const todayDate = new Date(Date.UTC(ty, tm - 1, td, 12, 0, 0));
 
   const diffMs = todayDate.getTime() - targetDate.getTime();
-  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  return Math.round(diffMs / (1000 * 60 * 60 * 24));
 }
 
 export interface RoastDateDisplayInfo {

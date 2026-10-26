@@ -61,11 +61,7 @@ export default function OrderSummaryCard({
           <div className="flex items-center gap-1.5 col-span-2 text-[10px] sm:text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg">
             <Flame className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
             <span>
-              تضمین تازگی رست:{" "}
-              {roastInfo.daysAgo === 0
-                ? "رست داغ امروز"
-                : `${toPersianDigits(roastInfo.daysAgo)} روز پیش`}{" "}
-              (آماده دم‌آوری با عطر و طعم کامل)
+              تضمین تازگی رست: {roastInfo.freshnessLabel} • {toPersianDigits(roastInfo.formattedDate)}
             </span>
           </div>
         )}
