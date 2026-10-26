@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import {
   Coins,
@@ -7,9 +5,10 @@ import {
   Sliders,
   Coffee,
   HelpCircle,
-  LucideIcon,
+  type LucideIcon,
 } from "lucide-react";
-import { useSiteContent } from "@/context/ContentContext";
+import { SiteWhyUsContent } from "@/domain/types";
+import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
 
 const iconRegistry: Record<string, LucideIcon> = {
   Coins,
@@ -18,8 +17,14 @@ const iconRegistry: Record<string, LucideIcon> = {
   Coffee,
 };
 
-export default function WhyCafeRaz() {
-  const { whyUs } = useSiteContent();
+interface WhyCafeRazProps {
+  content?: SiteWhyUsContent;
+}
+
+export default function WhyCafeRaz({
+  content = DEFAULT_SITE_CONTENT.whyUs,
+}: WhyCafeRazProps) {
+  const whyUs = content;
 
   return (
     <section

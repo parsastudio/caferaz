@@ -1,12 +1,17 @@
-"use client";
-
 import React from "react";
 import { Phone, MapPin, ShieldCheck, Award } from "lucide-react";
 import { toPersianDigits } from "@/lib/utils";
-import { useSiteContent } from "@/context/ContentContext";
+import { SiteLayoutContent } from "@/domain/types";
+import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
 
-export default function Footer() {
-  const { layout } = useSiteContent();
+interface FooterProps {
+  content?: SiteLayoutContent;
+}
+
+export default function Footer({
+  content = DEFAULT_SITE_CONTENT.layout,
+}: FooterProps) {
+  const layout = content;
 
   const phones =
     layout.phones && layout.phones.length > 0

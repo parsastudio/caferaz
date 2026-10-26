@@ -50,7 +50,7 @@ export default async function RootLayout({
             </Suspense>
             <GlobalStatusBar />
             <div className="flex-grow">{children}</div>
-            <Footer />
+            <Footer content={siteContent.layout} />
           </CheckoutProvider>
         </ContentProvider>
       </body>

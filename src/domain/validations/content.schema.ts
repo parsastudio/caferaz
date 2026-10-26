@@ -264,6 +264,9 @@ export const siteContentSchema = z.object({
 });
 
 export type SiteContent = z.infer<typeof siteContentSchema>;
+export type SiteLayoutContent = z.infer<typeof siteLayoutContentSchema>;
+export type SiteWhyUsContent = z.infer<typeof siteWhyUsContentSchema>;
+export type SiteFaqHeader = z.infer<typeof siteFaqHeaderSchema>;
 export type SiteUspItem = z.infer<typeof siteUspItemSchema>;
 export type SiteBlendItem = z.infer<typeof siteBlendItemSchema>;
 export type SiteGrindItem = z.infer<typeof siteGrindItemSchema>;

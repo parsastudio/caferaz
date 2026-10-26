@@ -4,6 +4,9 @@ import { CouponType, DiscountType } from "@/domain/validations/coupon.schema";
 import { FAQItem } from "@/domain/validations/faq.schema";
 import {
   SiteContent,
+  SiteLayoutContent,
+  SiteWhyUsContent,
+  SiteFaqHeader,
   SiteUspItem,
   SiteBlendItem,
   SiteGrindItem,
@@ -16,6 +19,9 @@ export type {
   DiscountType,
   FAQItem,
   SiteContent,
+  SiteLayoutContent,
+  SiteWhyUsContent,
+  SiteFaqHeader,
   SiteUspItem,
   SiteBlendItem,
   SiteGrindItem,

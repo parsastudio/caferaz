@@ -26,14 +26,14 @@ export default async function Page() {
   const commentsResult = await getCommentsAction(mainProduct.id);
   const couponsResult = await getCouponsAction();
 
-  let siteSubtitle = DEFAULT_SITE_CONTENT.layout.brandSubtitle;
+  let siteContent = DEFAULT_SITE_CONTENT;
   try {
-    const siteContent = await ContentService.getSiteContent();
-    siteSubtitle = siteContent.layout.brandSubtitle;
+    siteContent = await ContentService.getSiteContent();
   } catch (error) {
     console.warn("Database connection fallback during build", error);
   }
 
+  const siteSubtitle = siteContent.layout.brandSubtitle;
   const faqs = await FaqService.getAllFaqs();
   const serverTodayStr = getTehranTodayString();
 
@@ -86,8 +86,8 @@ export default async function Page() {
           serverTodayStr={serverTodayStr}
         />
       </Suspense>
-      <WhyCafeRaz />
-      <FAQSection faqs={faqs} />
+      <WhyCafeRaz content={siteContent.whyUs} />
+      <FAQSection header={siteContent.faqHeader} faqs={faqs} />
     </main>
   );
 }
