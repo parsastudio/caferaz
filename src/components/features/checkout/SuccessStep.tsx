@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sparkles, ArrowRight, Flame } from "lucide-react";
+import { Sparkles, ArrowRight, Flame, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useSiteContent } from "@/context/ContentContext";
@@ -51,8 +51,8 @@ export default function SuccessStep({
 
   return (
     <div className="text-center py-4 space-y-5">
-      <div className="w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center mx-auto text-2xl font-bold animate-bounce">
-        ✓
+      <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto text-emerald-400">
+        <CheckCircle2 className="w-8 h-8" strokeWidth={1.5} />
       </div>
 
       <div className="space-y-1.5">
@@ -136,7 +136,7 @@ export default function SuccessStep({
         <Button
           onClick={onClose}
           variant="ghost"
-          className="w-full text-stone-400 hover:text-stone-200 text-[11px] font-bold animate-pulse"
+          className="w-full text-stone-400 hover:text-stone-200 text-[11px] font-bold"
         >
           {checkout.closeModalButton}
         </Button>

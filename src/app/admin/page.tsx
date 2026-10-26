@@ -3,6 +3,13 @@ import { getOrdersAction } from "@/actions/admin-order";
 import { getAdminCommentsAction } from "@/actions/admin-comment";
 import { getMainProductAction } from "@/actions/product";
 import { formatPersianNumber, toPersianDigits } from "@/lib/utils";
+import {
+  TrendingUp,
+  Package,
+  Clock,
+  MessageSquare,
+  Coffee,
+} from "lucide-react";
 
 export default async function AdminDashboardPage() {
   const ordersResult = await getOrdersAction();
@@ -49,7 +56,9 @@ export default async function AdminDashboardPage() {
               <span className="text-xs">تومان</span>
             </span>
           </div>
-          <span className="text-3xl">💰</span>
+          <div className="w-11 h-11 rounded-xl bg-stone-900 border border-stone-800 flex items-center justify-center text-gold-500">
+            <TrendingUp className="w-5 h-5" strokeWidth={1.5} />
+          </div>
         </div>
 
         <div className="bg-stone-900/40 border border-stone-800 rounded-2xl p-6 flex items-center justify-between">
@@ -61,35 +70,38 @@ export default async function AdminDashboardPage() {
               {toPersianDigits(totalOrders)} سفارش
             </span>
           </div>
-          <span className="text-3xl">📦</span>
+          <div className="w-11 h-11 rounded-xl bg-stone-900 border border-stone-800 flex items-center justify-center text-stone-300">
+            <Package className="w-5 h-5" strokeWidth={1.5} />
+          </div>
         </div>
 
         <div className="bg-stone-900/40 border border-gold-500/20 bg-gold-500/5 rounded-2xl p-6 flex items-center justify-between relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-1.5 h-full bg-gold-500" />
           <div className="space-y-1">
             <span className="text-xs font-bold text-gold-400 block">
-              سفارش‌های تحویل‌نشده (جاری)
+              سفارش‌های در حال انجام
             </span>
             <span className="text-lg font-black text-gold-500 block flex items-center gap-1.5">
-              {toPersianDigits(pendingOrders)} سفارش جدید
-              {pendingOrders > 0 && (
-                <span className="w-2 h-2 rounded-full bg-gold-500 animate-pulse" />
-              )}
+              {toPersianDigits(pendingOrders)} مورد
             </span>
           </div>
-          <span className="text-3xl animate-bounce">🔥</span>
+          <div className="w-11 h-11 rounded-xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-gold-500">
+            <Clock className="w-5 h-5" strokeWidth={1.5} />
+          </div>
         </div>
 
         <div className="bg-stone-900/40 border border-stone-800 rounded-2xl p-6 flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs font-bold text-stone-400 block">
-              نظرات کاربران
+              دیدگاه‌های مشتریان
             </span>
             <span className="text-lg font-black text-stone-100 block">
               {toPersianDigits(totalComments)} دیدگاه
             </span>
           </div>
-          <span className="text-3xl">💬</span>
+          <div className="w-11 h-11 rounded-xl bg-stone-900 border border-stone-800 flex items-center justify-center text-stone-300">
+            <MessageSquare className="w-5 h-5" strokeWidth={1.5} />
+          </div>
         </div>
       </div>
 
@@ -131,7 +143,9 @@ export default async function AdminDashboardPage() {
         </div>
 
         <div className="bg-stone-900/20 border border-stone-800/80 rounded-2xl p-6 flex flex-col justify-center items-center text-center space-y-3">
-          <span className="text-3xl">☕</span>
+          <div className="w-12 h-12 rounded-2xl bg-stone-900 border border-stone-800 flex items-center justify-center text-gold-500">
+            <Coffee className="w-6 h-6" strokeWidth={1.5} />
+          </div>
           <span className="text-xs font-black text-stone-300">
             سیستم مدیریت یکپارچه
           </span>

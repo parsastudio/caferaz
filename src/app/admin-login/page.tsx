@@ -3,7 +3,7 @@
 import React, { useState, useTransition, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { loginAdminAction } from "@/actions/admin-auth";
-import { Lock, User, Loader2, AlertCircle } from "lucide-react";
+import { Lock, User, Loader2, AlertCircle, Coffee } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 function AdminLoginForm() {
@@ -104,8 +104,8 @@ export default function AdminLoginPage() {
 
       <div className="w-full max-w-md bg-stone-900/40 border border-stone-800/80 rounded-3xl p-8 backdrop-blur-md relative z-10 space-y-6">
         <div className="text-center space-y-3">
-          <div className="w-16 h-16 rounded-2xl bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center text-3xl mx-auto">
-            ☕
+          <div className="w-14 h-14 rounded-2xl bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center mx-auto">
+            <Coffee className="w-7 h-7" strokeWidth={1.5} />
           </div>
           <div className="space-y-1">
             <h1 className="text-xl font-black text-stone-100">

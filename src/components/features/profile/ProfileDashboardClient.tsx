@@ -48,8 +48,8 @@ export default function ProfileDashboardClient({
     <div className="space-y-8" dir="rtl">
       <div className="bg-stone-900/30 border border-stone-800 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center text-2xl font-black">
-            ☕
+          <div className="w-14 h-14 rounded-2xl bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center shrink-0">
+            <Coffee className="w-7 h-7" strokeWidth={1.5} />
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
@@ -116,8 +116,8 @@ export default function ProfileDashboardClient({
                 className="bg-stone-950/60 border border-stone-850 p-5 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-5 text-right"
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gold-500/10 text-gold-400 flex items-center justify-center shrink-0">
-                    <Coffee className="w-5 h-5 animate-bounce" />
+                  <div className="w-10 h-10 rounded-xl bg-gold-500/10 text-gold-400 flex items-center justify-center shrink-0">
+                    <Coffee className="w-5 h-5" strokeWidth={1.5} />
                   </div>
                   <div className="space-y-1">
                     <span className="text-xs font-black text-gold-400 block">

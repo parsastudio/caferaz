@@ -1,5 +1,5 @@
 import React from "react";
-import { Phone, MapPin, ShieldCheck, Award } from "lucide-react";
+import { Phone, MapPin, ShieldCheck, Award, Coffee } from "lucide-react";
 import { toPersianDigits } from "@/lib/utils";
 import { SiteLayoutContent } from "@/domain/types";
 import { DEFAULT_SITE_CONTENT } from "@/lib/content/default-content";
@@ -27,14 +27,14 @@ export default function Footer({
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         <div className="md:col-span-6 space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center text-xl font-black">
-              ☕
+            <div className="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center shrink-0">
+              <Coffee className="w-5 h-5" strokeWidth={1.75} />
             </div>
             <div>
-              <span className="text-md font-black text-stone-100 tracking-tight block">
+              <span className="text-base font-black text-stone-100 tracking-tight block">
                 {layout.brandName}
               </span>
-              <span className="text-[10px] text-gold-500 font-bold block mt-0.5">
+              <span className="text-xs text-gold-400 font-medium block mt-0.5">
                 {layout.brandSubtitle}
               </span>
             </div>
@@ -130,24 +130,28 @@ export default function Footer({
             </li>
           </ul>
 
-          <div className="pt-4 flex items-center gap-3">
-            <div className="w-24 h-24 rounded-2xl bg-stone-900/40 border border-stone-855 flex flex-col items-center justify-center text-center p-2 hover:border-gold-500/20 transition-all select-none">
-              <ShieldCheck className="w-7 h-7 text-gold-500 mb-1" />
-              <span className="text-[9px] text-stone-200 font-black">
-                {layout.securePaymentTitle}
-              </span>
-              <span className="text-[8px] text-stone-500 mt-0.5">
-                {layout.securePaymentSub}
-              </span>
+          <div className="pt-3 flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-stone-900/40 border border-stone-850">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" strokeWidth={1.5} />
+              <div className="text-right">
+                <span className="text-[11px] text-stone-200 font-bold block">
+                  {layout.securePaymentTitle}
+                </span>
+                <span className="text-[9px] text-stone-500 block">
+                  {layout.securePaymentSub}
+                </span>
+              </div>
             </div>
-            <div className="w-24 h-24 rounded-2xl bg-stone-900/40 border border-stone-855 flex flex-col items-center justify-center text-center p-2 hover:border-gold-500/20 transition-all select-none">
-              <Award className="w-7 h-7 text-gold-500 mb-1" />
-              <span className="text-[9px] text-stone-200 font-black">
-                {layout.originalQualityTitle}
-              </span>
-              <span className="text-[8px] text-stone-500 mt-0.5">
-                {layout.originalQualitySub}
-              </span>
+            <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-stone-900/40 border border-stone-850">
+              <Award className="w-4 h-4 text-gold-500 shrink-0" strokeWidth={1.5} />
+              <div className="text-right">
+                <span className="text-[11px] text-stone-200 font-bold block">
+                  {layout.originalQualityTitle}
+                </span>
+                <span className="text-[9px] text-stone-500 block">
+                  {layout.originalQualitySub}
+                </span>
+              </div>
             </div>
           </div>
         </div>

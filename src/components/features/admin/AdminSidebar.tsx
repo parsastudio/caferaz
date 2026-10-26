@@ -4,50 +4,72 @@ import React, { useState, useTransition, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { ChevronRight, ChevronLeft, LogOut, Loader2 } from "lucide-react";
+import {
+  ChevronRight,
+  ChevronLeft,
+  LogOut,
+  Loader2,
+  LayoutDashboard,
+  ShoppingBag,
+  MessageSquare,
+  Tag,
+  Ticket,
+  HelpCircle,
+  FileText,
+  KeyRound,
+  Coffee,
+  Home,
+  type LucideIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logoutAdminAction } from "@/actions/admin-auth";
 
-const menuItems = [
+interface MenuItem {
+  path: string;
+  label: string;
+  icon: LucideIcon;
+}
+
+const menuItems: MenuItem[] = [
   {
     path: "/admin",
     label: "داشبورد اصلی",
-    emoji: "📊",
+    icon: LayoutDashboard,
   },
   {
     path: "/admin/orders",
     label: "مدیریت سفارش‌ها",
-    emoji: "🛍️",
+    icon: ShoppingBag,
   },
   {
     path: "/admin/comments",
     label: "مدیریت نظرات",
-    emoji: "💬",
+    icon: MessageSquare,
   },
   {
     path: "/admin/pricing",
     label: "تغییر قیمت و موجودی",
-    emoji: "🏷️",
+    icon: Tag,
   },
   {
     path: "/admin/coupons",
     label: "مدیریت کوپن‌ها",
-    emoji: "🎫",
+    icon: Ticket,
   },
   {
     path: "/admin/faq",
     label: "مدیریت سوالات متداول",
-    emoji: "❓",
+    icon: HelpCircle,
   },
   {
     path: "/admin/settings",
     label: "ویرایش متون سایت",
-    emoji: "🔍",
+    icon: FileText,
   },
   {
     path: "/admin/change-password",
     label: "تغییر رمز عبور",
-    emoji: "🔑",
+    icon: KeyRound,
   },
 ];
 
@@ -97,8 +119,8 @@ export default function AdminSidebar() {
             isCollapsed ? "justify-center" : "pr-2",
           )}
         >
-          <div className="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center text-xl font-black">
-            ☕
+          <div className="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center shrink-0">
+            <Coffee className="w-5 h-5" strokeWidth={1.75} />
           </div>
           {!isCollapsed && (
             <motion.div
@@ -119,20 +141,22 @@ export default function AdminSidebar() {
         <nav className="space-y-1.5">
           {menuItems.map((item) => {
             const isActive = pathname === item.path;
+            const IconComponent = item.icon;
             return (
               <Link key={item.path} href={item.path}>
                 <div
                   className={cn(
-                    "flex items-center rounded-xl p-3.5 cursor-pointer transition-all duration-150 relative",
+                    "flex items-center rounded-xl p-3 cursor-pointer transition-all duration-150 relative",
                     isActive
-                      ? "text-gold-400 bg-gold-500/5 border-r-2 border-gold-500"
+                      ? "text-gold-400 bg-gold-500/10 border-r-2 border-gold-500"
                       : "text-stone-400 hover:text-stone-200 hover:bg-stone-850",
-                    isCollapsed ? "justify-center" : "justify-start gap-4",
+                    isCollapsed ? "justify-center" : "justify-start gap-3.5",
                   )}
                 >
-                  <span className="text-xl shrink-0 filter drop-shadow-sm">
-                    {item.emoji}
-                  </span>
+                  <IconComponent
+                    className="w-4 h-4 shrink-0"
+                    strokeWidth={isActive ? 2 : 1.5}
+                  />
                   {!isCollapsed && (
                     <motion.span
                       initial={{ opacity: 0 }}
@@ -153,11 +177,11 @@ export default function AdminSidebar() {
         <Link href="/">
           <div
             className={cn(
-              "flex items-center rounded-xl p-3.5 text-gold-400 hover:bg-gold-500/5 hover:text-gold-300 transition-colors cursor-pointer",
-              isCollapsed ? "justify-center" : "justify-start gap-4",
+              "flex items-center rounded-xl p-3 text-stone-400 hover:bg-stone-850 hover:text-stone-200 transition-colors cursor-pointer",
+              isCollapsed ? "justify-center" : "justify-start gap-3.5",
             )}
           >
-            <span className="text-xl shrink-0 filter drop-shadow-sm">🏠</span>
+            <Home className="w-4 h-4 shrink-0" strokeWidth={1.5} />
             {!isCollapsed && (
               <motion.span
                 initial={{ opacity: 0 }}
