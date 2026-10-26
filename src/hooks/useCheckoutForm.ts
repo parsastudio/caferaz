@@ -193,6 +193,7 @@ export function useCheckoutForm() {
     fakeTrackingCode: submitManager.fakeTrackingCode,
     selectedWeight: checkoutData?.selectedWeight ?? 0,
     quantity: checkoutData?.quantity ?? 1,
+    checkoutData,
     selectedBlend: checkoutData?.selectedBlend ?? "",
     selectedGrind: checkoutData?.selectedGrind ?? "",
     methods,

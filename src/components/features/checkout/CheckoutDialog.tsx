@@ -29,6 +29,7 @@ export default function CheckoutDialog() {
     quantity,
     selectedBlend,
     selectedGrind,
+    checkoutData,
     methods,
     handleClose,
     handleUserInfoNext,
@@ -69,6 +70,7 @@ export default function CheckoutDialog() {
     grind: selectedGrind,
     weightGrams: selectedWeight,
     quantity,
+    roastInfo: checkoutData?.roastInfo ?? null,
   };
 
   return (
@@ -189,6 +191,7 @@ export default function CheckoutDialog() {
                     destination={methods.getValues("destination")}
                     tehranZone={methods.getValues("tehranZone")}
                     onClose={handleClose}
+                    roastInfo={checkoutData?.roastInfo ?? null}
                   />
                 </motion.div>
               )}

@@ -21,6 +21,11 @@ interface UserInfoStepProps {
     grind: string;
     weightGrams: number;
     quantity: number;
+    roastInfo?: {
+      daysAgo: number;
+      formattedDate: string;
+      freshnessLabel?: string;
+    } | null;
   } | null;
 }
 
@@ -49,6 +54,7 @@ export default function UserInfoStep({
           grind={summaryData.grind}
           weightGrams={summaryData.weightGrams}
           quantity={summaryData.quantity}
+          roastInfo={summaryData.roastInfo}
         />
       )}
 

@@ -21,6 +21,11 @@ interface OtpStepProps {
     grind: string;
     weightGrams: number;
     quantity: number;
+    roastInfo?: {
+      daysAgo: number;
+      formattedDate: string;
+      freshnessLabel?: string;
+    } | null;
   } | null;
   formToken?: string;
   honeypot?: string;
@@ -150,6 +155,7 @@ export default function OtpStep({
           grind={summaryData.grind}
           weightGrams={summaryData.weightGrams}
           quantity={summaryData.quantity}
+          roastInfo={summaryData.roastInfo}
         />
       )}
 

@@ -1,17 +1,19 @@
 "use client";
 
 import React, { memo } from "react";
-import { ShoppingBag, Percent, Sparkles } from "lucide-react";
+import { ShoppingBag, Percent, Sparkles, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useSiteContent } from "@/context/ContentContext";
 import { formatPersianNumber, toPersianDigits } from "@/lib/utils";
+import { RoastDateDisplayInfo } from "@/lib/jalali-converter";
 
 interface PriceSummaryProps {
   basePrice: number;
   finalPrice: number;
   isOutOfStock: boolean;
   onCheckout: () => void;
+  roastInfo?: RoastDateDisplayInfo | null;
 }
 
 function PriceSummaryComponent({
@@ -19,6 +21,7 @@ function PriceSummaryComponent({
   finalPrice,
   isOutOfStock,
   onCheckout,
+  roastInfo,
 }: PriceSummaryProps) {
   const { product } = useSiteContent();
   const hasDiscount = finalPrice < basePrice;
@@ -66,6 +69,20 @@ function PriceSummaryComponent({
           </motion.div>
         </div>
       </div>
+
+      {roastInfo && (
+        <div className="flex items-center justify-between bg-stone-950/70 border border-gold-500/20 px-3.5 py-2 rounded-xl text-xs text-stone-300 relative z-10 animate-in fade-in duration-200">
+          <span className="flex items-center gap-1.5 font-bold text-gold-400">
+            <Flame className="w-3.5 h-3.5 text-gold-500 fill-gold-500/20 animate-pulse" />
+            {roastInfo.freshnessLabel}
+          </span>
+          <span className="text-[11px] text-stone-400 font-sans">
+            {roastInfo.daysAgo === 0
+              ? "رست داغ امروز"
+              : `${toPersianDigits(roastInfo.daysAgo)} روز پیش`}
+          </span>
+        </div>
+      )}
 
       <Button
         onClick={() => !isOutOfStock && onCheckout()}

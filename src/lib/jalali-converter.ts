@@ -5,5 +5,7 @@ export {
   getTehranTodayString,
   getTodayJalaliString,
   getRoastDateDisplayInfo,
+  calculateGregorianDateFromDaysAgo,
+  calculateDaysAgoFromGregorian,
   type RoastDateDisplayInfo,
 } from "@/lib/date/formatters";

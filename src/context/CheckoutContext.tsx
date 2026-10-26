@@ -13,6 +13,11 @@ export interface CheckoutData {
   directDiscountAmount: number;
   conditionalDiscountAmount: number;
   tehranDeliveryFee?: number;
+  roastInfo?: {
+    daysAgo: number;
+    formattedDate: string;
+    freshnessLabel?: string;
+  } | null;
 }
 
 interface CheckoutContextType {

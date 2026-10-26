@@ -75,41 +75,107 @@ export function getTodayJalaliString(): string {
   return formatGregorianToJalaliString(tehranToday);
 }
 
+export function calculateGregorianDateFromDaysAgo(daysAgo: number): string {
+  const safeDaysAgo = Math.max(0, Math.floor(daysAgo));
+  const tehranToday = getTehranTodayString();
+  const [gy, gm, gd] = tehranToday.split("-").map((p) => parseInt(p, 10));
+  const d = new Date(Date.UTC(gy, gm - 1, gd, 12, 0, 0));
+  d.setUTCDate(d.getUTCDate() - safeDaysAgo);
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function calculateDaysAgoFromGregorian(
+  dateStr?: string | null,
+  todayGregorianStr?: string,
+): number | null {
+  if (!dateStr || !dateStr.trim()) return null;
+  const clean = dateStr.trim();
+
+  let targetDate: Date | null = null;
+  const matchIso = clean.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (matchIso) {
+    const y = parseInt(matchIso[1], 10);
+    const m = parseInt(matchIso[2], 10);
+    const d = parseInt(matchIso[3], 10);
+    if (y > 1700) {
+      targetDate = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+    } else {
+      const parsedJalali = parseJalaliString(clean);
+      if (parsedJalali) {
+        targetDate = new Date(
+          Date.UTC(parsedJalali.gy, parsedJalali.gm - 1, parsedJalali.gd, 12, 0, 0),
+        );
+      }
+    }
+  } else {
+    const parsed = new Date(clean);
+    if (!isNaN(parsed.getTime())) {
+      targetDate = new Date(
+        Date.UTC(
+          parsed.getUTCFullYear(),
+          parsed.getUTCMonth(),
+          parsed.getUTCDate(),
+          12,
+          0,
+          0,
+        ),
+      );
+    }
+  }
+
+  if (!targetDate) return null;
+
+  const todayStr = todayGregorianStr || getTehranTodayString();
+  const [ty, tm, td] = todayStr.split("-").map((p) => parseInt(p, 10));
+  const todayDate = new Date(Date.UTC(ty, tm - 1, td, 12, 0, 0));
+
+  const diffMs = todayDate.getTime() - targetDate.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
+
 export interface RoastDateDisplayInfo {
   isFresh: boolean;
   formattedDate: string;
   daysAgo: number;
+  freshnessLabel: string;
 }
 
 export function getRoastDateDisplayInfo(
-  roastDateJalaliStr?: string | null,
+  roastDateStr?: string | null,
   todayGregorianStr?: string,
 ): RoastDateDisplayInfo | null {
-  if (!roastDateJalaliStr || !roastDateJalaliStr.trim()) return null;
+  if (!roastDateStr || !roastDateStr.trim()) return null;
 
-  const parsed = parseJalaliString(roastDateJalaliStr.trim());
-  if (!parsed) return null;
-
-  const roastDate = new Date(
-    Date.UTC(parsed.gy, parsed.gm - 1, parsed.gd, 12, 0, 0),
+  const daysAgo = calculateDaysAgoFromGregorian(
+    roastDateStr,
+    todayGregorianStr,
   );
-
-  const todayStr = todayGregorianStr || getTehranTodayString();
-  const todayParts = todayStr.split("-").map((p) => parseInt(p, 10));
-  const todayDate = new Date(
-    Date.UTC(todayParts[0], todayParts[1] - 1, todayParts[2], 12, 0, 0),
-  );
-
-  const diffMs = todayDate.getTime() - roastDate.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays < 0 || diffDays > 21) {
+  if (daysAgo === null || daysAgo < 0 || daysAgo > 21) {
     return null;
+  }
+
+  const clean = roastDateStr.trim();
+  const formattedDate =
+    clean.startsWith("14") || clean.startsWith("13")
+      ? clean
+      : formatGregorianToJalaliString(clean);
+
+  let freshnessLabel = "رست تازه کارگاه";
+  if (daysAgo === 0) {
+    freshnessLabel = "رست داغ امروز";
+  } else if (daysAgo <= 3) {
+    freshnessLabel = "فوق‌العاده تازه (کمتر از ۳ روز)";
+  } else if (daysAgo <= 7) {
+    freshnessLabel = "رست تازه هفته جاری";
   }
 
   return {
     isFresh: true,
-    formattedDate: roastDateJalaliStr.trim(),
-    daysAgo: diffDays,
+    formattedDate,
+    daysAgo,
+    freshnessLabel,
   };
 }

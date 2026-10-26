@@ -1,9 +1,14 @@
 import { z } from "zod";
 import { parseJalaliString } from "@/lib/jalali-converter";
 
-const jalaliDateValidator = (val?: string | null) => {
+const roastDateValidator = (val?: string | null) => {
   if (!val || val.trim() === "") return true;
-  return parseJalaliString(val) !== null;
+  const clean = val.trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(clean)) {
+    const d = new Date(clean);
+    return !isNaN(d.getTime());
+  }
+  return parseJalaliString(clean) !== null;
 };
 
 export const updateProductDetailsSchema = z.object({
@@ -23,8 +28,8 @@ export const updateProductDetailsSchema = z.object({
     .string()
     .nullable()
     .optional()
-    .refine(jalaliDateValidator, {
-      message: "فرمت تاریخ شمسی آخرین رست نامعتبر است (مثال: 1405/01/24)",
+    .refine(roastDateValidator, {
+      message: "فرمت تاریخ آخرین رست نامعتبر است.",
     }),
 });
 

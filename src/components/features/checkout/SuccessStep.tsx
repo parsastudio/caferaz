@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight, Flame } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useSiteContent } from "@/context/ContentContext";
@@ -19,6 +19,11 @@ interface SuccessStepProps {
   destination?: string;
   tehranZone?: string;
   onClose: () => void;
+  roastInfo?: {
+    daysAgo: number;
+    formattedDate: string;
+    freshnessLabel?: string;
+  } | null;
 }
 
 export default function SuccessStep({
@@ -33,6 +38,7 @@ export default function SuccessStep({
   destination = "tehran",
   tehranZone = "piroozi",
   onClose,
+  roastInfo,
 }: SuccessStepProps) {
   const router = useRouter();
   const { checkout } = useSiteContent();
@@ -81,6 +87,19 @@ export default function SuccessStep({
           <div className="text-left text-stone-200 font-sans">
             {toPersianDigits(quantity)} {checkout.packageCountUnit}
           </div>
+          {roastInfo && (
+            <>
+              <div>کیفیت و تازگی رست:</div>
+              <div className="text-left text-emerald-400 font-bold font-sans text-[11px] flex items-center justify-end gap-1">
+                <Flame className="w-3 h-3 text-emerald-400 shrink-0" />
+                <span>
+                  {roastInfo.daysAgo === 0
+                    ? "رست داغ امروز"
+                    : `${toPersianDigits(roastInfo.daysAgo)} روز پیش`}
+                </span>
+              </div>
+            </>
+          )}
           <div>شیوه تحویل:</div>
           <div className="text-left text-stone-200 font-sans text-[11px]">
             {destination === "other"
