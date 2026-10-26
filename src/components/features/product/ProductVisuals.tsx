@@ -14,10 +14,10 @@ export default function ProductVisuals({ productName }: ProductVisualsProps) {
   const [imgError, setImgError] = useState(false);
 
   return (
-    <div className="space-y-6">
-      <div className="relative aspect-square rounded-3xl overflow-hidden bg-stone-900 border border-stone-800 shadow-2xl">
-        <div className="absolute top-4 right-4 z-10 bg-stone-950/85 border border-stone-800 text-gold-500 px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 backdrop-blur-md">
-          <Star className="w-4 h-4 fill-gold-500 text-gold-500" />
+    <div className="space-y-4">
+      <div className="relative aspect-square rounded-2xl overflow-hidden bg-stone-900/90 border border-stone-800/90 shadow-2xl shadow-black/80 ring-1 ring-white/5">
+        <div className="absolute top-4 right-4 z-10 bg-stone-950/80 border border-stone-800/80 text-gold-400 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 backdrop-blur-md shadow-sm">
+          <Star className="w-3.5 h-3.5 fill-gold-500 text-gold-500" />
           <span>{hero.ratingText}</span>
         </div>
 
@@ -45,21 +45,21 @@ export default function ProductVisuals({ productName }: ProductVisualsProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-2 text-center bg-stone-900/40 p-4 rounded-2xl border border-stone-800/60">
-        <div className="flex flex-col items-center justify-center p-1.5">
-          <Truck className="w-5 h-5 text-gold-500 mb-1.5" />
+      <div className="grid grid-cols-3 gap-2 text-center bg-stone-900/30 p-3 rounded-xl border border-stone-850/80">
+        <div className="flex flex-col items-center justify-center p-1">
+          <Truck className="w-4 h-4 text-gold-500 mb-1" strokeWidth={1.5} />
           <span className="text-[11px] font-bold text-stone-300">
             {hero.fastShippingText}
           </span>
         </div>
-        <div className="flex flex-col items-center justify-center p-1.5 border-x border-stone-800">
-          <ShieldCheck className="w-5 h-5 text-emerald-500 mb-1.5" />
+        <div className="flex flex-col items-center justify-center p-1 border-x border-stone-800/80">
+          <ShieldCheck className="w-4 h-4 text-emerald-400 mb-1" strokeWidth={1.5} />
           <span className="text-[11px] font-bold text-stone-300">
             {hero.qualityGuaranteeText}
           </span>
         </div>
-        <div className="flex flex-col items-center justify-center p-1.5">
-          <ShieldCheck className="w-5 h-5 text-orange-500 mb-1.5" />
+        <div className="flex flex-col items-center justify-center p-1">
+          <ShieldCheck className="w-4 h-4 text-amber-500 mb-1" strokeWidth={1.5} />
           <span className="text-[11px] font-bold text-stone-300">
             {hero.sealedPackageText}
           </span>

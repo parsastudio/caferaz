@@ -28,7 +28,7 @@ function BlendSelectorComponent({
         </span>
         {product.blendStepTitle}
       </label>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
         {product.blends.map((blend) => {
           const isSelected = selectedBlend === blend.value;
           return (
@@ -36,9 +36,9 @@ function BlendSelectorComponent({
               key={blend.value}
               type="button"
               onClick={() => setSelectedBlend(blend.value)}
-              className={`p-4 rounded-2xl border text-right transition-all duration-300 flex flex-col justify-between gap-1.5 cursor-pointer relative overflow-hidden ${
+              className={`p-3.5 rounded-xl border text-right transition-all duration-200 flex flex-col justify-between gap-1 cursor-pointer relative overflow-hidden ${
                 isSelected
-                  ? "border-gold-500 bg-gold-500/5 text-gold-400 shadow-lg"
+                  ? "border-gold-500 bg-gold-500/10 text-gold-400 shadow-sm ring-1 ring-gold-500/25"
                   : "border-stone-800/80 bg-stone-900/30 hover:border-stone-700 text-stone-300"
               }`}
             >

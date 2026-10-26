@@ -30,7 +30,7 @@ function PriceSummaryComponent({
     : 0;
 
   return (
-    <div className="relative overflow-hidden p-6 border border-stone-800 bg-stone-900/25 rounded-3xl space-y-4 shadow-xl">
+    <div className="relative overflow-hidden p-5 sm:p-6 border border-stone-800/90 bg-stone-900/30 rounded-2xl space-y-4 shadow-2xl shadow-black/80 ring-1 ring-white/5">
       <div className="absolute top-0 right-0 w-32 h-32 bg-gold-500/5 rounded-full blur-2xl pointer-events-none" />
 
       <div className="flex items-center justify-between relative z-10">
@@ -85,7 +85,7 @@ function PriceSummaryComponent({
       <Button
         onClick={() => !isOutOfStock && onCheckout()}
         disabled={isOutOfStock}
-        className="w-full py-6 text-sm md:text-base font-black rounded-2xl shadow-xl transition-all hover:scale-[1.01] active:scale-[0.99] bg-gold-500 hover:bg-gold-600 text-stone-950 cursor-pointer disabled:bg-stone-800 disabled:text-stone-500 relative z-10"
+        className="w-full py-5 text-sm md:text-base font-black rounded-xl shadow-lg transition-all hover:brightness-105 active:scale-[0.99] bg-gold-500 hover:bg-gold-600 text-stone-950 cursor-pointer disabled:bg-stone-800 disabled:text-stone-500 relative z-10"
         variant={isOutOfStock ? "secondary" : "default"}
       >
         <ShoppingBag className="w-5 h-5 ml-2" />

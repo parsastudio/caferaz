@@ -46,7 +46,7 @@ export default function ProfileDashboardClient({
 
   return (
     <div className="space-y-8" dir="rtl">
-      <div className="bg-stone-900/30 border border-stone-800 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-stone-900/30 border border-stone-800/80 rounded-2xl p-6 md:p-7 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-gold-500/10 border border-gold-500/20 text-gold-500 flex items-center justify-center shrink-0">
             <Coffee className="w-7 h-7" strokeWidth={1.5} />
@@ -93,7 +93,7 @@ export default function ProfileDashboardClient({
       {latestOrder &&
         (latestOrder.status === "pending" ||
           latestOrder.status === "unreviewed") && (
-          <Card className="border-gold-500/20 bg-stone-900/20 relative overflow-hidden rounded-3xl">
+          <Card className="border-gold-500/20 bg-stone-900/20 relative overflow-hidden rounded-2xl">
             <div className="absolute inset-0 bg-gradient-to-r from-gold-500/5 to-transparent pointer-events-none" />
 
             <CardHeader className="pb-4">

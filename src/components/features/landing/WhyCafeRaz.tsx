@@ -50,11 +50,11 @@ export default function WhyCafeRaz({
           return (
             <div
               key={usp.id}
-              className="bg-stone-900/20 border border-stone-900 hover:border-gold-500/25 p-6 rounded-3xl transition-all duration-300 group flex flex-col justify-between"
+              className="bg-stone-900/25 border border-stone-850/80 hover:border-stone-700/80 p-5 rounded-2xl transition-all duration-200 group flex flex-col justify-between shadow-sm"
             >
-              <div className="space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-gold-500/5 border border-gold-500/10 text-gold-500 flex items-center justify-center group-hover:bg-gold-500/10 group-hover:border-gold-500/25 transition-all">
-                  <IconComponent className="w-5 h-5" />
+              <div className="space-y-3.5">
+                <div className="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center group-hover:border-gold-500/40 transition-all">
+                  <IconComponent className="w-4 h-4" strokeWidth={1.75} />
                 </div>
                 <div className="space-y-1.5">
                   <h3 className="text-sm font-black text-stone-200 group-hover:text-gold-400 transition-colors">

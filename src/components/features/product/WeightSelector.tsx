@@ -52,15 +52,15 @@ export default function WeightSelector({
               setSelectedWeight(w.value);
               setQuantity(1);
             }}
-            className={`px-5 py-3 rounded-xl border text-sm font-bold transition-all duration-150 flex items-center gap-2 cursor-pointer ${
+            className={`px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-all duration-150 flex items-center gap-2 cursor-pointer ${
               !isCustomWeight && selectedWeight === w.value
-                ? "border-gold-500 bg-gold-500/10 text-gold-400 shadow-md"
+                ? "border-gold-500 bg-gold-500/10 text-gold-400 shadow-sm ring-1 ring-gold-500/25"
                 : "border-stone-800/80 bg-stone-900/30 hover:border-stone-700 text-stone-400 hover:text-stone-200"
             }`}
           >
             {w.label}
             {!isCustomWeight && selectedWeight === w.value && (
-              <Check className="w-4 h-4 text-gold-500" />
+              <Check className="w-3.5 h-3.5 text-gold-500" />
             )}
           </button>
         ))}
@@ -71,19 +71,19 @@ export default function WeightSelector({
             setIsCustomWeight(true);
             setQuantity(1);
           }}
-          className={`px-5 py-3 rounded-xl border text-sm font-bold transition-all duration-150 flex items-center gap-2 cursor-pointer ${
+          className={`px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-all duration-150 flex items-center gap-2 cursor-pointer ${
             isCustomWeight
-              ? "border-gold-500 bg-gold-500/10 text-gold-400 shadow-md"
+              ? "border-gold-500 bg-gold-500/10 text-gold-400 shadow-sm ring-1 ring-gold-500/25"
               : "border-stone-800/80 bg-stone-900/30 hover:border-stone-700 text-stone-400 hover:text-stone-200"
           }`}
         >
           {product.customWeightLabel}
-          {isCustomWeight && <Check className="w-4 h-4 text-gold-500" />}
+          {isCustomWeight && <Check className="w-3.5 h-3.5 text-gold-500" />}
         </button>
       </div>
 
       {isCustomWeight && (
-        <div className="mt-3 p-4 bg-stone-900/40 rounded-2xl border border-stone-800/80 space-y-2.5 animate-in fade-in slide-in-from-top-1 duration-200">
+        <div className="mt-3 p-3.5 bg-stone-900/30 rounded-xl border border-stone-800/80 space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
           <label className="text-xs font-bold text-stone-400 block">
             {product.customWeightInputLabel}
           </label>

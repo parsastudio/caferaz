@@ -22,15 +22,15 @@ export default function GrindSelector({
         </span>
         {product.grindStepTitle}
       </label>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
         {product.grinds.map((grind) => (
           <button
             key={grind.value}
             type="button"
             onClick={() => setSelectedGrind(grind.value)}
-            className={`p-3.5 rounded-xl border text-right transition-all duration-150 flex flex-col justify-between gap-1 cursor-pointer ${
+            className={`p-3 rounded-xl border text-right transition-all duration-150 flex flex-col justify-between gap-1 cursor-pointer ${
               selectedGrind === grind.value
-                ? "border-gold-500 bg-gold-500/5 text-gold-400 shadow-md"
+                ? "border-gold-500 bg-gold-500/10 text-gold-400 shadow-sm ring-1 ring-gold-500/25"
                 : "border-stone-800/80 bg-stone-900/30 hover:border-stone-700 text-stone-300"
             }`}
           >

@@ -32,10 +32,11 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
 
   --font-sans:
     var(--font-vazirmatn), system-ui, -apple-system, BlinkMacSystemFont,
@@ -94,17 +95,17 @@
   --primary: #df9a42;
   --primary-foreground: #0d1510;
 
-  --secondary: #24352b;
+  --secondary: #1a2920;
   --secondary-foreground: #f6f3ee;
 
-  --muted: #24352b;
-  --muted-foreground: #a4b3a8;
+  --muted: #1a2920;
+  --muted-foreground: #9eb0a2;
 
   --destructive: #ef4444;
   --destructive-foreground: #fcfbf9;
 
-  --border: #24352b;
-  --input: #24352b;
+  --border: #233429;
+  --input: #1c2b22;
   --ring: #df9a42;
 
   --radius: 1rem;
