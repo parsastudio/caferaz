@@ -54,7 +54,7 @@ export async function updateProductDetailsAction(
 
     await ProductService.updateProductDetails(validated.data);
 
-    revalidatePath("/");
+    revalidatePath("/", "page");
     revalidatePath("/admin/pricing");
 
     return {
@@ -87,7 +87,7 @@ export async function updateProductBasicInfoAction(
 
     await ProductService.updateProductBasicInfo(validated.data);
 
-    revalidatePath("/");
+    revalidatePath("/", "page");
     revalidatePath("/admin/settings");
 
     return {

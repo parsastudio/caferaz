@@ -53,7 +53,7 @@ export async function updateSingleContentKeyAction(
         description: updatedDescription,
       });
 
-      revalidatePath("/");
+      revalidatePath("/", "page");
       revalidatePath("/profile");
       revalidatePath("/admin");
       revalidatePath("/admin/pricing");
@@ -68,7 +68,7 @@ export async function updateSingleContentKeyAction(
 
     await ContentService.updateSingleKey(trimmedPath, newValue);
 
-    revalidatePath("/");
+    revalidatePath("/", "page");
     revalidatePath("/profile");
     revalidatePath("/login");
     revalidatePath("/admin/settings");

@@ -41,7 +41,7 @@ export async function approveCommentAction(
 
     await CommentService.updateCommentStatus(commentId, "approved");
 
-    revalidatePath("/");
+    revalidatePath("/", "page");
     revalidatePath("/admin/comments");
 
     return {
@@ -65,7 +65,7 @@ export async function rejectCommentAction(
 
     await CommentService.updateCommentStatus(commentId, "rejected");
 
-    revalidatePath("/");
+    revalidatePath("/", "page");
     revalidatePath("/admin/comments");
 
     return {
@@ -89,7 +89,7 @@ export async function spamCommentAction(
 
     await CommentService.updateCommentStatus(commentId, "spam");
 
-    revalidatePath("/");
+    revalidatePath("/", "page");
     revalidatePath("/admin/comments");
 
     return {
@@ -126,7 +126,7 @@ export async function editCommentAction(
       validated.data.commentText,
     );
 
-    revalidatePath("/");
+    revalidatePath("/", "page");
     revalidatePath("/admin/comments");
 
     return {
@@ -150,7 +150,7 @@ export async function deleteCommentAction(
 
     await CommentService.deleteComment(commentId);
 
-    revalidatePath("/");
+    revalidatePath("/", "page");
     revalidatePath("/admin/comments");
 
     return {

@@ -67,7 +67,7 @@ export async function submitOrderAction(
       path: "/",
     });
 
-    revalidatePath("/");
+    revalidatePath("/", "page");
     revalidatePath("/profile");
     revalidatePath("/admin");
     revalidatePath("/admin/orders");

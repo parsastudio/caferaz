@@ -188,6 +188,73 @@ export async function getCurrentUserAction() {
   }
 }
 
+export type GlobalStatusBarData =
+  | { type: "none" }
+  | {
+      type: "admin";
+      data: {
+        monthSales: number;
+        pendingOrdersCount: number;
+        pendingCommentsCount: number;
+      };
+    }
+  | {
+      type: "user";
+      data: {
+        user: import("@/domain/types").User;
+        pendingUserOrdersCount: number;
+      };
+    };
+
+export async function getGlobalStatusBarDataAction(): Promise<
+  ActionResponse<GlobalStatusBarData>
+> {
+  try {
+    const isAdmin = await checkAdminAuth();
+    const userRes = await getCurrentUserAction();
+    const user = userRes.success ? userRes.user : null;
+
+    if (!isAdmin && !user) {
+      return { success: true, data: { type: "none" } };
+    }
+
+    if (isAdmin) {
+      const { CommentService } = await import("@/services/comment.service");
+      const { OrderService } = await import("@/services/order.service");
+      const pendingCommentsCount =
+        await CommentService.getPendingCommentsCount();
+      const { monthSales, pendingOrdersCount } =
+        await OrderService.getAdminStatusBarMetrics();
+
+      return {
+        success: true,
+        data: {
+          type: "admin",
+          data: { monthSales, pendingOrdersCount, pendingCommentsCount },
+        },
+      };
+    }
+
+    if (user) {
+      const { OrderService } = await import("@/services/order.service");
+      const pendingUserOrdersCount =
+        await OrderService.getPendingUserOrdersCount(user.phone);
+
+      return {
+        success: true,
+        data: {
+          type: "user",
+          data: { user, pendingUserOrdersCount },
+        },
+      };
+    }
+
+    return { success: true, data: { type: "none" } };
+  } catch {
+    return { success: true, data: { type: "none" } };
+  }
+}
+
 export async function logoutUserAction() {
   const cookieStore = await cookies();
   cookieStore.delete("user_phone");

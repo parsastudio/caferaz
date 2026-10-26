@@ -39,7 +39,7 @@ export async function createCouponAction(
 
     const coupon = await CouponService.createCoupon(validated.data);
 
-    revalidatePath("/");
+    revalidatePath("/", "page");
     revalidatePath("/admin/coupons");
 
     return {
@@ -67,7 +67,7 @@ export async function deleteCouponAction(
 
     await CouponService.deleteCoupon(id);
 
-    revalidatePath("/");
+    revalidatePath("/", "page");
     revalidatePath("/admin/coupons");
 
     return {
@@ -91,7 +91,7 @@ export async function toggleCouponStatusAction(
 
     await CouponService.toggleCouponStatus(id);
 
-    revalidatePath("/");
+    revalidatePath("/", "page");
     revalidatePath("/admin/coupons");
 
     return {

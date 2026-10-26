@@ -33,6 +33,7 @@ export async function updateOrderStatusAction(
 
     await OrderService.updateOrderStatus(orderId, status);
 
+    revalidatePath("/", "page");
     revalidatePath("/admin/orders");
     revalidatePath("/profile");
     return {
@@ -56,6 +57,7 @@ export async function deleteOrderAction(
 
     await OrderService.deleteOrder(orderId);
 
+    revalidatePath("/", "page");
     revalidatePath("/admin/orders");
     revalidatePath("/profile");
     return {

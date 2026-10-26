@@ -1,43 +1,43 @@
-import React from "react";
-import { checkAdminAuth } from "@/actions/admin-auth";
-import { getCurrentUserAction } from "@/actions/user-auth";
-import { OrderService } from "@/services/order.service";
-import { CommentService } from "@/services/comment.service";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import {
+  getGlobalStatusBarDataAction,
+  GlobalStatusBarData,
+} from "@/actions/user-auth";
 import AdminStatusBar from "@/components/layout/AdminStatusBar";
 import UserStatusBar from "@/components/layout/UserStatusBar";
 
-export default async function GlobalStatusBar() {
-  const isAdmin = await checkAdminAuth();
-  const userRes = await getCurrentUserAction();
-  const user = userRes.success ? userRes.user : null;
+export default function GlobalStatusBar() {
+  const [status, setStatus] = useState<GlobalStatusBarData | null>(null);
 
-  if (!isAdmin && !user) {
+  useEffect(() => {
+    getGlobalStatusBarDataAction().then((res) => {
+      if (res.success && res.data) {
+        setStatus(res.data);
+      }
+    });
+  }, []);
+
+  if (!status || status.type === "none") {
     return null;
   }
 
-  if (isAdmin) {
-    const pendingCommentsCount = await CommentService.getPendingCommentsCount();
-    const { monthSales, pendingOrdersCount } =
-      await OrderService.getAdminStatusBarMetrics();
-
+  if (status.type === "admin") {
     return (
       <AdminStatusBar
-        monthSales={monthSales}
-        pendingOrdersCount={pendingOrdersCount}
-        pendingCommentsCount={pendingCommentsCount}
+        monthSales={status.data.monthSales}
+        pendingOrdersCount={status.data.pendingOrdersCount}
+        pendingCommentsCount={status.data.pendingCommentsCount}
       />
     );
   }
 
-  if (user) {
-    const pendingUserOrdersCount = await OrderService.getPendingUserOrdersCount(
-      user.phone,
-    );
-
+  if (status.type === "user") {
     return (
       <UserStatusBar
-        user={user}
-        pendingUserOrdersCount={pendingUserOrdersCount}
+        user={status.data.user}
+        pendingUserOrdersCount={status.data.pendingUserOrdersCount}
       />
     );
   }

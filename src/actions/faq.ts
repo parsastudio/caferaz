@@ -32,7 +32,7 @@ export async function createFaqAction(
 
     const data = await FaqService.createFaq(validated.data);
 
-    revalidatePath("/");
+    revalidatePath("/", "page");
     revalidatePath("/admin/faq");
 
     return {
@@ -68,7 +68,7 @@ export async function updateFaqAction(
 
     const data = await FaqService.updateFaq(validated.data);
 
-    revalidatePath("/");
+    revalidatePath("/", "page");
     revalidatePath("/admin/faq");
 
     return {
@@ -100,7 +100,7 @@ export async function deleteFaqAction(
 
     await FaqService.deleteFaq(id);
 
-    revalidatePath("/");
+    revalidatePath("/", "page");
     revalidatePath("/admin/faq");
 
     return {
