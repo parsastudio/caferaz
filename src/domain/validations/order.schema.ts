@@ -59,6 +59,11 @@ export const serverOrderSchema = z.object({
     .enum(["piroozi", "hakimieh", "other_tehran"])
     .optional()
     .default("piroozi"),
+  postalCode: z.string().optional(),
+  paymentMethod: z
+    .enum(["cod", "online"])
+    .optional()
+    .default("cod"),
   otp: z.preprocess(
     (val) => (typeof val === "string" && val.trim() === "" ? undefined : val),
     otpCodeSchema.optional(),

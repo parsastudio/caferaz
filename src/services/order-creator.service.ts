@@ -111,23 +111,37 @@ export class OrderCreatorService {
         couponUsages: [],
       });
 
+      const rawCleanAddress = customerAddress.trim();
+
       const user = await tx.user.upsert({
         where: { phone: cleanPhone },
-        update: { name: customerName, address: customerAddress },
+        update: { name: customerName, address: rawCleanAddress },
         create: {
           phone: cleanPhone,
           name: customerName,
-          address: customerAddress,
+          address: rawCleanAddress,
         },
       });
 
       if (coupon && pricingBreakdown.userCouponDiscountAmount > 0) {
-        await tx.couponUsage.create({
-          data: {
-            couponId: coupon.id,
-            phone: cleanPhone,
-          },
-        });
+        try {
+          await tx.couponUsage.create({
+            data: {
+              couponId: coupon.id,
+              phone: cleanPhone,
+            },
+          });
+        } catch (err) {
+          if (
+            err instanceof Prisma.PrismaClientKnownRequestError &&
+            err.code === "P2002"
+          ) {
+            throw new Error(
+              "تراکنش مسدود شد: این کد تخفیف قبلاً توسط شما استفاده شده است.",
+            );
+          }
+          throw err;
+        }
       }
 
       const secureRandomId = crypto.randomInt(100000000000, 1000000000000);
@@ -151,6 +165,24 @@ export class OrderCreatorService {
         pricingBreakdown.finalPrice / Math.max(1, quantity),
       );
 
+      let orderFormattedAddress = rawCleanAddress;
+      if (payload.destination === "other") {
+        const postalText = payload.postalCode?.trim()
+          ? ` | کد پستی: ${payload.postalCode.trim()}`
+          : "";
+        orderFormattedAddress = `[سایر شهرها - پست پیشتاز | آنلاین] ${rawCleanAddress}${postalText}`;
+      } else {
+        const zoneText =
+          payload.tehranZone === "piroozi"
+            ? "پیروزی (ارسال رایگان)"
+            : payload.tehranZone === "hakimieh"
+              ? "حکیمیه (ارسال رایگان)"
+              : `سایر مناطق تهران (کرایه پیک: ${shippingFee.toLocaleString()} ت)`;
+        const payText =
+          payload.paymentMethod === "online" ? "پرداخت آنلاین" : "پرداخت در محل";
+        orderFormattedAddress = `[تحویل پیک تهران - ${zoneText} | ${payText}] ${rawCleanAddress}`;
+      }
+
       const finalOrder = await tx.order.create({
         data: {
           id: generatedId,
@@ -159,7 +191,7 @@ export class OrderCreatorService {
           finalPrice: totalOrderFinalPrice,
           customerName,
           customerPhone: cleanPhone,
-          customerAddress,
+          customerAddress: orderFormattedAddress,
           status: "unreviewed",
           orderItems: {
             create: {

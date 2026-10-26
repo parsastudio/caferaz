@@ -36,23 +36,7 @@ export function useCheckoutSubmit({
       `${values.firstName || ""} ${values.lastName || ""}`.trim() ||
       "کاربر کافه راز";
 
-    let customerAddress = values.shippingAddress.trim();
-    if (values.destination === "other") {
-      const postalText = values.postalCode?.trim()
-        ? ` | کد پستی: ${values.postalCode.trim()}`
-        : "";
-      customerAddress = `[ارسال با اداره پست (کرایه پس‌پرداخت پست) | پرداخت آنلاین] ${customerAddress}${postalText}`;
-    } else {
-      const zoneLabel =
-        values.tehranZone === "piroozi"
-          ? "پیروزی (ارسال رایگان)"
-          : values.tehranZone === "hakimieh"
-            ? "حکیمیه (ارسال رایگان)"
-            : `سایر مناطق (کرایه پیک: ${tehranDeliveryFee.toLocaleString()} ت)`;
-      const payLabel =
-        values.paymentMethod === "online" ? "پرداخت آنلاین" : "پرداخت در محل";
-      customerAddress = `[تحویل پیک تهران - ${zoneLabel} | ${payLabel}] ${customerAddress}`;
-    }
+    const cleanAddress = values.shippingAddress.trim();
 
     try {
       const result = await submitOrderAction({
@@ -63,9 +47,11 @@ export function useCheckoutSubmit({
         grind: checkoutData?.selectedGrind ?? "",
         customerName: fullName,
         customerPhone: cleanPhone,
-        customerAddress,
+        customerAddress: cleanAddress,
         destination: values.destination,
         tehranZone: values.tehranZone,
+        postalCode: values.postalCode?.trim() || undefined,
+        paymentMethod: values.paymentMethod,
         otp: otpCode,
         appliedCouponCode: appliedCouponCode ?? null,
       });
